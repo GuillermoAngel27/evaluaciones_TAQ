@@ -13,11 +13,17 @@ Sistema completo de gestión y evaluación de locales comerciales con interfaz m
 
 ## 🛠️ Tecnologías Utilizadas
 
-### Frontend
+### Frontend Administrativo
 - **React.js** - Biblioteca de interfaz de usuario
-- **Material-UI (MUI)** - Componentes de UI
-- **Recharts** - Gráficos interactivos
-- **React Router** - Navegación entre páginas
+- **Argon Dashboard** - Framework de UI
+- **Bootstrap 5** - Framework CSS
+- **Chart.js** - Gráficos interactivos
+- **Reactstrap** - Componentes de Bootstrap para React
+
+### Frontend Evaluaciones
+- **React.js** - Biblioteca de interfaz de usuario
+- **CSS Inline** - Estilos personalizados
+- **Fetch API** - Comunicación con backend
 
 ### Backend
 - **Node.js** - Runtime de JavaScript
@@ -40,37 +46,48 @@ git clone git@github.com:GuillermoAngel27/evaluaciones_TAQ.git
 cd evaluacionesTAQ
 ```
 
-2. **Configurar el backend**
+2. **Instalar todas las dependencias**
 ```bash
-cd backend
-npm install
-cp env.example .env
-# Editar .env con tus credenciales de base de datos
+npm run install:all
 ```
 
-3. **Configurar la base de datos**
+3. **Configurar variables de entorno**
+```bash
+# Copiar archivo de configuración principal
+cp env.example .env
+
+# Configurar backend
+cd backend
+cp env.example .env
+# Editar backend/.env con tus credenciales de base de datos
+
+# Configurar frontend administrativo (opcional)
+cd ../frontend/administrador
+cp env.example .env
+```
+
+4. **Configurar la base de datos**
 ```sql
 CREATE DATABASE evaluaciones_taq;
 USE evaluaciones_taq;
 -- Ejecutar los scripts SQL necesarios
 ```
 
-4. **Instalar dependencias del frontend**
+5. **Iniciar todos los servicios (desarrollo)**
 ```bash
-cd ../frontend/admin
-npm install
+npm run start:dev
 ```
 
-5. **Iniciar el backend**
+**O iniciar servicios individualmente:**
 ```bash
-cd ../../backend
-node start_backend.js
-```
+# Backend
+npm run start:backend
 
-6. **Iniciar el frontend**
-```bash
-cd ../frontend/admin
-npm start
+# Frontend Administrativo
+npm run start:admin
+
+# Frontend Evaluaciones
+npm run start:evaluacion
 ```
 
 ## 📁 Estructura del Proyecto
@@ -83,10 +100,10 @@ evaluacionesTAQ/
 │   ├── routes/
 │   └── start_backend.js
 ├── frontend/
-│   ├── admin/          # Panel administrativo
+│   ├── administrador/  # Panel administrativo (Argon Dashboard)
 │   │   ├── src/
 │   │   │   ├── components/
-│   │   │   ├── pages/
+│   │   │   ├── views/
 │   │   │   └── context/
 │   │   └── package.json
 │   └── evaluacion/     # Frontend para evaluaciones
@@ -95,17 +112,30 @@ evaluacionesTAQ/
 
 ## 🎨 Diseño
 
+### Panel Administrativo
 El proyecto utiliza el diseño visual del **Argon Dashboard** con:
 - Paleta de colores moderna (#5e72e4, #825ee4)
 - Gradientes de 87 grados
 - Sombras suaves y bordes rectos
-- Iconografía consistente
+- Iconografía FontAwesome
 - Tipografía limpia y legible
+
+### Frontend Evaluaciones
+Diseño **mobile-first** optimizado para dispositivos móviles:
+- Interfaz táctil intuitiva
+- Colores Material Design (#1976d2, #dc004e)
+- Componentes responsivos
+- UX prioritaria para clientes
 
 ## 🔐 Autenticación
 
+### Panel Administrativo
 - **Usuario**: `admin`
-- **Contraseña**: `admin123`
+- **Contraseña**: `admin1234`
+
+### Frontend Evaluaciones
+- **Sin autenticación** - Acceso directo mediante URL con ID del local
+- **Tokens únicos** - Generados automáticamente por dispositivo
 
 ## 📊 Funcionalidades
 
@@ -136,21 +166,48 @@ El proyecto utiliza el diseño visual del **Argon Dashboard** con:
 ## 🌐 URLs de Acceso
 
 - **Backend API**: `http://localhost:4000`
-- **Frontend Admin**: `http://localhost:3001`
-- **Frontend Evaluación**: `http://localhost:3000`
+- **Frontend Administrativo**: `http://localhost:3000`
+- **Frontend Evaluación**: `http://localhost:3001`
+
+## 🚀 Scripts Disponibles
+
+### Instalación
+- `npm run install:all` - Instalar dependencias de todos los servicios
+- `npm run install:backend` - Instalar dependencias del backend
+- `npm run install:admin` - Instalar dependencias del panel administrativo
+- `npm run install:evaluacion` - Instalar dependencias del frontend de evaluaciones
+
+### Desarrollo
+- `npm run start:dev` - Iniciar todos los servicios en modo desarrollo
+- `npm run start:backend` - Iniciar solo el backend
+- `npm run start:admin` - Iniciar solo el panel administrativo
+- `npm run start:evaluacion` - Iniciar solo el frontend de evaluaciones
+
+### Producción
+- `npm run build:all` - Construir todos los frontends para producción
+- `npm run build:admin` - Construir panel administrativo
+- `npm run build:evaluacion` - Construir frontend de evaluaciones
 
 ## 📝 API Endpoints
 
 ### Locales
-- `GET /api/admin/locales` - Obtener todos los locales
-- `POST /api/admin/locales` - Crear nuevo local
-- `PUT /api/admin/locales/:id` - Actualizar local
-- `DELETE /api/admin/locales/:id` - Eliminar local
+- `GET /api/locales` - Obtener todos los locales
+- `GET /api/locales/:id` - Obtener local específico
+- `POST /api/locales` - Crear nuevo local
+- `PUT /api/locales/:id` - Actualizar local
+- `DELETE /api/locales/:id` - Eliminar local
 
 ### Evaluaciones
-- `GET /api/admin/evaluaciones` - Obtener evaluaciones
+- `GET /api/evaluaciones` - Obtener evaluaciones
+- `GET /api/evaluaciones/:id` - Obtener evaluación específica
 - `POST /api/evaluaciones` - Crear evaluación
-- `GET /api/admin/estadisticas` - Obtener estadísticas
+- `DELETE /api/evaluaciones/:id` - Eliminar evaluación
+- `GET /api/evaluaciones/preguntas/:tipo` - Obtener preguntas por tipo de local
+
+### Tokens
+- `POST /api/tokens/generar` - Generar token para evaluación
+- `POST /api/tokens/verificar-evaluacion` - Verificar si puede evaluar
+- `POST /api/tokens/usar` - Marcar token como usado
 
 ## 🤝 Contribuir
 

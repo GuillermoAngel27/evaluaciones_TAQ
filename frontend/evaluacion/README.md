@@ -1,70 +1,161 @@
-# Getting Started with Create React App
+# Frontend de Evaluaciones - Sistema TAQ
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend para la recolección de evaluaciones de clientes en locales comerciales.
 
-## Available Scripts
+## 🎯 Propósito
 
-In the project directory, you can run:
+Este frontend permite a los clientes evaluar su experiencia en locales comerciales mediante:
+- Calificación por estrellas (1-5)
+- Comentarios opcionales
+- Preguntas específicas según el tipo de local
 
-### `npm start`
+## 🚀 Instalación
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerrequisitos
+- Node.js (versión 16 o superior)
+- npm o yarn
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Pasos de instalación
 
-### `npm test`
+1. **Navegar al directorio:**
+   ```bash
+   cd frontend/evaluacion
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
 
-### `npm run build`
+3. **Iniciar el servidor de desarrollo:**
+   ```bash
+   npm start
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+4. **Abrir en el navegador:**
+   ```
+   http://localhost:3001
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📱 Uso
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Acceso a Evaluación
+Para acceder a una evaluación específica, usar la URL:
+```
+http://localhost:3001/?id=ID_DEL_LOCAL
+```
 
-### `npm run eject`
+### Flujo de Evaluación
+1. **Escaneo de QR** - El cliente escanea el código QR del local
+2. **Verificación** - El sistema verifica si puede evaluar (máximo 1 por 24h)
+3. **Preguntas** - Se muestran preguntas específicas según el tipo de local
+4. **Calificación** - El cliente califica cada pregunta (1-5 estrellas)
+5. **Comentario** - Opcionalmente puede agregar un comentario
+6. **Envío** - La evaluación se envía al backend
+7. **Confirmación** - Se muestra mensaje de agradecimiento
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🏗️ Estructura del Proyecto
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+├── components/
+│   ├── PreguntasForm.js    # Formulario de preguntas
+│   └── RatingSelector.js   # Selector de calificación
+├── pages/
+│   └── EvaluacionPage.js   # Página principal de evaluación
+├── App.js                  # Componente principal
+└── index.js               # Punto de entrada
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔧 Configuración
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Variables de Entorno
+Crear un archivo `.env` en la raíz del proyecto:
+```env
+REACT_APP_API_URL=http://localhost:4000/api
+PORT=3001
+```
 
-## Learn More
+### Tipos de Locales Soportados
+- **Misceláneas** - Preguntas básicas de servicio
+- **Alimentos** - Incluye relación calidad-precio
+- **Taxis** - Preguntas específicas de transporte
+- **Estacionamiento** - Preguntas sobre instalaciones
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📊 Características
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Responsive Design
+- **Mobile-first** - Optimizado para dispositivos móviles
+- **Touch-friendly** - Interfaz táctil intuitiva
+- **Adaptativo** - Se adapta a diferentes tamaños de pantalla
 
-### Code Splitting
+### Validaciones
+- **Respuestas obligatorias** - Todas las preguntas deben ser respondidas
+- **Rango válido** - Calificaciones entre 1 y 5
+- **Token único** - Prevención de evaluaciones duplicadas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Estados de UI
+- **Carga** - Mientras se verifica el local
+- **Error** - Si el local no existe o está inactivo
+- **Evaluación** - Formulario de preguntas
+- **Envío** - Procesando la evaluación
+- **Éxito** - Confirmación de envío
 
-### Analyzing the Bundle Size
+## 🔗 Integración
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Backend
+- **API REST** en `http://localhost:4000`
+- **Endpoints** para locales, evaluaciones y tokens
+- **CORS** configurado para comunicación
 
-### Making a Progressive Web App
+### Base de Datos
+- **MySQL** con tablas para locales, evaluaciones y respuestas
+- **Tokens únicos** por dispositivo y local
+- **Validación temporal** (24 horas)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🚀 Scripts Disponibles
 
-### Advanced Configuration
+- `npm start` - Inicia el servidor de desarrollo en puerto 3001
+- `npm run build` - Construye la aplicación para producción
+- `npm test` - Ejecuta las pruebas
+- `npm run eject` - Expone la configuración de webpack
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🎨 Diseño
 
-### Deployment
+### Paleta de Colores
+- **Primario**: #1976d2 (Azul Material-UI)
+- **Secundario**: #dc004e (Rojo Material-UI)
+- **Fondo**: #f5f6fa (Gris claro)
+- **Texto**: #263238 (Gris oscuro)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Componentes
+- **Tarjetas** con sombras suaves
+- **Botones** con efectos hover
+- **Formularios** con validación visual
+- **Iconos** para mejor UX
 
-### `npm run build` fails to minify
+## 📝 Notas de Desarrollo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Tecnologías
+- **React 19** - Biblioteca de interfaz
+- **CSS Inline** - Estilos personalizados
+- **Fetch API** - Comunicación con backend
+- **LocalStorage** - Persistencia de device ID
+
+### Consideraciones
+- **Sin estado global** - Componentes simples
+- **Sin routing** - Página única
+- **Optimizado para móvil** - UX prioritaria
+- **Accesibilidad** - Navegación por teclado
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature
+3. Commit tus cambios
+4. Push a la rama
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT.
