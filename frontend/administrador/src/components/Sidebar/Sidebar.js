@@ -133,7 +133,7 @@ const Sidebar = (props) => {
             <DropdownMenu
               aria-labelledby="navbar-default_dropdown_1"
               className="dropdown-menu-arrow"
-              right
+              end
             >
               <DropdownItem>Action</DropdownItem>
               <DropdownItem>Another action</DropdownItem>
@@ -152,7 +152,7 @@ const Sidebar = (props) => {
                 </span>
               </Media>
             </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-arrow" right>
+            <DropdownMenu className="dropdown-menu-arrow" end>
               <DropdownItem className="noti-title" header tag="div">
                 <h6 className="text-overflow m-0">Welcome!</h6>
               </DropdownItem>

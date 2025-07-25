@@ -16,6 +16,10 @@
 
 */
 import Index from "views/Index.js";
+import Dashboard from "views/Dashboard.js";
+import Locales from "views/Locales.js";
+import Evaluaciones from "views/Evaluaciones.js";
+import Estadisticas from "views/Estadisticas.js";
 import Profile from "views/examples/Profile.js";
 import Maps from "views/examples/Maps.js";
 import Register from "views/examples/Register.js";
@@ -26,9 +30,37 @@ import Icons from "views/examples/Icons.js";
 var routes = [
   {
     path: "/index",
-    name: "Dashboard",
+    name: "Inicio",
     icon: "ni ni-tv-2 text-primary",
     component: <Index />,
+    layout: "/admin",
+  },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    icon: "ni ni-chart-bar-32 text-info",
+    component: <Dashboard />,
+    layout: "/admin",
+  },
+  {
+    path: "/locales",
+    name: "Gestión de Locales",
+    icon: "ni ni-shop text-success",
+    component: <Locales />,
+    layout: "/admin",
+  },
+  {
+    path: "/evaluaciones",
+    name: "Evaluaciones",
+    icon: "ni ni-star text-warning",
+    component: <Evaluaciones />,
+    layout: "/admin",
+  },
+  {
+    path: "/estadisticas",
+    name: "Estadísticas",
+    icon: "ni ni-chart-pie-35 text-danger",
+    component: <Estadisticas />,
     layout: "/admin",
   },
   {

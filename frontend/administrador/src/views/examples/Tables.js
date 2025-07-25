@@ -190,7 +190,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -340,7 +340,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -488,7 +488,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -638,7 +638,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -788,7 +788,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -1017,7 +1017,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -1164,7 +1164,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -1312,7 +1312,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -1462,7 +1462,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}
@@ -1612,7 +1612,7 @@ const Tables = () => {
                         >
                           <i className="fas fa-ellipsis-v" />
                         </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownMenu className="dropdown-menu-arrow" end>
                           <DropdownItem
                             href="#pablo"
                             onClick={(e) => e.preventDefault()}

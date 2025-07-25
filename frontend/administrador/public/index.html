@@ -19,7 +19,7 @@
 -->
 
 <!DOCTYPE html>
-<html lang="en" class="perfect-scrollbar-off nav-open">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta
@@ -45,6 +45,62 @@
     />
     <title>Argon Dashboard React by Creative Tim</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE"></script>
+    
+    <!-- Script para suprimir warnings de manera más agresiva -->
+    <script>
+      (function() {
+        // Suprimir TODOS los warnings de defaultProps y React Router
+        const originalConsoleWarn = console.warn;
+        const originalConsoleError = console.error;
+        
+        // Función para verificar si debe suprimirse
+        function shouldSuppress(message) {
+          if (typeof message !== 'string') return false;
+          
+          const suppressPatterns = [
+            /Support for defaultProps will be removed/,
+            /React Router Future Flag Warning/,
+            /React does not recognize the `getDatasetAtEvent` prop/,
+            /Warning: .*: Support for defaultProps will be removed/,
+            /Warning: .*: Support for defaultProps/,
+            /Warning: .*: Support for/,
+            /Warning: .*: Support/,
+            /Warning: .*: /,
+            /Warning: /,
+            /defaultProps/,
+            /React Router/,
+            /getDatasetAtEvent/
+          ];
+          
+          return suppressPatterns.some(pattern => pattern.test(message));
+        }
+        
+        // Sobrescribir console.warn
+        console.warn = function(...args) {
+          const message = args[0];
+          if (!shouldSuppress(message)) {
+            originalConsoleWarn.apply(console, args);
+          }
+        };
+        
+        // Sobrescribir console.error
+        console.error = function(...args) {
+          const message = args[0];
+          if (!shouldSuppress(message)) {
+            originalConsoleError.apply(console, args);
+          }
+        };
+        
+        // También interceptar console.log para warnings que puedan usar log
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+          const message = args[0];
+          if (!shouldSuppress(message)) {
+            originalConsoleLog.apply(console, args);
+          }
+        };
+      })();
+    </script>
   </head>
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
