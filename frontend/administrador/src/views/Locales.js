@@ -242,37 +242,14 @@ const Locales = () => {
           <div className="header-body">
             <Row>
               <Col>
-                <h6 className="h2 text-white d-inline-block mb-0">Gestión de Locales</h6>
-                <nav aria-label="breadcrumb" className="d-none d-md-inline-block ml-md-4">
-                  <ol className="breadcrumb breadcrumb-links breadcrumb-dark">
-                    <li className="breadcrumb-item">
-                      <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                        <i className="fas fa-home" />
-                      </a>
-                    </li>
-                    <li className="breadcrumb-item">
-                      <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                        Locales
-                      </a>
-                    </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                      Gestión
-                    </li>
-                  </ol>
-                </nav>
-              </Col>
-              <Col className="text-right">
-                <Button color="primary" onClick={handleCreate}>
-                  <FaPlus className="mr-1" />
-                  Nuevo Local
-                </Button>
+                <h6 className="h2 text-white d-inline-block mb-0"></h6>
               </Col>
             </Row>
           </div>
         </Container>
       </div>
 
-      <Container className="mt--7" fluid>
+             <Container className="mt--9" fluid>
         <Row>
           <Col>
             <Card className="shadow">
@@ -292,7 +269,7 @@ const Locales = () => {
               <CardBody>
                 {/* Filtros y búsqueda */}
                 <Row className="mb-4">
-                  <Col md="4">
+                  <Col md="3">
                     <FormGroup>
                       <Input
                         type="text"
@@ -303,7 +280,7 @@ const Locales = () => {
                       />
                     </FormGroup>
                   </Col>
-                  <Col md="3">
+                  <Col md="2">
                     <FormGroup>
                       <Input
                         type="select"
@@ -320,7 +297,7 @@ const Locales = () => {
                       </Input>
                     </FormGroup>
                   </Col>
-                  <Col md="3">
+                  <Col md="2">
                     <FormGroup>
                       <Input
                         type="select"
@@ -349,6 +326,17 @@ const Locales = () => {
                     >
                       <FaFilter className="mr-1" />
                       Limpiar
+                    </Button>
+                  </Col>
+                  <Col md="3" className="text-right">
+                    <Button
+                      color="primary"
+                      block
+                      onClick={handleCreate}
+                      className="btn-icon"
+                    >
+                      <FaPlus className="mr-1" />
+                      + Nuevo Local
                     </Button>
                   </Col>
                 </Row>
@@ -397,15 +385,15 @@ const Locales = () => {
                             <div className="d-flex align-items-center">
                               <span className="mr-2">{local.evaluaciones}</span>
                               <div>
-                                <div className="progress">
-                                  <div
-                                    style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}
-                                    role="progressbar"
-                                    style={{
-                                      width: `${(local.evaluaciones / 50) * 100}%`,
-                                    }}
-                                  />
-                                </div>
+                                                                 <div className="progress">
+                                   <div
+                                     style={{ 
+                                       background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
+                                       width: `${(local.evaluaciones / 50) * 100}%`
+                                     }}
+                                     role="progressbar"
+                                   />
+                                 </div>
                               </div>
                             </div>
                           </td>

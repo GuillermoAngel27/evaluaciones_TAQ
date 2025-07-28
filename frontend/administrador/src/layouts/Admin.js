@@ -31,8 +31,12 @@ import routes from "routes.js";
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
+  const [brandText, setBrandText] = React.useState("Inicio");
 
   React.useEffect(() => {
+    // Actualizar el título del navbar cuando cambie la ubicación
+    setBrandText(getBrandText(location.pathname));
+    
     // Esperar un poco para asegurar que el DOM esté listo
     const timer = setTimeout(() => {
       document.documentElement.scrollTop = 0;
@@ -58,15 +62,25 @@ const Admin = (props) => {
   };
 
   const getBrandText = (path) => {
-    for (let i = 0; i < routes.length; i++) {
-      if (
-        props?.location?.pathname.indexOf(routes[i].layout + routes[i].path) !==
-        -1
-      ) {
-        return routes[i].name;
+    // Filtrar solo las rutas del admin
+    const adminRoutes = routes.filter(route => route.layout === "/admin");
+    
+    for (let i = 0; i < adminRoutes.length; i++) {
+      const route = adminRoutes[i];
+      const fullPath = route.layout + route.path;
+      
+      // Verificar si la ruta actual coincide exactamente o termina con la ruta
+      if (path === fullPath || path.endsWith(route.path)) {
+        return route.name;
       }
     }
-    return "Brand";
+    
+    // Si no encuentra coincidencia, verificar si estamos en la ruta raíz del admin
+    if (path === "/admin" || path === "/admin/") {
+      return "Inicio";
+    }
+    
+    return "Inicio";
   };
 
   return (
@@ -84,7 +98,7 @@ const Admin = (props) => {
         <div className="main-content" ref={mainContent}>
           <AdminNavbar
             {...props}
-            brandText={getBrandText(props?.location?.pathname)}
+            brandText={brandText}
           />
           <Routes>
             {getRoutes(routes)}
