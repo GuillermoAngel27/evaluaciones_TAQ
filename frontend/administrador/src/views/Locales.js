@@ -42,21 +42,76 @@ import {
 } from "react-icons/fa";
 
 const Locales = () => {
+  // Estilos CSS personalizados para dropdowns modernos
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .modern-select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 12px center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px !important;
+        padding-right: 40px !important;
+      }
+      
+      .modern-select:hover {
+        border-color: #5A0C62 !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.15) !important;
+        transform: translateY(-1px) !important;
+      }
+      
+      .modern-select:focus {
+        border-color: #DC017F !important;
+        box-shadow: 0 0 0 3px rgba(220, 1, 127, 0.1) !important;
+        outline: none !important;
+      }
+      
+      .custom-select-wrapper {
+        position: relative;
+      }
+      
+      
+      
+      .modern-select option {
+        padding: 12px 16px !important;
+        font-weight: 500 !important;
+        background: white !important;
+        color: #495057 !important;
+      }
+      
+      .modern-select option:hover {
+        background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
+        color: white !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const [modal, setModal] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // create, edit, view
   const [selectedLocal, setSelectedLocal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [qrModal, setQrModal] = useState(false);
+  const [selectedLocalForQr, setSelectedLocalForQr] = useState(null);
 
   // Datos de ejemplo
   const [locales, setLocales] = useState([
     {
       id: 1,
       nombre: "Restaurante El Buen Sabor",
-      tipo: "Restaurante",
+      tipo: "Alimentos",
       direccion: "Av. Principal 123",
       telefono: "555-0123",
       email: "info@buensabor.com",
@@ -68,7 +123,7 @@ const Locales = () => {
     {
       id: 2,
       nombre: "Café Central",
-      tipo: "Café",
+      tipo: "Alimentos",
       direccion: "Calle Comercial 456",
       telefono: "555-0456",
       email: "contacto@cafecentral.com",
@@ -80,7 +135,7 @@ const Locales = () => {
     {
       id: 3,
       nombre: "Pizzería Italia",
-      tipo: "Pizzería",
+      tipo: "Alimentos",
       direccion: "Plaza Mayor 789",
       telefono: "555-0789",
       email: "pedidos@pizzeriaitalia.com",
@@ -92,28 +147,76 @@ const Locales = () => {
     {
       id: 4,
       nombre: "Bar La Esquina",
-      tipo: "Bar",
+      tipo: "Alimentos",
       direccion: "Esquina Norte 321",
       telefono: "555-0321",
       email: "reservas@laesquina.com",
-      estatus: "Mantenimiento",
+      estatus: "Activo",
       calificacion: 4.0,
       evaluaciones: 15,
       fechaCreacion: "2024-02-10",
+    },
+    {
+      id: 5,
+      nombre: "Miscelánea El Ahorro",
+      tipo: "Misceláneas",
+      direccion: "Calle 5 de Mayo 654",
+      telefono: "555-0654",
+      email: "ventas@elahorro.com",
+      estatus: "Activo",
+      calificacion: 4.1,
+      evaluaciones: 22,
+      fechaCreacion: "2024-02-15",
+    },
+    {
+      id: 6,
+      nombre: "Taxi Express",
+      tipo: "Taxis",
+      direccion: "Terminal Central",
+      telefono: "555-0999",
+      email: "reservas@taxiexpress.com",
+      estatus: "Activo",
+      calificacion: 4.3,
+      evaluaciones: 38,
+      fechaCreacion: "2024-01-25",
+    },
+    {
+      id: 7,
+      nombre: "Estacionamiento Centro",
+      tipo: "Estacionamiento",
+      direccion: "Plaza Principal",
+      telefono: "555-0888",
+      email: "info@estacionamientocentro.com",
+      estatus: "Inactivo",
+      calificacion: 3.9,
+      evaluaciones: 19,
+      fechaCreacion: "2024-03-01",
+    },
+    {
+      id: 8,
+      nombre: "Miscelánea La Esquina",
+      tipo: "Misceláneas",
+      direccion: "Esquina Sur 987",
+      telefono: "555-0987",
+      email: "contacto@laesquina.com",
+      estatus: "Activo",
+      calificacion: 4.0,
+      evaluaciones: 25,
+      fechaCreacion: "2024-02-20",
     },
   ]);
 
   const [formData, setFormData] = useState({
     nombre: "",
-    tipo: "Restaurante",
+    tipo: "Alimentos",
     direccion: "",
     telefono: "",
     email: "",
     estatus: "Activo",
   });
 
-  const tiposLocales = ["Restaurante", "Café", "Bar", "Pizzería", "Otros"];
-  const estadosLocales = ["Activo", "Inactivo", "Mantenimiento"];
+  const tiposLocales = ["Misceláneas", "Alimentos", "Taxis", "Estacionamiento"];
+  const estadosLocales = ["Activo", "Inactivo"];
 
   // Funciones de manejo
   const toggleModal = () => setModal(!modal);
@@ -194,15 +297,59 @@ const Locales = () => {
     });
   };
 
+  // Funciones para el modal de QR
+  const toggleQrModal = () => setQrModal(!qrModal);
+  
+  const handleCreateQr = () => {
+    setSelectedLocalForQr(null);
+    toggleQrModal();
+  };
+
+  const handleCreateQrForLocal = (local) => {
+    setSelectedLocalForQr(local);
+    toggleQrModal();
+  };
+
+  const handleGenerateQr = (type) => {
+    if (type === 'individual' && selectedLocalForQr) {
+      // Generar QR para un local específico
+      console.log('Generando QR para:', selectedLocalForQr.nombre);
+      alert(`QR generado para: ${selectedLocalForQr.nombre}`);
+    } else if (type === 'all') {
+      // Generar QR para todos los locales activos
+      const activeLocales = locales.filter(local => local.estatus === 'Activo');
+      console.log('Generando QR para todos los locales activos:', activeLocales.length);
+      alert(`QR generado para ${activeLocales.length} locales activos`);
+    }
+    toggleQrModal();
+  };
+
   // Filtrado y búsqueda
   const filteredLocales = locales.filter((local) => {
     const matchesSearch = local.nombre
       .toLowerCase()
-      .includes(searchTerm.toLowerCase()) ||
-      local.direccion.toLowerCase().includes(searchTerm.toLowerCase());
+      .includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || local.estatus === filterStatus;
     const matchesType = filterType === "all" || local.tipo === filterType;
-    return matchesSearch && matchesStatus && matchesType;
+    
+    // Filtro por fecha
+    let matchesDate = true;
+    if (filterDateFrom && filterDateTo) {
+      const localDate = new Date(local.fechaCreacion);
+      const fromDate = new Date(filterDateFrom);
+      const toDate = new Date(filterDateTo);
+      matchesDate = localDate >= fromDate && localDate <= toDate;
+    } else if (filterDateFrom) {
+      const localDate = new Date(local.fechaCreacion);
+      const fromDate = new Date(filterDateFrom);
+      matchesDate = localDate >= fromDate;
+    } else if (filterDateTo) {
+      const localDate = new Date(local.fechaCreacion);
+      const toDate = new Date(filterDateTo);
+      matchesDate = localDate <= toDate;
+    }
+    
+    return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
   // Paginación
@@ -215,7 +362,6 @@ const Locales = () => {
     const colors = {
       Activo: "success",
       Inactivo: "secondary",
-      Mantenimiento: "warning",
     };
     return <Badge color={colors[status]}>{status}</Badge>;
   };
@@ -259,9 +405,22 @@ const Locales = () => {
                     <h3 className="mb-0">Lista de Locales</h3>
                   </div>
                   <div className="col text-right">
-                    <Button color="primary" size="sm">
-                      <FaDownload className="mr-1" />
-                      Exportar
+                                         <Button
+                       color="primary"
+                       size="sm"
+                       onClick={handleCreate}
+                       className="mr-2"
+                     >
+                       <FaPlus className="mr-1" />
+                       Agregar Local
+                     </Button>
+                    <Button
+                      color="success"
+                      size="sm"
+                      onClick={handleCreateQr}
+                    >
+                      <FaQrcode className="mr-1" />
+                      Crear QR
                     </Button>
                   </div>
                 </Row>
@@ -269,11 +428,11 @@ const Locales = () => {
               <CardBody>
                 {/* Filtros y búsqueda */}
                 <Row className="mb-4">
-                  <Col md="3">
+                  <Col md="2">
                     <FormGroup>
                       <Input
                         type="text"
-                        placeholder="Buscar por nombre o dirección..."
+                        placeholder="Buscar por nombre..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="form-control-alternative"
@@ -282,36 +441,93 @@ const Locales = () => {
                   </Col>
                   <Col md="2">
                     <FormGroup>
-                      <Input
-                        type="select"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="form-control-alternative"
-                      >
-                        <option value="all">Todos los estados</option>
-                        {estadosLocales.map((estado) => (
-                          <option key={estado} value={estado}>
-                            {estado}
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterStatus}
+                          onChange={(e) => setFilterStatus(e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            📊 Todos los estados
                           </option>
-                        ))}
-                      </Input>
+                          {estadosLocales.map((estado) => (
+                            <option key={estado} value={estado} style={{ fontWeight: '500' }}>
+                              {estado === 'Activo' ? '🟢 ' : '🔴 '}{estado}
+                            </option>
+                          ))}
+                        </Input>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                  <Col md="2">
+                    <FormGroup>
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            🏪 Todos los tipos
+                          </option>
+                          {tiposLocales.map((tipo) => (
+                            <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
+                              {tipo === 'Misceláneas' ? '🛒 ' : 
+                               tipo === 'Alimentos' ? '🍽️ ' : 
+                               tipo === 'Taxis' ? '🚕 ' : 
+                               tipo === 'Estacionamiento' ? '🅿️ ' : '🏢 '}{tipo}
+                            </option>
+                          ))}
+                        </Input>
+                      </div>
                     </FormGroup>
                   </Col>
                   <Col md="2">
                     <FormGroup>
                       <Input
-                        type="select"
-                        value={filterType}
-                        onChange={(e) => setFilterType(e.target.value)}
+                        type="date"
+                        placeholder="Fecha desde"
+                        value={filterDateFrom}
+                        onChange={(e) => setFilterDateFrom(e.target.value)}
                         className="form-control-alternative"
-                      >
-                        <option value="all">Todos los tipos</option>
-                        {tiposLocales.map((tipo) => (
-                          <option key={tipo} value={tipo}>
-                            {tipo}
-                          </option>
-                        ))}
-                      </Input>
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md="2">
+                    <FormGroup>
+                      <Input
+                        type="date"
+                        placeholder="Fecha hasta"
+                        value={filterDateTo}
+                        onChange={(e) => setFilterDateTo(e.target.value)}
+                        className="form-control-alternative"
+                      />
                     </FormGroup>
                   </Col>
                   <Col md="2">
@@ -322,21 +538,12 @@ const Locales = () => {
                         setSearchTerm("");
                         setFilterStatus("all");
                         setFilterType("all");
+                        setFilterDateFrom("");
+                        setFilterDateTo("");
                       }}
                     >
                       <FaFilter className="mr-1" />
                       Limpiar
-                    </Button>
-                  </Col>
-                  <Col md="3" className="text-right">
-                    <Button
-                      color="primary"
-                      block
-                      onClick={handleCreate}
-                      className="btn-icon"
-                    >
-                      <FaPlus className="mr-1" />
-                      + Nuevo Local
                     </Button>
                   </Col>
                 </Row>
@@ -344,17 +551,14 @@ const Locales = () => {
                 {/* Tabla */}
                 <div className="table-responsive">
                   <Table className="align-items-center table-flush" responsive>
-                    <thead className="thead-light">
-                      <tr>
-                        <th scope="col">Local</th>
-                        <th scope="col">Tipo</th>
-                        <th scope="col">Estado</th>
-                        <th scope="col">Calificación</th>
-                        <th scope="col">Evaluaciones</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Acciones</th>
-                      </tr>
-                    </thead>
+                                         <thead className="thead-light">
+                       <tr>
+                         <th scope="col">Local</th>
+                         <th scope="col">Tipo</th>
+                         <th scope="col">Estado</th>
+                         <th scope="col">Acciones</th>
+                       </tr>
+                     </thead>
                     <tbody>
                       {currentLocales.map((local) => (
                         <tr key={local.id}>
@@ -374,83 +578,22 @@ const Locales = () => {
                           <td>
                             <Badge color="info">{local.tipo}</Badge>
                           </td>
-                          <td>{getStatusBadge(local.estatus)}</td>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <span className="mr-2">{local.calificacion}</span>
-                              <div>{getRatingStars(local.calificacion)}</div>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <span className="mr-2">{local.evaluaciones}</span>
-                              <div>
-                                                                 <div className="progress">
-                                   <div
-                                     style={{ 
-                                       background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
-                                       width: `${(local.evaluaciones / 50) * 100}%`
-                                     }}
-                                     role="progressbar"
-                                   />
-                                 </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>{local.fechaCreacion}</td>
-                          <td>
-                            <div className="d-flex">
-                              <Button
-                                color="info"
-                                size="sm"
-                                className="mr-1"
-                                onClick={() => handleView(local)}
-                                id={`view-${local.id}`}
-                              >
-                                <FaEye />
-                              </Button>
-                              <UncontrolledTooltip target={`view-${local.id}`}>
-                                Ver detalles
-                              </UncontrolledTooltip>
-
-                              <Button
-                                color="success"
-                                size="sm"
-                                className="mr-1"
-                                onClick={() => handleEdit(local)}
-                                id={`edit-${local.id}`}
-                              >
-                                <FaEdit />
-                              </Button>
-                              <UncontrolledTooltip target={`edit-${local.id}`}>
-                                Editar
-                              </UncontrolledTooltip>
-
-                              <Button
-                                color="warning"
-                                size="sm"
-                                className="mr-1"
-                                id={`qr-${local.id}`}
-                              >
-                                <FaQrcode />
-                              </Button>
-                              <UncontrolledTooltip target={`qr-${local.id}`}>
-                                Generar QR
-                              </UncontrolledTooltip>
-
-                              <Button
-                                color="danger"
-                                size="sm"
-                                onClick={() => handleDelete(local.id)}
-                                id={`delete-${local.id}`}
-                              >
-                                <FaTrash />
-                              </Button>
-                              <UncontrolledTooltip target={`delete-${local.id}`}>
-                                Eliminar
-                              </UncontrolledTooltip>
-                            </div>
-                          </td>
+                                                     <td>{getStatusBadge(local.estatus)}</td>
+                           <td>
+                             <div className="d-flex">
+                               <Button
+                                 color="success"
+                                 size="sm"
+                                 onClick={() => handleEdit(local)}
+                                 id={`edit-${local.id}`}
+                               >
+                                 <FaEdit />
+                               </Button>
+                               <UncontrolledTooltip target={`edit-${local.id}`}>
+                                 Editar
+                               </UncontrolledTooltip>
+                             </div>
+                           </td>
                         </tr>
                       ))}
                     </tbody>
@@ -552,26 +695,43 @@ const Locales = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="tipo">Tipo de Local *</Label>
-                  <Input
-                    type="select"
-                    name="tipo"
-                    id="tipo"
-                    value={formData.tipo}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                  >
-                    {tiposLocales.map((tipo) => (
-                      <option key={tipo} value={tipo}>
-                        {tipo}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </Col>
+                             <Col md="6">
+                 <FormGroup>
+                   <Label for="tipo" style={{ fontWeight: '600', color: '#495057', marginBottom: '8px' }}>
+                     Tipo de Local *
+                   </Label>
+                   <Input
+                     type="select"
+                     name="tipo"
+                     id="tipo"
+                     value={formData.tipo}
+                     onChange={handleInputChange}
+                     disabled={modalMode === "view"}
+                     required
+                     style={{
+                       background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                       border: '2px solid #e9ecef',
+                       borderRadius: '12px',
+                       padding: '12px 16px',
+                       fontSize: '14px',
+                       fontWeight: '500',
+                       color: '#495057',
+                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                       transition: 'all 0.3s ease',
+                       cursor: 'pointer'
+                     }}
+                   >
+                     {tiposLocales.map((tipo) => (
+                       <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
+                         {tipo === 'Misceláneas' ? '🛒 ' : 
+                          tipo === 'Alimentos' ? '🍽️ ' : 
+                          tipo === 'Taxis' ? '🚕 ' : 
+                          tipo === 'Estacionamiento' ? '🅿️ ' : '🏢 '}{tipo}
+                       </option>
+                     ))}
+                   </Input>
+                 </FormGroup>
+               </Col>
             </Row>
             <Row>
               <Col md="12">
@@ -618,26 +778,40 @@ const Locales = () => {
               </Col>
             </Row>
             <Row>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="estatus">Estado *</Label>
-                  <Input
-                    type="select"
-                    name="estatus"
-                    id="estatus"
-                    value={formData.estatus}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                  >
-                    {estadosLocales.map((estado) => (
-                      <option key={estado} value={estado}>
-                        {estado}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </Col>
+                             <Col md="6">
+                 <FormGroup>
+                   <Label for="estatus" style={{ fontWeight: '600', color: '#495057', marginBottom: '8px' }}>
+                     Estado *
+                   </Label>
+                   <Input
+                     type="select"
+                     name="estatus"
+                     id="estatus"
+                     value={formData.estatus}
+                     onChange={handleInputChange}
+                     disabled={modalMode === "view"}
+                     required
+                     style={{
+                       background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                       border: '2px solid #e9ecef',
+                       borderRadius: '12px',
+                       padding: '12px 16px',
+                       fontSize: '14px',
+                       fontWeight: '500',
+                       color: '#495057',
+                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                       transition: 'all 0.3s ease',
+                       cursor: 'pointer'
+                     }}
+                   >
+                     {estadosLocales.map((estado) => (
+                       <option key={estado} value={estado} style={{ fontWeight: '500' }}>
+                         {estado === 'Activo' ? '🟢 ' : '🔴 '}{estado}
+                       </option>
+                     ))}
+                   </Input>
+                 </FormGroup>
+               </Col>
             </Row>
           </ModalBody>
           <ModalFooter>
@@ -651,6 +825,124 @@ const Locales = () => {
             )}
           </ModalFooter>
         </Form>
+      </Modal>
+
+      {/* Modal para Crear QR */}
+      <Modal isOpen={qrModal} toggle={toggleQrModal} size="lg">
+        <ModalHeader toggle={toggleQrModal}>
+          <FaQrcode className="mr-2" />
+          Crear Código QR
+        </ModalHeader>
+        <ModalBody>
+          {selectedLocalForQr ? (
+            // QR para un local específico
+            <div>
+              <h5>Generar QR para: {selectedLocalForQr.nombre}</h5>
+              <p className="text-muted">
+                Se generará un código QR específico para este local que permitirá 
+                a los clientes acceder directamente a la evaluación.
+              </p>
+              <div className="text-center">
+                <Button
+                  color="primary"
+                  size="lg"
+                  onClick={() => handleGenerateQr('individual')}
+                  className="btn-icon"
+                >
+                  <FaQrcode className="mr-2" />
+                  Generar QR Individual
+                </Button>
+              </div>
+            </div>
+          ) : (
+            // QR para todos los locales
+            <div>
+              <h5>Generar Códigos QR</h5>
+              <p className="text-muted mb-4">
+                Selecciona una opción para generar códigos QR:
+              </p>
+              
+              <Row>
+                <Col md="6">
+                  <Card className="text-center p-3">
+                    <FaQrcode className="text-primary mb-3" size={48} />
+                    <h6>QR Individual</h6>
+                    <p className="text-muted small">
+                      Genera QR para un local específico
+                    </p>
+                    <Button
+                      color="primary"
+                      onClick={() => setSelectedLocalForQr('select')}
+                      block
+                    >
+                      Seleccionar Local
+                    </Button>
+                  </Card>
+                </Col>
+                <Col md="6">
+                  <Card className="text-center p-3">
+                    <FaQrcode className="text-success mb-3" size={48} />
+                    <h6>QR Masivo</h6>
+                    <p className="text-muted small">
+                      Genera QR para todos los locales activos
+                    </p>
+                    <Button
+                      color="success"
+                      onClick={() => handleGenerateQr('all')}
+                      block
+                    >
+                      Generar Todos
+                    </Button>
+                  </Card>
+                </Col>
+              </Row>
+
+              {selectedLocalForQr === 'select' && (
+                <div className="mt-4">
+                  <h6>Selecciona un Local Activo:</h6>
+                  <div className="table-responsive">
+                    <Table size="sm">
+                      <thead>
+                        <tr>
+                          <th>Local</th>
+                          <th>Tipo</th>
+                          <th>Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {locales
+                          .filter(local => local.estatus === 'Activo')
+                          .map(local => (
+                            <tr key={local.id}>
+                              <td>{local.nombre}</td>
+                              <td>
+                                <Badge color="info">{local.tipo}</Badge>
+                              </td>
+                              <td>
+                                <Button
+                                  color="primary"
+                                  size="sm"
+                                  onClick={() => handleCreateQrForLocal(local)}
+                                >
+                                  <FaQrcode className="mr-1" />
+                                  Generar QR
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={toggleQrModal}>
+            Cerrar
+          </Button>
+        </ModalFooter>
       </Modal>
     </>
   );
