@@ -80,7 +80,7 @@ const Index = (props) => {
       <Container className="mt--7" fluid>
         <Row>
           <Col className="mb-5 mb-xl-0" xl="8">
-            <Card className="bg-gradient-default shadow">
+            <Card className="shadow" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
                   <div className="col">
@@ -271,7 +271,7 @@ const Index = (props) => {
                           <Progress
                             max="100"
                             value="60"
-                            barClassName="bg-gradient-danger"
+                            style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}
                           />
                         </div>
                       </div>
@@ -287,7 +287,7 @@ const Index = (props) => {
                           <Progress
                             max="100"
                             value="70"
-                            barClassName="bg-gradient-success"
+                            style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}
                           />
                         </div>
                       </div>
@@ -315,7 +315,7 @@ const Index = (props) => {
                           <Progress
                             max="100"
                             value="75"
-                            barClassName="bg-gradient-info"
+                            style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}
                           />
                         </div>
                       </div>
@@ -331,7 +331,7 @@ const Index = (props) => {
                           <Progress
                             max="100"
                             value="30"
-                            barClassName="bg-gradient-warning"
+                            style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}
                           />
                         </div>
                       </div>

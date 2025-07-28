@@ -278,7 +278,7 @@ const Estadisticas = () => {
 
   return (
     <>
-      <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
+              <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
         <Container fluid>
           <div className="header-body">
             <Row>
