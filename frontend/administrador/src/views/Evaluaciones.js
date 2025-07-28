@@ -34,6 +34,56 @@ import {
 } from "react-icons/fa";
 
 const Evaluaciones = () => {
+  // Estilos CSS personalizados para dropdowns modernos
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .modern-select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 12px center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px !important;
+        padding-right: 40px !important;
+      }
+      
+      .modern-select:hover {
+        border-color: #5A0C62 !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.15) !important;
+        transform: translateY(-1px) !important;
+      }
+      
+      .modern-select:focus {
+        border-color: #DC017F !important;
+        box-shadow: 0 0 0 3px rgba(220, 1, 127, 0.1) !important;
+        outline: none !important;
+      }
+      
+      .custom-select-wrapper {
+        position: relative;
+      }
+      
+      .modern-select option {
+        padding: 12px 16px !important;
+        font-weight: 500 !important;
+        background: white !important;
+        color: #495057 !important;
+      }
+      
+      .modern-select option:hover {
+        background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
+        color: white !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [modal, setModal] = useState(false);
   const [selectedLocal, setSelectedLocal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -281,8 +331,9 @@ const Evaluaciones = () => {
               </CardHeader>
               <CardBody>
                 {/* Filtros y búsqueda */}
-                <Row className="mb-4">
-                  <Col md="6">
+                <Row className="mb-4 g-3">
+                  {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
+                  <Col xs="12" sm="12" md="12" lg="6" xl="6">
                     <FormGroup>
                       <Input
                         type="text"
@@ -293,23 +344,52 @@ const Evaluaciones = () => {
                       />
                     </FormGroup>
                   </Col>
-                  <Col md="3">
+                  
+                  {/* Tipo - Mitad en móviles, lado a lado en tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="3">
                     <FormGroup>
-                      <Input
-                        type="select"
-                        value={filterTipo}
-                        onChange={(e) => setFilterTipo(e.target.value)}
-                        className="form-control-alternative"
-                      >
-                        <option value="all">Todos los tipos</option>
-                        <option value="alimentos">Alimentos</option>
-                        <option value="miscelaneas">Misceláneas</option>
-                        <option value="taxis">Taxis</option>
-                        <option value="estacionamiento">Estacionamiento</option>
-                      </Input>
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterTipo}
+                          onChange={(e) => setFilterTipo(e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            🏪 Todos los tipos
+                          </option>
+                          <option value="alimentos" style={{ fontWeight: '500' }}>
+                            🍽️ Alimentos
+                          </option>
+                          <option value="miscelaneas" style={{ fontWeight: '500' }}>
+                            🛒 Misceláneas
+                          </option>
+                          <option value="taxis" style={{ fontWeight: '500' }}>
+                            🚕 Taxis
+                          </option>
+                          <option value="estacionamiento" style={{ fontWeight: '500' }}>
+                            🅿️ Estacionamiento
+                          </option>
+                        </Input>
+                      </div>
                     </FormGroup>
                   </Col>
-                  <Col md="3">
+                  
+                  {/* Botón Limpiar - Ancho completo en móviles y tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="3">
                     <Button
                       color="secondary"
                       block
@@ -317,9 +397,10 @@ const Evaluaciones = () => {
                         setSearchTerm("");
                         setFilterTipo("all");
                       }}
+                      style={{ width: '100%' }}
                     >
                       <FaFilter className="mr-1" />
-                      Limpiar Filtros
+                      Limpiar
                     </Button>
                   </Col>
                 </Row>

@@ -347,8 +347,9 @@ const Locales = () => {
               </CardHeader>
               <CardBody>
                 {/* Filtros y búsqueda */}
-                <Row className="mb-4">
-                  <Col md="2">
+                <Row className="mb-4 g-3">
+                  {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
+                  <Col xs="12" sm="12" md="12" lg="3" xl="2">
                     <FormGroup>
                       <Input
                         type="text"
@@ -359,7 +360,9 @@ const Locales = () => {
                       />
                     </FormGroup>
                   </Col>
-                  <Col md="2">
+                  
+                  {/* Estado - Mitad en móviles, lado a lado en tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="2">
                     <FormGroup>
                       <div className="custom-select-wrapper">
                         <Input
@@ -377,11 +380,12 @@ const Locales = () => {
                             color: '#495057',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                             transition: 'all 0.3s ease',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            width: '100%'
                           }}
                         >
                           <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
-                            📊 Todos los estados
+                            📊 Estados
                           </option>
                           {estadosLocales.map((estado) => (
                             <option key={estado} value={estado} style={{ fontWeight: '500' }}>
@@ -392,7 +396,9 @@ const Locales = () => {
                       </div>
                     </FormGroup>
                   </Col>
-                  <Col md="2">
+                  
+                  {/* Tipo - Mitad en móviles, lado a lado en tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="2">
                     <FormGroup>
                       <div className="custom-select-wrapper">
                         <Input
@@ -410,11 +416,12 @@ const Locales = () => {
                             color: '#495057',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                             transition: 'all 0.3s ease',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            width: '100%'
                           }}
                         >
                           <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
-                            🏪 Todos los tipos
+                            🏪 Tipos
                           </option>
                           {tiposLocales.map((tipo) => (
                             <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
@@ -428,7 +435,9 @@ const Locales = () => {
                       </div>
                     </FormGroup>
                   </Col>
-                  <Col md="3">
+                  
+                  {/* Botón Limpiar - Ancho completo en móviles y tablets */}
+                  <Col xs="12" sm="12" md="12" lg="3" xl="3">
                     <Button
                       color="secondary"
                       block
@@ -437,6 +446,7 @@ const Locales = () => {
                         setFilterStatus("all");
                         setFilterType("all");
                       }}
+                      style={{ width: '100%' }}
                     >
                       <FaFilter className="mr-1" />
                       Limpiar
