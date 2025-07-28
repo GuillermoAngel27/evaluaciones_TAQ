@@ -52,7 +52,7 @@ const Auth = (props) => {
 
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
-      if (prop.layout === "/auth") {
+      if (prop.layout === "/l") {
         return (
           <Route path={prop.path} element={prop.component} key={key} exact />
         );
@@ -101,7 +101,7 @@ const Auth = (props) => {
             <Row className="justify-content-center">
               <Routes>
                 {getRoutes(routes)}
-                <Route path="*" element={<Navigate to="/auth/login" replace />} />
+                <Route path="*" element={<Navigate to="/l/login" replace />} />
               </Routes>
             </Row>
           </Container>

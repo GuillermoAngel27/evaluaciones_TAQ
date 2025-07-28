@@ -33,49 +33,63 @@ const AdminNavbar = (props) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/auth/login');
+  const handleLogout = () => {
+    logout();
+    // Navegar inmediatamente sin esperar
+    navigate('/l/login', { replace: true });
   };
   return (
     <>
-      <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+      <Navbar 
+        className="navbar-top navbar-dark d-none d-md-block" 
+        expand="md" 
+        id="navbar-main" 
+        style={{ 
+          background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
+          minHeight: '70px'
+        }}
+      >
         <Container fluid>
-          <span
-            className="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block"
-          >
-            {props.brandText}
-          </span>
+          <div className="d-flex justify-content-between align-items-center w-100">
+            {/* Lado izquierdo - Título */}
+            <span
+              className="h4 mb-0 text-white text-uppercase d-none d-md-inline-block"
+              style={{ fontSize: '1.1rem' }}
+            >
+              {props.brandText}
+            </span>
 
-          <Nav className="align-items-center d-none d-md-flex" navbar>
-            <UncontrolledDropdown nav>
-              <DropdownToggle className="pr-0" nav>
-                <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
-                    <img
-                      alt="..."
-                      src={require("../../assets/img/theme/team-4-800x800.jpg")}
-                    />
-                  </span>
-                  <Media className="ml-2 d-none d-lg-block">
-                    <span className="mb-0 text-sm font-weight-bold">
-                      {user ? user.name : 'Usuario'}
+            {/* Lado derecho - Usuario solo en desktop/tablet */}
+            <Nav className="align-items-center d-none d-lg-flex" navbar>
+              <UncontrolledDropdown nav>
+                <DropdownToggle className="pr-0" nav>
+                  <Media className="align-items-center">
+                    <span className="avatar avatar-sm rounded-circle">
+                      <img
+                        alt="..."
+                        src={require("../../assets/img/theme/team-4-800x800.jpg")}
+                      />
                     </span>
+                    <Media className="ml-2 d-none d-md-block">
+                      <span className="mb-0 text-sm font-weight-bold text-white" style={{ fontSize: '0.9rem' }}>
+                        {user ? user.name : 'Usuario'}
+                      </span>
+                    </Media>
                   </Media>
-                </Media>
-              </DropdownToggle>
-              <DropdownMenu className="dropdown-menu-arrow" end>
-                <DropdownItem className="noti-title" header tag="div">
-                  <h6 className="text-overflow m-0">¡Bienvenido!</h6>
-                </DropdownItem>
-                <DropdownItem divider />
-                <DropdownItem onClick={handleLogout}>
-                  <i className="ni ni-user-run" />
-                  <span>Cerrar sesión</span>
-                </DropdownItem>
-              </DropdownMenu>
-            </UncontrolledDropdown>
-          </Nav>
+                </DropdownToggle>
+                <DropdownMenu className="dropdown-menu-arrow" end>
+                  <DropdownItem className="noti-title" header tag="div">
+                    <h6 className="text-overflow m-0">¡Bienvenido!</h6>
+                  </DropdownItem>
+                  <DropdownItem divider />
+                  <DropdownItem onClick={handleLogout}>
+                    <i className="ni ni-user-run" />
+                    <span>Cerrar sesión</span>
+                  </DropdownItem>
+                </DropdownMenu>
+              </UncontrolledDropdown>
+            </Nav>
+          </div>
         </Container>
       </Navbar>
     </>

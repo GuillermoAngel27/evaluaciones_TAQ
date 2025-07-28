@@ -268,7 +268,7 @@ const Evaluaciones = () => {
         </Container>
       </div>
 
-      <Container className="mt--9" fluid>
+      <Container className="mt--7" fluid>
         <Row>
           <Col>
             <Card className="shadow">

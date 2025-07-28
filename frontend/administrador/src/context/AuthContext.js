@@ -35,10 +35,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    // Agregar un timeout para evitar que se quede colgado
+    // Agregar un timeout más corto para una respuesta más rápida
     const timeoutId = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 300);
 
     checkAuth().finally(() => {
       clearTimeout(timeoutId);
@@ -77,16 +77,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función de logout
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Error en logout:', error);
-    } finally {
-      localStorage.removeItem('authToken');
-      setUser(null);
-      setError(null);
-    }
+  const logout = () => {
+    // Limpiar inmediatamente sin esperar respuesta del servidor
+    localStorage.removeItem('authToken');
+    setUser(null);
+    setError(null);
+    
+    // Opcional: hacer la llamada al servidor en segundo plano sin esperar
+    authAPI.logout().catch(error => {
+      console.error('Error en logout del servidor:', error);
+    });
   };
 
   // Función para cambiar contraseña

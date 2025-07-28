@@ -17,7 +17,7 @@
 */
 /*eslint-disable*/
 import { useState } from "react";
-import { NavLink as NavLinkRRD, Link } from "react-router-dom";
+import { NavLink as NavLinkRRD, Link, useNavigate } from "react-router-dom";
 // nodejs library to set properties for components
 import { PropTypes } from "prop-types";
 
@@ -39,10 +39,16 @@ import {
   Col,
 } from "reactstrap";
 
+// Importar el contexto de autenticación
+import { useAuth } from "../../context/AuthContext";
+
 var ps;
 
 const Sidebar = (props) => {
   const [collapseOpen, setCollapseOpen] = useState();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  
   // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
     return props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
@@ -55,6 +61,12 @@ const Sidebar = (props) => {
   const closeCollapse = () => {
     setCollapseOpen(false);
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/l/login', { replace: true });
+  };
+
   // creates the links that appear in the left menu / Sidebar
   const createLinks = (routes) => {
     return routes.map((prop, key) => {
@@ -94,53 +106,60 @@ const Sidebar = (props) => {
       id="sidenav-main"
     >
       <Container fluid>
-        {/* Toggler */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          onClick={toggleCollapse}
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
-        {/* Brand */}
-        {logo ? (
-          <NavbarBrand className="pt-0" {...navbarBrandProps}>
-            <img
-              alt={logo.imgAlt}
-              className="navbar-brand-img"
-              src={logo.imgSrc}
-            />
-          </NavbarBrand>
-        ) : null}
-        {/* User */}
-        <Nav className="align-items-center d-md-none">
-          <UncontrolledDropdown nav>
-            <DropdownToggle nav>
-              <Media className="align-items-center">
-                <span className="avatar avatar-sm rounded-circle">
-                  <img
-                    alt="..."
-                    src={require("../../assets/img/theme/team-1-800x800.jpg")}
-                  />
-                </span>
-              </Media>
-            </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-arrow" end>
-              <DropdownItem className="noti-title" header tag="div">
-                <h6 className="text-overflow m-0">¡Bienvenido!</h6>
-              </DropdownItem>
-              <DropdownItem divider />
-              <DropdownItem href="#pablo" onClick={(e) => e.preventDefault()}>
-                <i className="ni ni-user-run" />
-                <span>Cerrar sesión</span>
-              </DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-        </Nav>
+        <div className="d-flex justify-content-between align-items-center w-100">
+          {/* Lado izquierdo - Toggler y Brand */}
+          <div className="d-flex align-items-center">
+            {/* Toggler */}
+            <button
+              className="navbar-toggler"
+              type="button"
+              onClick={toggleCollapse}
+            >
+              <span className="navbar-toggler-icon" />
+            </button>
+            {/* Brand */}
+            {logo ? (
+              <NavbarBrand className="pt-0" {...navbarBrandProps}>
+                <img
+                  alt={logo.imgAlt}
+                  className="navbar-brand-img"
+                  src={logo.imgSrc}
+                />
+              </NavbarBrand>
+            ) : null}
+          </div>
+
+          {/* Lado derecho - Usuario en móviles */}
+          <div className="d-lg-none">
+            <UncontrolledDropdown nav>
+              <DropdownToggle className="pr-0" nav>
+                <Media className="align-items-center">
+                  <span className="avatar avatar-sm rounded-circle">
+                    <img
+                      alt="..."
+                      src={require("../../assets/img/theme/team-4-800x800.jpg")}
+                    />
+                  </span>
+                </Media>
+              </DropdownToggle>
+              <DropdownMenu className="dropdown-menu-arrow" end>
+                <DropdownItem className="noti-title" header tag="div">
+                  <h6 className="text-overflow m-0">¡Bienvenido!</h6>
+                </DropdownItem>
+                <DropdownItem divider />
+                <DropdownItem onClick={handleLogout}>
+                  <i className="ni ni-user-run" />
+                  <span>Cerrar sesión</span>
+                </DropdownItem>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          </div>
+        </div>
+
         {/* Collapse */}
         <Collapse navbar isOpen={collapseOpen}>
           {/* Collapse header */}
-          <div className="navbar-collapse-header d-md-none">
+          <div className="navbar-collapse-header d-lg-none">
             <Row>
               {logo ? (
                 <Col className="collapse-brand" xs="6">

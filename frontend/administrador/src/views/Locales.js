@@ -99,124 +99,73 @@ const Locales = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
-  const [filterDateFrom, setFilterDateFrom] = useState("");
-  const [filterDateTo, setFilterDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [qrModal, setQrModal] = useState(false);
   const [selectedLocalForQr, setSelectedLocalForQr] = useState(null);
 
-  // Datos de ejemplo
+  // Datos de ejemplo basados en la estructura de la BD
   const [locales, setLocales] = useState([
     {
       id: 1,
       nombre: "Restaurante El Buen Sabor",
-      tipo: "Alimentos",
-      direccion: "Av. Principal 123",
-      telefono: "555-0123",
-      email: "info@buensabor.com",
+      tipo_local: "Alimentos",
       estatus: "Activo",
-      calificacion: 4.2,
-      evaluaciones: 45,
-      fechaCreacion: "2024-01-15",
     },
     {
       id: 2,
       nombre: "Café Central",
-      tipo: "Alimentos",
-      direccion: "Calle Comercial 456",
-      telefono: "555-0456",
-      email: "contacto@cafecentral.com",
+      tipo_local: "Alimentos",
       estatus: "Activo",
-      calificacion: 4.5,
-      evaluaciones: 32,
-      fechaCreacion: "2024-01-20",
     },
     {
       id: 3,
       nombre: "Pizzería Italia",
-      tipo: "Alimentos",
-      direccion: "Plaza Mayor 789",
-      telefono: "555-0789",
-      email: "pedidos@pizzeriaitalia.com",
+      tipo_local: "Alimentos",
       estatus: "Inactivo",
-      calificacion: 3.8,
-      evaluaciones: 28,
-      fechaCreacion: "2024-02-01",
     },
     {
       id: 4,
       nombre: "Bar La Esquina",
-      tipo: "Alimentos",
-      direccion: "Esquina Norte 321",
-      telefono: "555-0321",
-      email: "reservas@laesquina.com",
+      tipo_local: "Alimentos",
       estatus: "Activo",
-      calificacion: 4.0,
-      evaluaciones: 15,
-      fechaCreacion: "2024-02-10",
     },
     {
       id: 5,
       nombre: "Miscelánea El Ahorro",
-      tipo: "Misceláneas",
-      direccion: "Calle 5 de Mayo 654",
-      telefono: "555-0654",
-      email: "ventas@elahorro.com",
+      tipo_local: "Misceláneas",
       estatus: "Activo",
-      calificacion: 4.1,
-      evaluaciones: 22,
-      fechaCreacion: "2024-02-15",
     },
     {
       id: 6,
       nombre: "Taxi Express",
-      tipo: "Taxis",
-      direccion: "Terminal Central",
-      telefono: "555-0999",
-      email: "reservas@taxiexpress.com",
+      tipo_local: "Taxis",
       estatus: "Activo",
-      calificacion: 4.3,
-      evaluaciones: 38,
-      fechaCreacion: "2024-01-25",
     },
     {
       id: 7,
       nombre: "Estacionamiento Centro",
-      tipo: "Estacionamiento",
-      direccion: "Plaza Principal",
-      telefono: "555-0888",
-      email: "info@estacionamientocentro.com",
+      tipo_local: "Estacionamiento",
       estatus: "Inactivo",
-      calificacion: 3.9,
-      evaluaciones: 19,
-      fechaCreacion: "2024-03-01",
     },
     {
       id: 8,
       nombre: "Miscelánea La Esquina",
-      tipo: "Misceláneas",
-      direccion: "Esquina Sur 987",
-      telefono: "555-0987",
-      email: "contacto@laesquina.com",
+      tipo_local: "Misceláneas",
       estatus: "Activo",
-      calificacion: 4.0,
-      evaluaciones: 25,
-      fechaCreacion: "2024-02-20",
     },
   ]);
 
   const [formData, setFormData] = useState({
     nombre: "",
-    tipo: "Alimentos",
-    direccion: "",
-    telefono: "",
-    email: "",
+    tipo_local: "Alimentos",
     estatus: "Activo",
   });
 
   const tiposLocales = ["Misceláneas", "Alimentos", "Taxis", "Estacionamiento"];
   const estadosLocales = ["Activo", "Inactivo"];
+
+
 
   // Funciones de manejo
   const toggleModal = () => setModal(!modal);
@@ -225,10 +174,7 @@ const Locales = () => {
     setModalMode("create");
     setFormData({
       nombre: "",
-      tipo: "Restaurante",
-      direccion: "",
-      telefono: "",
-      email: "",
+      tipo_local: "Alimentos",
       estatus: "Activo",
     });
     setSelectedLocal(null);
@@ -240,10 +186,7 @@ const Locales = () => {
     setSelectedLocal(local);
     setFormData({
       nombre: local.nombre,
-      tipo: local.tipo,
-      direccion: local.direccion,
-      telefono: local.telefono,
-      email: local.email,
+      tipo_local: local.tipo_local,
       estatus: local.estatus,
     });
     toggleModal();
@@ -254,10 +197,7 @@ const Locales = () => {
     setSelectedLocal(local);
     setFormData({
       nombre: local.nombre,
-      tipo: local.tipo,
-      direccion: local.direccion,
-      telefono: local.telefono,
-      email: local.email,
+      tipo_local: local.tipo_local,
       estatus: local.estatus,
     });
     toggleModal();
@@ -275,9 +215,6 @@ const Locales = () => {
       const newLocal = {
         id: Date.now(),
         ...formData,
-        calificacion: 0,
-        evaluaciones: 0,
-        fechaCreacion: new Date().toISOString().split("T")[0],
       };
       setLocales([...locales, newLocal]);
     } else if (modalMode === "edit") {
@@ -330,26 +267,9 @@ const Locales = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || local.estatus === filterStatus;
-    const matchesType = filterType === "all" || local.tipo === filterType;
+    const matchesType = filterType === "all" || local.tipo_local === filterType;
     
-    // Filtro por fecha
-    let matchesDate = true;
-    if (filterDateFrom && filterDateTo) {
-      const localDate = new Date(local.fechaCreacion);
-      const fromDate = new Date(filterDateFrom);
-      const toDate = new Date(filterDateTo);
-      matchesDate = localDate >= fromDate && localDate <= toDate;
-    } else if (filterDateFrom) {
-      const localDate = new Date(local.fechaCreacion);
-      const fromDate = new Date(filterDateFrom);
-      matchesDate = localDate >= fromDate;
-    } else if (filterDateTo) {
-      const localDate = new Date(local.fechaCreacion);
-      const toDate = new Date(filterDateTo);
-      matchesDate = localDate <= toDate;
-    }
-    
-    return matchesSearch && matchesStatus && matchesType && matchesDate;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   // Paginación
@@ -395,7 +315,7 @@ const Locales = () => {
         </Container>
       </div>
 
-             <Container className="mt--9" fluid>
+             <Container className="mt--7" fluid>
         <Row>
           <Col>
             <Card className="shadow">
@@ -508,29 +428,7 @@ const Locales = () => {
                       </div>
                     </FormGroup>
                   </Col>
-                  <Col md="2">
-                    <FormGroup>
-                      <Input
-                        type="date"
-                        placeholder="Fecha desde"
-                        value={filterDateFrom}
-                        onChange={(e) => setFilterDateFrom(e.target.value)}
-                        className="form-control-alternative"
-                      />
-                    </FormGroup>
-                  </Col>
-                  <Col md="2">
-                    <FormGroup>
-                      <Input
-                        type="date"
-                        placeholder="Fecha hasta"
-                        value={filterDateTo}
-                        onChange={(e) => setFilterDateTo(e.target.value)}
-                        className="form-control-alternative"
-                      />
-                    </FormGroup>
-                  </Col>
-                  <Col md="2">
+                  <Col md="3">
                     <Button
                       color="secondary"
                       block
@@ -538,8 +436,6 @@ const Locales = () => {
                         setSearchTerm("");
                         setFilterStatus("all");
                         setFilterType("all");
-                        setFilterDateFrom("");
-                        setFilterDateTo("");
                       }}
                     >
                       <FaFilter className="mr-1" />
@@ -568,15 +464,12 @@ const Locales = () => {
                                 <span className="name mb-0 text-sm">
                                   {local.nombre}
                                 </span>
-                                <div className="text-muted">
-                                  <FaMapMarkerAlt className="mr-1" />
-                                  {local.direccion}
-                                </div>
+                                
                               </div>
                             </div>
                           </th>
                           <td>
-                            <Badge color="info">{local.tipo}</Badge>
+                            <Badge color="info">{local.tipo_local}</Badge>
                           </td>
                                                      <td>{getStatusBadge(local.estatus)}</td>
                            <td>
@@ -679,32 +572,34 @@ const Locales = () => {
           {modalMode === "view" && "Detalles del Local"}
         </ModalHeader>
         <Form onSubmit={handleSubmit}>
-          <ModalBody>
-            <Row>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="nombre">Nombre del Local *</Label>
-                  <Input
-                    type="text"
-                    name="nombre"
-                    id="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                  />
-                </FormGroup>
-              </Col>
-                             <Col md="6">
+                     <ModalBody>
+             <Row>
+               <Col md="12">
                  <FormGroup>
-                   <Label for="tipo" style={{ fontWeight: '600', color: '#495057', marginBottom: '8px' }}>
+                   <Label for="nombre">Nombre del Local *</Label>
+                   <Input
+                     type="text"
+                     name="nombre"
+                     id="nombre"
+                     value={formData.nombre}
+                     onChange={handleInputChange}
+                     disabled={modalMode === "view"}
+                     required
+                   />
+                 </FormGroup>
+               </Col>
+             </Row>
+             <Row>
+               <Col md="6">
+                 <FormGroup>
+                   <Label for="tipo_local" style={{ fontWeight: '600', color: '#495057', marginBottom: '8px' }}>
                      Tipo de Local *
                    </Label>
                    <Input
                      type="select"
-                     name="tipo"
-                     id="tipo"
-                     value={formData.tipo}
+                     name="tipo_local"
+                     id="tipo_local"
+                     value={formData.tipo_local}
                      onChange={handleInputChange}
                      disabled={modalMode === "view"}
                      required
@@ -732,53 +627,7 @@ const Locales = () => {
                    </Input>
                  </FormGroup>
                </Col>
-            </Row>
-            <Row>
-              <Col md="12">
-                <FormGroup>
-                  <Label for="direccion">Dirección *</Label>
-                  <Input
-                    type="text"
-                    name="direccion"
-                    id="direccion"
-                    value={formData.direccion}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                  />
-                </FormGroup>
-              </Col>
-            </Row>
-            <Row>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="telefono">Teléfono</Label>
-                  <Input
-                    type="tel"
-                    name="telefono"
-                    id="telefono"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                  />
-                </FormGroup>
-              </Col>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="email">Email</Label>
-                  <Input
-                    type="email"
-                    name="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                  />
-                </FormGroup>
-              </Col>
-            </Row>
-            <Row>
-                             <Col md="6">
+               <Col md="6">
                  <FormGroup>
                    <Label for="estatus" style={{ fontWeight: '600', color: '#495057', marginBottom: '8px' }}>
                      Estado *
@@ -812,7 +661,7 @@ const Locales = () => {
                    </Input>
                  </FormGroup>
                </Col>
-            </Row>
+             </Row>
           </ModalBody>
           <ModalFooter>
             <Button color="secondary" onClick={toggleModal}>
@@ -915,9 +764,9 @@ const Locales = () => {
                           .map(local => (
                             <tr key={local.id}>
                               <td>{local.nombre}</td>
-                              <td>
-                                <Badge color="info">{local.tipo}</Badge>
-                              </td>
+                                                             <td>
+                                 <Badge color="info">{local.tipo_local}</Badge>
+                               </td>
                               <td>
                                 <Button
                                   color="primary"
