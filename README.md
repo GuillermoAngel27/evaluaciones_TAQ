@@ -223,7 +223,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👨‍💻 Autor
 
-**Guillermo Angel** - [guillermoangel27@gmail.com](mailto:guillermoangel27)
+**Guillermo Angel** - [guillermoangel27](guillermoangel27)
 
 ## 🙏 Agradecimientos
 
