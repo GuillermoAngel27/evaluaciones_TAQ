@@ -20,12 +20,8 @@ import Dashboard from "views/Dashboard.js";
 import Locales from "views/Locales.js";
 import Evaluaciones from "views/Evaluaciones.js";
 import Estadisticas from "views/Estadisticas.js";
-import Profile from "views/examples/Profile.js";
-import Maps from "views/examples/Maps.js";
 import Register from "views/examples/Register.js";
 import Login from "views/examples/Login.js";
-import Tables from "views/examples/Tables.js";
-import Icons from "views/examples/Icons.js";
 
 var routes = [
   {
@@ -52,7 +48,7 @@ var routes = [
   {
     path: "/evaluaciones",
     name: "Evaluaciones",
-    icon: "ni ni-star text-warning",
+    icon: "ni ni-collection text-success",
     component: <Evaluaciones />,
     layout: "/admin",
   },
@@ -61,34 +57,6 @@ var routes = [
     name: "Estadísticas",
     icon: "ni ni-chart-pie-35 text-danger",
     component: <Estadisticas />,
-    layout: "/admin",
-  },
-  {
-    path: "/icons",
-    name: "Icons",
-    icon: "ni ni-planet text-blue",
-    component: <Icons />,
-    layout: "/admin",
-  },
-  {
-    path: "/maps",
-    name: "Maps",
-    icon: "ni ni-pin-3 text-orange",
-    component: <Maps />,
-    layout: "/admin",
-  },
-  {
-    path: "/user-profile",
-    name: "User Profile",
-    icon: "ni ni-single-02 text-yellow",
-    component: <Profile />,
-    layout: "/admin",
-  },
-  {
-    path: "/tables",
-    name: "Tables",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: <Tables />,
     layout: "/admin",
   },
   {

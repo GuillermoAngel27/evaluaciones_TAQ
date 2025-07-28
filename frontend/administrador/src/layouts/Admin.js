@@ -74,7 +74,7 @@ const Admin = (props) => {
       <>
         <Sidebar
           {...props}
-          routes={routes}
+          routes={routes.filter(route => route.layout === "/admin")}
           logo={{
             innerLink: "/admin/index",
             imgSrc: require("../assets/img/brand/argon-react.png"),
