@@ -32,9 +32,9 @@ const Auth = (props) => {
   const location = useLocation();
 
   React.useEffect(() => {
-    document.body.classList.add("bg-default");
+    document.body.style.background = '#5a0c62';
     return () => {
-      document.body.classList.remove("bg-default");
+      document.body.style.background = '';
     };
   }, []);
   React.useEffect(() => {
@@ -67,7 +67,7 @@ const Auth = (props) => {
       <>
         <div className="main-content" ref={mainContent}>
           <AuthNavbar />
-          <div className="header bg-gradient-info py-7 py-lg-8">
+          <div className="header py-7 py-lg-8" style={{ background: 'linear-gradient(135deg, #5a0c62 0%, #dc017f 100%)' }}>
             <Container>
               <div className="header-body text-center mb-7">
                 <Row className="justify-content-center">
@@ -90,7 +90,7 @@ const Auth = (props) => {
                 y="0"
               >
                 <polygon
-                  className="fill-default"
+                  style={{ fill: '#5a0c62' }}
                   points="2560 0 2560 100 0 100"
                 />
               </svg>
