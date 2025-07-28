@@ -31,7 +31,7 @@ import routes from "routes.js";
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
-  const [brandText, setBrandText] = React.useState("Inicio");
+  const [brandText, setBrandText] = React.useState("Dashboard");
 
   React.useEffect(() => {
     // Actualizar el título del navbar cuando cambie la ubicación
@@ -51,7 +51,7 @@ const Admin = (props) => {
 
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
-      if (prop.layout === "/admin") {
+      if (prop.layout === "/a") {
         return (
           <Route path={prop.path} element={prop.component} key={key} exact />
         );
@@ -63,7 +63,7 @@ const Admin = (props) => {
 
   const getBrandText = (path) => {
     // Filtrar solo las rutas del admin
-    const adminRoutes = routes.filter(route => route.layout === "/admin");
+    const adminRoutes = routes.filter(route => route.layout === "/a");
     
     for (let i = 0; i < adminRoutes.length; i++) {
       const route = adminRoutes[i];
@@ -76,11 +76,11 @@ const Admin = (props) => {
     }
     
     // Si no encuentra coincidencia, verificar si estamos en la ruta raíz del admin
-    if (path === "/admin" || path === "/admin/") {
-      return "Inicio";
+    if (path === "/a" || path === "/a/") {
+      return "Dashboard";
     }
     
-    return "Inicio";
+    return "Dashboard";
   };
 
   return (
@@ -88,9 +88,9 @@ const Admin = (props) => {
       <>
         <Sidebar
           {...props}
-          routes={routes.filter(route => route.layout === "/admin")}
+          routes={routes.filter(route => route.layout === "/a")}
           logo={{
-            innerLink: "/admin/index",
+            innerLink: "/a/dashboard",
             imgSrc: require("../assets/img/brand/argon-react.png"),
             imgAlt: "...",
           }}
@@ -102,7 +102,7 @@ const Admin = (props) => {
           />
           <Routes>
             {getRoutes(routes)}
-            <Route path="*" element={<Navigate to="/admin/index" replace />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Routes>
           <Container fluid>
             <AdminFooter />

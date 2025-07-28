@@ -15,7 +15,6 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import Index from "views/Index.js";
 import Dashboard from "views/Dashboard.js";
 import Locales from "views/Locales.js";
 import Evaluaciones from "views/Evaluaciones.js";
@@ -25,53 +24,46 @@ import Login from "views/examples/Login.js";
 
 var routes = [
   {
-    path: "/index",
-    name: "Inicio",
-    icon: "ni ni-tv-2 text-primary",
-    component: <Index />,
-    layout: "/admin",
-  },
-  {
     path: "/dashboard",
     name: "Dashboard",
     icon: "ni ni-chart-bar-32 text-info",
     component: <Dashboard />,
-    layout: "/admin",
+    layout: "/a",
   },
   {
     path: "/locales",
     name: "Gestión de Locales",
     icon: "ni ni-shop text-success",
     component: <Locales />,
-    layout: "/admin",
+    layout: "/a",
   },
   {
     path: "/evaluaciones",
     name: "Evaluaciones",
     icon: "ni ni-collection text-success",
     component: <Evaluaciones />,
-    layout: "/admin",
+    layout: "/a",
   },
   {
     path: "/estadisticas",
     name: "Estadísticas",
     icon: "ni ni-chart-pie-35 text-danger",
     component: <Estadisticas />,
-    layout: "/admin",
+    layout: "/a",
   },
   {
     path: "/login",
     name: "Login",
     icon: "ni ni-key-25 text-info",
     component: <Login />,
-    layout: "/auth",
+    layout: "/l",
   },
   {
     path: "/register",
     name: "Register",
     icon: "ni ni-circle-08 text-pink",
     component: <Register />,
-    layout: "/auth",
+    layout: "/l",
   },
 ];
 export default routes;
