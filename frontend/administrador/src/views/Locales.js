@@ -462,10 +462,10 @@ const Locales = () => {
                   <div className="col text-right">
                     {/* Botones responsivos para móviles */}
                     <div className="d-flex flex-column flex-sm-row justify-content-end gap-2">
-                      <Button
-                        color="primary"
-                        size="sm"
-                        onClick={handleCreate}
+                                         <Button
+                       color="primary"
+                       size="sm"
+                       onClick={handleCreate}
                         className="mb-2 mb-sm-0 mobile-button"
                         style={{
                           minWidth: '140px',
@@ -476,15 +476,15 @@ const Locales = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                           transition: 'all 0.3s ease'
                         }}
-                      >
-                        <FaPlus className="mr-1" />
+                     >
+                       <FaPlus className="mr-1" />
                         <span className="d-none d-sm-inline">Agregar Local</span>
                         <span className="d-sm-none">Agregar</span>
-                      </Button>
-                      <Button
-                        color="success"
-                        size="sm"
-                        onClick={handleCreateQr}
+                     </Button>
+                    <Button
+                      color="success"
+                      size="sm"
+                      onClick={handleCreateQr}
                         className="mobile-button"
                         style={{
                           minWidth: '140px',
@@ -495,11 +495,11 @@ const Locales = () => {
                           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                           transition: 'all 0.3s ease'
                         }}
-                      >
-                        <FaQrcode className="mr-1" />
+                    >
+                      <FaQrcode className="mr-1" />
                         <span className="d-none d-sm-inline">Crear QR</span>
                         <span className="d-sm-none">QR</span>
-                      </Button>
+                    </Button>
                     </div>
                   </div>
                 </Row>
@@ -763,9 +763,9 @@ const Locales = () => {
                                       e.target.style.transform = 'translateY(0)';
                                       e.target.style.boxShadow = 'none';
                                     }
-                                  }}
-                                >
-                                  {page}
+                              }}
+                            >
+                              {page}
                                 </button>
                               </li>
                             ))}
@@ -811,7 +811,7 @@ const Locales = () => {
                               </button>
                             </li>
                           </ul>
-                        </nav>
+                  </nav>
                       </div>
                     </Col>
                   </Row>

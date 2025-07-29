@@ -27,6 +27,10 @@ import ProtectedRoute from "components/ProtectedRoute.js";
 import { useAuth } from "context/AuthContext.js";
 
 import routes from "routes.js";
+import Dashboard from "views/Dashboard.js";
+import Locales from "views/Locales.js";
+import Evaluaciones from "views/Evaluaciones.js";
+import Estadisticas from "views/Estadisticas.js";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
@@ -34,6 +38,10 @@ const Admin = (props) => {
   const [brandText, setBrandText] = React.useState("Dashboard");
 
   React.useEffect(() => {
+    // Debug: mostrar información de la ruta actual
+    console.log('Current path:', location.pathname);
+    console.log('Current location:', location);
+    
     // Actualizar el título del navbar cuando cambie la ubicación
     setBrandText(getBrandText(location.pathname));
     
@@ -53,7 +61,11 @@ const Admin = (props) => {
     return routes.map((prop, key) => {
       if (prop.layout === "/a") {
         return (
-          <Route path={prop.path} element={prop.component} key={key} exact />
+          <Route 
+            path={prop.path} 
+            element={prop.component} 
+            key={key} 
+          />
         );
       } else {
         return null;
@@ -65,18 +77,20 @@ const Admin = (props) => {
     // Filtrar solo las rutas del admin
     const adminRoutes = routes.filter(route => route.layout === "/a");
     
+    // Extraer la ruta relativa (sin /a)
+    const relativePath = path.replace('/a', '');
+    
     for (let i = 0; i < adminRoutes.length; i++) {
       const route = adminRoutes[i];
-      const fullPath = route.layout + route.path;
       
-      // Verificar si la ruta actual coincide exactamente o termina con la ruta
-      if (path === fullPath || path.endsWith(route.path)) {
+      // Verificar si la ruta actual coincide con la ruta definida
+      if (relativePath === route.path || relativePath === route.path + '/') {
         return route.name;
       }
     }
     
     // Si no encuentra coincidencia, verificar si estamos en la ruta raíz del admin
-    if (path === "/a" || path === "/a/") {
+    if (path === "/a" || path === "/a/" || path === "/a/dashboard" || relativePath === "/dashboard") {
       return "Dashboard";
     }
     
@@ -101,8 +115,12 @@ const Admin = (props) => {
             brandText={brandText}
           />
           <Routes>
-            {getRoutes(routes)}
-            <Route path="*" element={<Navigate to="/a/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/locales" element={<Locales />} />
+            <Route path="/evaluaciones" element={<Evaluaciones />} />
+            <Route path="/estadisticas" element={<Estadisticas />} />
+            <Route path="/" element={<Navigate to="dashboard" replace />} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>
           <Container fluid>
             <AdminFooter />

@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
   // Verificar si el usuario está autenticado al cargar la aplicación
   useEffect(() => {
@@ -31,18 +32,13 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('authToken');
         }
       }
-      // Siempre establecer loading en false, incluso si hay errores
+      // Marcar como inicializado después de verificar
       setLoading(false);
+      setInitialized(true);
     };
 
-    // Agregar un timeout más corto para una respuesta más rápida
-    const timeoutId = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-
-    checkAuth().finally(() => {
-      clearTimeout(timeoutId);
-    });
+    // Ejecutar verificación inmediatamente
+    checkAuth();
   }, []);
 
   // Función de login
@@ -116,6 +112,7 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     clearError,
     isAuthenticated: !!user,
+    initialized,
   };
 
   return (
