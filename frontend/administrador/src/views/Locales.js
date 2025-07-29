@@ -45,6 +45,7 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { localesAPI } from "../utils/api";
+import { generateLocalQRPDF, generateBulkQRPDF } from "../utils/pdfGenerator";
 
 const Locales = () => {
   // Estilos CSS personalizados para dropdowns modernos
@@ -316,19 +317,57 @@ const Locales = () => {
     toggleQrModal();
   };
 
-  const handleGenerateQr = (type) => {
-    if (type === 'individual' && selectedLocalForQr) {
-      // Generar QR para un local específico
-      console.log('Generando QR para:', selectedLocalForQr.nombre);
-      alert(`QR generado para: ${selectedLocalForQr.nombre}`);
-      // No cerrar el modal, permitir generar más QR
-    } else if (type === 'all') {
-      // Generar QR para todos los locales activos
-      const activeLocales = locales.filter(local => local.estatus === 'Activo');
-      console.log('Generando QR para todos los locales activos:', activeLocales.length);
-      alert(`QR generado para ${activeLocales.length} locales activos`);
-      // Cerrar el modal solo para QR masivo
-      toggleQrModal();
+  const handleGenerateQr = async (type) => {
+    try {
+      if (type === 'individual' && selectedLocalForQr) {
+        // Generar QR para un local específico
+        console.log('Generando QR para:', selectedLocalForQr.nombre);
+        
+        // Mostrar mensaje de carga
+        setSuccessMessage('Generando PDF con QR...');
+        
+        // Generar PDF
+        const fileName = await generateLocalQRPDF(selectedLocalForQr.nombre, selectedLocalForQr.id);
+        
+        setSuccessMessage(`PDF generado exitosamente: ${fileName}`);
+        
+        // Limpiar el dropdown y campo de búsqueda
+        setSelectedLocalForQr(null);
+        setQrSearchTerm("");
+        setShowQrDropdown(false);
+        
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => setSuccessMessage(null), 3000);
+        
+        // No cerrar el modal, permitir generar más QR
+      } else if (type === 'all') {
+        // Generar QR para todos los locales activos
+        const activeLocales = locales.filter(local => local.estatus === 'Activo');
+        console.log('Generando QR para todos los locales activos:', activeLocales.length);
+        
+        // Mostrar mensaje de carga
+        setSuccessMessage(`Generando PDF masivo para ${activeLocales.length} locales...`);
+        
+        // Generar PDF masivo
+        const fileName = await generateBulkQRPDF(activeLocales);
+        
+        setSuccessMessage(`PDF masivo generado exitosamente: ${fileName}`);
+        
+        // Limpiar el dropdown y campo de búsqueda
+        setSelectedLocalForQr(null);
+        setQrSearchTerm("");
+        setShowQrDropdown(false);
+        
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => setSuccessMessage(null), 3000);
+        
+        // Cerrar el modal solo para QR masivo
+        toggleQrModal();
+      }
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      setError('Error al generar el PDF. Intenta nuevamente.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -376,7 +415,7 @@ const Locales = () => {
       Activo: "success",
       Inactivo: "secondary",
     };
-    return <Badge color={colors[status]}>{status}</Badge>;
+    return <Badge color={colors[status]} style={{ fontSize: '14px', padding: '8px 12px' }}>{status}</Badge>;
   };
 
   // Mostrar mensajes de error o éxito
@@ -654,9 +693,16 @@ const Locales = () => {
                               </div>
                             </th>
                             <td>
-                              <Badge color="info">{local.tipo_local}</Badge>
+                              <Badge color="info" style={{ fontSize: '10px', padding: '8px 12px' }}>{local.tipo_local}</Badge>
                             </td>
-                            <td>{getStatusBadge(local.estatus)}</td>
+                            <td>
+                              <Badge 
+                                color={local.estatus === 'Activo' ? "success" : "secondary"}
+                                style={{ fontSize: '10px', padding: '8px 12px' }}
+                              >
+                                {local.estatus}
+                              </Badge>
+                            </td>
                             <td>
                               <div className="d-flex">
                                 <Button
@@ -1039,9 +1085,9 @@ const Locales = () => {
                                 onClick={() => handleQrLocalSelect(local)}
                               >
                                 <div>
-                                  <strong>{local.nombre}</strong>
+                                  <strong style={{ fontSize: '13px' }}>{local.nombre}</strong>
                                   <br />
-                                  <small className="text-muted">{local.tipo_local}</small>
+                                  <small className="text-muted" style={{ fontSize: '11px' }}>{local.tipo_local}</small>
                                 </div>
                               </div>
                             ))
