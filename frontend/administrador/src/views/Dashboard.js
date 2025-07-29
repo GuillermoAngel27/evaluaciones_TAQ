@@ -695,7 +695,7 @@ const Dashboard = () => {
 
         {/* Gráfica principal - Calificaciones por Tipo de Local */}
         <Row className="mt-4">
-          <Col>
+          <Col lg="8">
             <Card className="shadow">
               <CardHeader className="border-0">
                 <Row className="align-items-center">
@@ -740,6 +740,48 @@ const Dashboard = () => {
                     </Col>
                   </Row>
                 </div>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col lg="4">
+            <Card className="shadow">
+              <CardHeader className="border-0">
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h3 className="mb-0">
+                      <FaComments className="mr-2 text-success" />
+                      Comentarios Recientes
+                    </h3>
+                  </div>
+                  <div className="col text-right">
+                    <Badge color="success">Nuevos</Badge>
+                  </div>
+                </Row>
+              </CardHeader>
+              <CardBody style={{ height: '500px', overflowY: 'auto' }}>
+                {comentariosRecientesData.map((comentario) => (
+                  <div key={comentario.id} className="border-bottom pb-3 mb-3">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                        <h6 className="mb-0">{comentario.local}</h6>
+                        <small className="text-muted">por {comentario.usuario}</small>
+                      </div>
+                      <div className="text-right">
+                        <Badge 
+                          color={comentario.calificacion >= 4 ? "success" : comentario.calificacion >= 3 ? "warning" : "danger"}
+                          className="mb-1"
+                        >
+                          {comentario.calificacion}/5
+                        </Badge>
+                        <br />
+                        <small className="text-muted">{comentario.fecha}</small>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-0" style={{ lineHeight: '1.4' }}>
+                      "{comentario.comentario}"
+                    </p>
+                  </div>
+                ))}
               </CardBody>
             </Card>
           </Col>
@@ -840,56 +882,6 @@ const Dashboard = () => {
                     </div>
                   </div>
                 ))}
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Comentarios recientes - Ancho completo */}
-        <Row className="mt-4">
-          <Col>
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <Row className="align-items-center">
-                  <div className="col">
-                    <h3 className="mb-0">
-                      <FaComments className="mr-2 text-success" />
-                      Comentarios Recientes
-                    </h3>
-                  </div>
-                  <div className="col text-right">
-                    <Badge color="success">Nuevos</Badge>
-                  </div>
-                </Row>
-              </CardHeader>
-              <CardBody>
-                <Row>
-                  {comentariosRecientesData.map((comentario) => (
-                    <Col lg="6" key={comentario.id}>
-                      <div className="border-bottom pb-3 mb-3">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <div>
-                            <h6 className="mb-0">{comentario.local}</h6>
-                            <small className="text-muted">por {comentario.usuario}</small>
-                          </div>
-                          <div className="text-right">
-                            <Badge 
-                              color={comentario.calificacion >= 4 ? "success" : comentario.calificacion >= 3 ? "warning" : "danger"}
-                              className="mb-1"
-                            >
-                              {comentario.calificacion}/5
-                            </Badge>
-                            <br />
-                            <small className="text-muted">{comentario.fecha}</small>
-                          </div>
-                        </div>
-                        <p className="text-sm mb-0" style={{ lineHeight: '1.4' }}>
-                          "{comentario.comentario}"
-                        </p>
-                      </div>
-                    </Col>
-                  ))}
-                </Row>
               </CardBody>
             </Card>
           </Col>
