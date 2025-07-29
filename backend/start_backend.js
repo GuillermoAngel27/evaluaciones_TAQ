@@ -10,7 +10,10 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173']
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -18,6 +21,10 @@ app.use(express.json());
 // Middleware para logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('Body:', req.body);
+  }
   next();
 });
 
@@ -72,6 +79,22 @@ app.get('/health', (req, res) => {
       message: 'Servidor y base de datos funcionando',
       timestamp: new Date().toISOString()
     });
+  });
+});
+
+// Ruta de prueba para locales
+app.get('/test-locales', (req, res) => {
+  console.log('Test endpoint para locales llamado');
+  res.json({ 
+    message: 'Endpoint de prueba para locales funcionando',
+    timestamp: new Date().toISOString(),
+    availableRoutes: [
+      'GET /api/locales',
+      'POST /api/locales',
+      'GET /api/locales/:id',
+      'PUT /api/locales/:id',
+      'DELETE /api/locales/:id'
+    ]
   });
 });
 
