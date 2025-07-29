@@ -25,10 +25,10 @@ const ProtectedRoute = ({ children, requireAuth = true }) => {
     return <Navigate to="/l/login" replace state={{ from: location }} />;
   }
 
-  // Si no requiere autenticación y está autenticado, redirigir al dashboard
+  // Si no requiere autenticación y está autenticado, redirigir al inicio
   if (!requireAuth && isAuthenticated) {
-    console.log('Redirecting to dashboard');
-    return <Navigate to="/a/dashboard" replace />;
+    console.log('Redirecting to inicio');
+    return <Navigate to="/a/inicio" replace />;
   }
 
   // Si todo está bien, mostrar el contenido

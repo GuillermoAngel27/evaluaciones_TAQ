@@ -37,8 +37,8 @@ root.render(
       <Routes>
         <Route path="/a/*" element={<AdminLayout />} />
         <Route path="/l/*" element={<AuthLayout />} />
-        <Route path="/" element={<Navigate to="/a/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/a/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/a/inicio" replace />} />
+        <Route path="*" element={<Navigate to="/a/inicio" replace />} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>

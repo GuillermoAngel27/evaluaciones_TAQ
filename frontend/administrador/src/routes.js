@@ -24,8 +24,8 @@ import Login from "views/examples/Login.js";
 
 var routes = [
   {
-    path: "/dashboard",
-    name: "Dashboard",
+    path: "/inicio",
+    name: "Inicio",
     icon: "ni ni-chart-bar-32 text-info",
     component: <Dashboard />,
     layout: "/a",

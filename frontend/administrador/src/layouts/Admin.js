@@ -35,7 +35,7 @@ import Estadisticas from "views/Estadisticas.js";
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
-  const [brandText, setBrandText] = React.useState("Dashboard");
+  const [brandText, setBrandText] = React.useState("Inicio");
 
   React.useEffect(() => {
     // Debug: mostrar información de la ruta actual
@@ -90,11 +90,11 @@ const Admin = (props) => {
     }
     
     // Si no encuentra coincidencia, verificar si estamos en la ruta raíz del admin
-    if (path === "/a" || path === "/a/" || path === "/a/dashboard" || relativePath === "/dashboard") {
-      return "Dashboard";
+    if (path === "/a" || path === "/a/" || path === "/a/inicio" || relativePath === "/inicio") {
+      return "Inicio";
     }
     
-    return "Dashboard";
+    return "Inicio";
   };
 
   return (
@@ -104,7 +104,7 @@ const Admin = (props) => {
           {...props}
           routes={routes.filter(route => route.layout === "/a")}
           logo={{
-            innerLink: "/a/dashboard",
+            innerLink: "/a/inicio",
             imgSrc: require("../assets/img/brand/argon-react.png"),
             imgAlt: "...",
           }}
@@ -115,12 +115,12 @@ const Admin = (props) => {
             brandText={brandText}
           />
           <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inicio" element={<Dashboard />} />
             <Route path="/locales" element={<Locales />} />
             <Route path="/evaluaciones" element={<Evaluaciones />} />
             <Route path="/estadisticas" element={<Estadisticas />} />
-            <Route path="/" element={<Navigate to="dashboard" replace />} />
-            <Route path="*" element={<Navigate to="dashboard" replace />} />
+            <Route path="/" element={<Navigate to="inicio" replace />} />
+            <Route path="*" element={<Navigate to="inicio" replace />} />
           </Routes>
           <Container fluid>
             <AdminFooter />

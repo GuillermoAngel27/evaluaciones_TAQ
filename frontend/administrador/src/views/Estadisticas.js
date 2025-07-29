@@ -26,7 +26,7 @@ import {
 const Estadisticas = () => {
   // Estados para el primer formulario (tabla de locales)
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterTipo, setFilterTipo] = useState("all");
 
   // Estados para el segundo formulario (filtros por tipo y preguntas)
   const [selectedTipo, setSelectedTipo] = useState("all");
@@ -194,8 +194,8 @@ const Estadisticas = () => {
   // Filtrado para el primer formulario
   const filteredLocales = localesData.filter((local) => {
     const matchesSearch = local.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || local.estatus === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesTipo = filterTipo === "all" || local.tipo === filterTipo;
+    return matchesSearch && matchesTipo;
   });
 
   // Filtrado para el segundo formulario
@@ -235,25 +235,36 @@ const Estadisticas = () => {
               </CardHeader>
               <CardBody>
                 {/* Filtros */}
-                <Row className="mb-4 g-3">
-                  <Col xs="12" sm="12" md="6" lg="4" xl="4">
-                    <FormGroup>
+                <Row className="mb-4 g-2">
+                  <Col xs="12" sm="6" md="5" lg="5" xl="5">
+                    <FormGroup className="mb-0">
                       <Input
                         type="text"
                         placeholder="Buscar por nombre de local..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="form-control-alternative"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease'
+                        }}
                       />
                     </FormGroup>
                   </Col>
                   
-                  <Col xs="6" sm="6" md="3" lg="2" xl="2">
-                    <FormGroup>
+                  <Col xs="6" sm="3" md="3" lg="3" xl="3">
+                    <FormGroup className="mb-0">
                       <Input
                         type="select"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        value={filterTipo}
+                        onChange={(e) => setFilterTipo(e.target.value)}
                         className="form-control-alternative"
                         style={{
                           background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
@@ -267,25 +278,45 @@ const Estadisticas = () => {
                           transition: 'all 0.3s ease'
                         }}
                       >
-                        <option value="all">📊 Todos los estados</option>
-                        <option value="Activo">🟢 Activo</option>
-                        <option value="Inactivo">🔴 Inactivo</option>
+                        <option value="all">Todos</option>
+                        <option value="Alimentos">Alimentos</option>
+                        <option value="Misceláneas">Misceláneas</option>
+                        <option value="Taxis">Taxis</option>
+                        <option value="Estacionamiento">Estacionamiento</option>
                       </Input>
                     </FormGroup>
                   </Col>
                   
-                  <Col xs="6" sm="6" md="3" lg="2" xl="2">
-                    <Button
-                      color="secondary"
-                      onClick={() => {
-                        setSearchTerm("");
-                        setFilterStatus("all");
-                      }}
-                      style={{ width: '100px' }}
-                    >
-                      <FaFilter className="mr-1" />
-                      Limpiar
-                    </Button>
+                  <Col xs="6" sm="3" md="2" lg="2" xl="2">
+                    <FormGroup className="mb-0">
+                      <Button
+                        color="secondary"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setFilterTipo("all");
+                        }}
+                        style={{ 
+                          width: '100%',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        <FaFilter className="mr-1" />
+                        Limpiar
+                      </Button>
+                    </FormGroup>
+                  </Col>
+                  
+                  <Col xs="12" sm="12" md="2" lg="2" xl="2">
+                    <FormGroup className="mb-0">
+                      <div className="d-flex justify-content-end">
+                        <Badge color="info" className="px-3 py-2">
+                          {filteredLocales.length} locales
+                        </Badge>
+                      </div>
+                    </FormGroup>
                   </Col>
                 </Row>
 
@@ -298,7 +329,6 @@ const Estadisticas = () => {
                         <th scope="col">Tipo</th>
                         <th scope="col">Promedio</th>
                         <th scope="col">Evaluaciones</th>
-                        <th scope="col">Estado</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -320,30 +350,22 @@ const Estadisticas = () => {
                           </th>
                           <td>
                             <Badge color={getTipoColor(local.tipo)}>
-                              {getTipoIcon(local.tipo)}
-                              <span className="ms-1">{local.tipo}</span>
+                              {local.tipo}
                             </Badge>
                           </td>
                           <td>
-                            <div className="d-flex align-items-center">
-                              <div className="me-2">{getRatingStars(local.promedio)}</div>
-                              <span 
-                                style={{ 
-                                  color: local.promedio <= 3 ? '#dc3545' : '#495057',
-                                  fontWeight: '600'
-                                }}
-                              >
-                                {local.promedio.toFixed(1)}
-                              </span>
-                            </div>
+                            <span 
+                              style={{ 
+                                color: local.promedio <= 3 ? '#dc3545' : '#495057',
+                                fontWeight: '600',
+                                fontSize: '16px'
+                              }}
+                            >
+                              {Math.round(local.promedio)}
+                            </span>
                           </td>
                           <td>
                             <span className="h6 mb-0">{local.evaluaciones}</span>
-                          </td>
-                          <td>
-                            <Badge color={local.estatus === "Activo" ? "success" : "secondary"}>
-                              {local.estatus}
-                            </Badge>
                           </td>
                         </tr>
                       ))}
@@ -364,10 +386,22 @@ const Estadisticas = () => {
               </CardHeader>
               <CardBody>
                 {/* Filtros */}
-                <Row className="mb-4 g-3">
+                <Row className="mb-4 g-2">
                   <Col xs="12" sm="6" md="4" lg="4" xl="4">
-                    <FormGroup>
-                      <label className="form-control-label">Tipo de Local</label>
+                    <FormGroup className="mb-0">
+                      <label 
+                        className="form-control-label"
+                        style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#495057',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Tipo de Local
+                      </label>
                       <Input
                         type="select"
                         value={selectedTipo}
@@ -385,21 +419,35 @@ const Estadisticas = () => {
                           fontWeight: '500',
                           color: '#495057',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.3s ease',
+                          width: '100%',
+                          marginTop: '0'
                         }}
                       >
-                        <option value="all">🏪 Todos los tipos</option>
-                        <option value="Alimentos">🍽️ Alimentos</option>
-                        <option value="Misceláneas">🛒 Misceláneas</option>
-                        <option value="Taxis">🚕 Taxis</option>
-                        <option value="Estacionamiento">🅿️ Estacionamiento</option>
+                        <option value="all">Todos los tipos</option>
+                        <option value="Alimentos">Alimentos</option>
+                        <option value="Misceláneas">Misceláneas</option>
+                        <option value="Taxis">Taxis</option>
+                        <option value="Estacionamiento">Estacionamiento</option>
                       </Input>
                     </FormGroup>
                   </Col>
                   
                   <Col xs="12" sm="6" md="4" lg="4" xl="4">
-                    <FormGroup>
-                      <label className="form-control-label">Pregunta Específica</label>
+                    <FormGroup className="mb-0">
+                      <label 
+                        className="form-control-label"
+                        style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#495057',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Pregunta Específica
+                      </label>
                       <Input
                         type="select"
                         value={selectedPregunta}
@@ -414,7 +462,9 @@ const Estadisticas = () => {
                           fontWeight: '500',
                           color: '#495057',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.3s ease',
+                          width: '100%',
+                          marginTop: '0'
                         }}
                       >
                         <option value="all">❓ Seleccionar pregunta</option>
@@ -428,19 +478,57 @@ const Estadisticas = () => {
                   </Col>
                   
                   <Col xs="12" sm="12" md="4" lg="4" xl="4">
-                    <FormGroup>
-                      <label className="form-control-label">&nbsp;</label>
-                      <Button
-                        color="secondary"
-                        block
-                        onClick={() => {
-                          setSelectedTipo("all");
-                          setSelectedPregunta("all");
+                    <FormGroup className="mb-0">
+                      <label 
+                        className="form-control-label"
+                        style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#495057',
+                          lineHeight: '1.2'
                         }}
                       >
-                        <FaFilter className="mr-1" />
-                        Limpiar Filtros
-                      </Button>
+                        &nbsp;
+                      </label>
+                      <div className="d-flex gap-2 align-items-end">
+                        <Button
+                          color="secondary"
+                          onClick={() => {
+                            setSelectedTipo("all");
+                            setSelectedPregunta("all");
+                          }}
+                          style={{ 
+                            width: '120px',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            height: '48px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <FaFilter className="mr-1" />
+                          Limpiar
+                        </Button>
+                        {selectedPregunta !== "all" && (
+                          <Badge 
+                            color="success" 
+                            className="px-3 py-2 d-flex align-items-center"
+                            style={{
+                              height: '48px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {getRespuestasFiltradas().length} respuestas
+                          </Badge>
+                        )}
+                      </div>
                     </FormGroup>
                   </Col>
                 </Row>
