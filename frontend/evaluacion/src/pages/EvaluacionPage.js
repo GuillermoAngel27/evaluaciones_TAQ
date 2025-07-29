@@ -117,14 +117,35 @@ export default function EvaluacionPage() {
     
     // Cargar información del local por token_publico
     fetch(`http://localhost:4000/api/locales/token/${tokenPublico}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 404) {
+            // Token inválido - local no existe
+            setLocal(null);
+            setLocalCargado(true);
+            return;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        if (!data || data.estatus !== 'Activo') {
+        if (!data) {
+          // Token inválido - no se encontró el local
+          setLocal(null);
+          setLocalCargado(true);
+          return;
+        }
+        
+        if (data.estatus !== 'Activo') {
+          // Local existe pero está inactivo
           setLocalInactivo(true);
           setLocal(data);
           setLocalCargado(true);
           return;
         }
+        
+        // Local existe y está activo
         // Cargar preguntas dinámicamente según el tipo de local
         if (data.tipo_local) {
           cargarPreguntas(data.tipo_local);
@@ -142,14 +163,16 @@ export default function EvaluacionPage() {
         setLocalCargado(true);
       })
       .catch(err => {
+        console.error('Error cargando local:', err);
         setError("Error al cargar información del local");
+        setLocal(null);
         setLocalCargado(true);
       });
   }, [tokenPublico]);
 
   // Verificar si puede evaluar después de que el local esté cargado
   useEffect(() => {
-    if (!local || !local.id || localInactivo) return;
+    if (!local || !local.id || localInactivo || !localCargado) return;
     
     fetch("http://localhost:4000/api/tokens/verificar-evaluacion", {
       method: "POST",
@@ -163,7 +186,7 @@ export default function EvaluacionPage() {
       .catch(err => {
         setPuedeEvaluar(false);
       });
-  }, [local, localInactivo, deviceId]);
+  }, [local, localInactivo, deviceId, localCargado]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -326,32 +349,7 @@ export default function EvaluacionPage() {
     );
   }
   
-  if (puedeEvaluar === null) {
-    return (
-      <div style={{ maxWidth: 500, margin: "40px auto", padding: 32, background: "#fff", boxShadow: "0 2px 8px #eee", borderRadius: 16, textAlign: 'center' }}>
-        <h2 style={{ color: '#1976d2' }}>Preparando evaluación...</h2>
-        <div style={{ marginTop: 32 }}>
-          <div style={{ color: '#666' }}>
-            Verificando evaluación previa...
-          </div>
-          <div style={{ marginTop: 16, fontSize: '14px', color: '#999' }}>Esto solo tomará un momento</div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!local && !localCargado) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#f5f6fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div style={{ maxWidth: 400, background: '#fff', borderRadius: 16, padding: 40, textAlign: 'center', boxShadow: '0 4px 24px 0 rgba(30, 42, 73, 0.08)' }}>
-          <div style={{ fontSize: 48, marginBottom: 20 }}>⏳</div>
-          <h2 style={{ color: '#1976d2', marginBottom: 16, fontSize: 24 }}>Cargando local...</h2>
-          <p style={{ color: '#666', fontSize: 16 }}>Estamos preparando la evaluación para ti</p>
-        </div>
-      </div>
-    );
-  }
-  
+  // Mostrar error 404 si el local no existe (token inválido)
   if (localCargado && !local) {
     return (
       <div style={{ minHeight: '100vh', background: '#f5f6fa', padding: 0, margin: 0 }}>
@@ -436,6 +434,32 @@ export default function EvaluacionPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (puedeEvaluar === null && localCargado && local) {
+    return (
+      <div style={{ maxWidth: 500, margin: "40px auto", padding: 32, background: "#fff", boxShadow: "0 2px 8px #eee", borderRadius: 16, textAlign: 'center' }}>
+        <h2 style={{ color: '#1976d2' }}>Preparando evaluación...</h2>
+        <div style={{ marginTop: 32 }}>
+          <div style={{ color: '#666' }}>
+            Verificando evaluación previa...
+          </div>
+          <div style={{ marginTop: 16, fontSize: '14px', color: '#999' }}>Esto solo tomará un momento</div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!local && !localCargado) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#f5f6fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ maxWidth: 400, background: '#fff', borderRadius: 16, padding: 40, textAlign: 'center', boxShadow: '0 4px 24px 0 rgba(30, 42, 73, 0.08)' }}>
+          <div style={{ fontSize: 48, marginBottom: 20 }}>⏳</div>
+          <h2 style={{ color: '#1976d2', marginBottom: 16, fontSize: 24 }}>Cargando local...</h2>
+          <p style={{ color: '#666', fontSize: 16 }}>Estamos preparando la evaluación para ti</p>
         </div>
       </div>
     );
