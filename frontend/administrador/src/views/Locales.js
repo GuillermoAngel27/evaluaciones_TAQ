@@ -93,6 +93,7 @@ const Locales = () => {
       document.head.removeChild(style);
     };
   }, []);
+
   const [modal, setModal] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // create, edit, view
   const [selectedLocal, setSelectedLocal] = useState(null);
@@ -103,6 +104,22 @@ const Locales = () => {
   const [itemsPerPage] = useState(10);
   const [qrModal, setQrModal] = useState(false);
   const [selectedLocalForQr, setSelectedLocalForQr] = useState(null);
+  const [qrSearchTerm, setQrSearchTerm] = useState("");
+  const [showQrDropdown, setShowQrDropdown] = useState(false);
+
+  // Cerrar dropdown cuando se hace clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showQrDropdown && !event.target.closest('.position-relative')) {
+        setShowQrDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showQrDropdown]);
 
   // Datos de ejemplo basados en la estructura de la BD
   const [locales, setLocales] = useState([
@@ -235,7 +252,15 @@ const Locales = () => {
   };
 
   // Funciones para el modal de QR
-  const toggleQrModal = () => setQrModal(!qrModal);
+  const toggleQrModal = () => {
+    setQrModal(!qrModal);
+    if (qrModal) {
+      // Limpiar estados cuando se cierra el modal
+      setSelectedLocalForQr(null);
+      setQrSearchTerm("");
+      setShowQrDropdown(false);
+    }
+  };
   
   const handleCreateQr = () => {
     setSelectedLocalForQr(null);
@@ -252,14 +277,38 @@ const Locales = () => {
       // Generar QR para un local específico
       console.log('Generando QR para:', selectedLocalForQr.nombre);
       alert(`QR generado para: ${selectedLocalForQr.nombre}`);
+      // No cerrar el modal, permitir generar más QR
     } else if (type === 'all') {
       // Generar QR para todos los locales activos
       const activeLocales = locales.filter(local => local.estatus === 'Activo');
       console.log('Generando QR para todos los locales activos:', activeLocales.length);
       alert(`QR generado para ${activeLocales.length} locales activos`);
+      // Cerrar el modal solo para QR masivo
+      toggleQrModal();
     }
-    toggleQrModal();
   };
+
+  // Funciones para el dropdown con búsqueda
+  const handleQrSearchChange = (e) => {
+    setQrSearchTerm(e.target.value);
+    setShowQrDropdown(true);
+  };
+
+  const handleQrLocalSelect = (local) => {
+    setSelectedLocalForQr(local);
+    setQrSearchTerm(local.nombre);
+    setShowQrDropdown(false);
+  };
+
+  const filteredQrLocales = locales.filter(local => 
+    local.estatus === 'Activo' && 
+    local.nombre.toLowerCase().includes(qrSearchTerm.toLowerCase())
+  );
+
+  // Debug: mostrar información de locales activos
+  console.log('Locales activos:', locales.filter(local => local.estatus === 'Activo'));
+  console.log('Filtrados QR:', filteredQrLocales);
+  console.log('showQrDropdown:', showQrDropdown);
 
   // Filtrado y búsqueda
   const filteredLocales = locales.filter((local) => {
@@ -303,7 +352,7 @@ const Locales = () => {
 
   return (
     <>
-              <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+      <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
         <Container fluid>
           <div className="header-body">
             <Row>
@@ -315,7 +364,7 @@ const Locales = () => {
         </Container>
       </div>
 
-             <Container className="mt--7" fluid>
+             <Container className="mt--8" fluid>
         <Row>
           <Col>
             <Card className="shadow">
@@ -346,6 +395,12 @@ const Locales = () => {
                 </Row>
               </CardHeader>
               <CardBody>
+                
+                
+                
+                
+                
+                
                 {/* Filtros y búsqueda */}
                 <Row className="mb-4 g-3">
                   {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
@@ -440,13 +495,16 @@ const Locales = () => {
                   <Col xs="12" sm="12" md="12" lg="3" xl="3">
                     <Button
                       color="secondary"
-                      block
                       onClick={() => {
                         setSearchTerm("");
                         setFilterStatus("all");
                         setFilterType("all");
                       }}
-                      style={{ width: '100%' }}
+                      style={{ 
+                        width: 'auto',
+                        minWidth: '120px',
+                        padding: '12px 20px'
+                      }}
                     >
                       <FaFilter className="mr-1" />
                       Limpiar
@@ -693,109 +751,121 @@ const Locales = () => {
           Crear Código QR
         </ModalHeader>
         <ModalBody>
-          {selectedLocalForQr ? (
-            // QR para un local específico
-            <div>
-              <h5>Generar QR para: {selectedLocalForQr.nombre}</h5>
-              <p className="text-muted">
-                Se generará un código QR específico para este local que permitirá 
-                a los clientes acceder directamente a la evaluación.
-              </p>
-              <div className="text-center">
-                <Button
-                  color="primary"
-                  size="lg"
-                  onClick={() => handleGenerateQr('individual')}
-                  className="btn-icon"
-                >
-                  <FaQrcode className="mr-2" />
-                  Generar QR Individual
-                </Button>
-              </div>
-            </div>
-          ) : (
-            // QR para todos los locales
-            <div>
-              <h5>Generar Códigos QR</h5>
-              <p className="text-muted mb-4">
-                Selecciona una opción para generar códigos QR:
-              </p>
-              
-              <Row>
-                <Col md="6">
-                  <Card className="text-center p-3">
-                    <FaQrcode className="text-primary mb-3" size={48} />
-                    <h6>QR Individual</h6>
-                    <p className="text-muted small">
-                      Genera QR para un local específico
-                    </p>
-                    <Button
-                      color="primary"
-                      onClick={() => setSelectedLocalForQr('select')}
-                      block
-                    >
-                      Seleccionar Local
-                    </Button>
-                  </Card>
-                </Col>
-                <Col md="6">
-                  <Card className="text-center p-3">
-                    <FaQrcode className="text-success mb-3" size={48} />
-                    <h6>QR Masivo</h6>
-                    <p className="text-muted small">
-                      Genera QR para todos los locales activos
-                    </p>
-                    <Button
-                      color="success"
-                      onClick={() => handleGenerateQr('all')}
-                      block
-                    >
-                      Generar Todos
-                    </Button>
-                  </Card>
-                </Col>
-              </Row>
+          <div>
+            <h5>Generar Códigos QR</h5>
+            <p className="text-muted mb-4">
+              Selecciona una opción para generar códigos QR:
+            </p>
+            
+            <Row>
+              <Col md="6">
+                <Card className="text-center p-3">
+                  <FaQrcode className="text-primary mb-3" size={48} />
+                  <h6>QR Individual</h6>
+                  <p className="text-muted small">
+                    Genera QR para un local específico
+                  </p>
+                  
+                  <FormGroup className="mt-3">
+                    <Label for="qrLocalSearch" className="text-left d-block">Seleccionar Local:</Label>
+                    <div className="position-relative">
+                      <Input
+                        type="text"
+                        id="qrLocalSearch"
+                        placeholder="Escribe para buscar locales activos..."
+                        value={qrSearchTerm}
+                        onChange={handleQrSearchChange}
+                        onFocus={() => setShowQrDropdown(true)}
+                        className="form-control-alternative"
+                        style={{
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      />
+                      
+                      {showQrDropdown && (filteredQrLocales.length > 0 || !qrSearchTerm) && (
+                        <div 
+                          className="position-absolute w-100 bg-white border rounded shadow-lg"
+                          style={{
+                            top: '100%',
+                            left: 0,
+                            zIndex: 9999,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            border: '2px solid #e9ecef',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                          }}
+                        >
+                          {filteredQrLocales.length > 0 ? (
+                            filteredQrLocales.map(local => (
+                              <div
+                                key={local.id}
+                                className="p-3 border-bottom cursor-pointer"
+                                style={{
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.2s ease',
+                                  borderBottom: '1px solid #f8f9fa'
+                                }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                onClick={() => handleQrLocalSelect(local)}
+                              >
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <strong>{local.nombre}</strong>
+                                    <br />
+                                    <small className="text-muted">{local.tipo_local}</small>
+                                  </div>
+                                  <Badge color="info">{local.tipo_local}</Badge>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-3 text-muted">
+                              No hay locales activos disponibles
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </FormGroup>
 
-              {selectedLocalForQr === 'select' && (
-                <div className="mt-4">
-                  <h6>Selecciona un Local Activo:</h6>
-                  <div className="table-responsive">
-                    <Table size="sm">
-                      <thead>
-                        <tr>
-                          <th>Local</th>
-                          <th>Tipo</th>
-                          <th>Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {locales
-                          .filter(local => local.estatus === 'Activo')
-                          .map(local => (
-                            <tr key={local.id}>
-                              <td>{local.nombre}</td>
-                                                             <td>
-                                 <Badge color="info">{local.tipo_local}</Badge>
-                               </td>
-                              <td>
-                                <Button
-                                  color="primary"
-                                  size="sm"
-                                  onClick={() => handleCreateQrForLocal(local)}
-                                >
-                                  <FaQrcode className="mr-1" />
-                                  Generar QR
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </Table>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                  <Button
+                    color="primary"
+                    className="mt-3"
+                    block
+                    disabled={!selectedLocalForQr || selectedLocalForQr === 'select'}
+                    onClick={() => handleGenerateQr('individual')}
+                  >
+                    <FaQrcode className="mr-1" />
+                    Generar QR
+                  </Button>
+                </Card>
+              </Col>
+              <Col md="6">
+                <Card className="text-center p-3">
+                  <FaQrcode className="text-success mb-3" size={48} />
+                  <h6>QR Masivo</h6>
+                  <p className="text-muted small">
+                    Genera QR para todos los locales activos
+                  </p>
+                  <Button
+                    color="success"
+                    onClick={() => handleGenerateQr('all')}
+                    block
+                  >
+                    Generar Todos
+                  </Button>
+                </Card>
+              </Col>
+            </Row>
+          </div>
         </ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={toggleQrModal}>

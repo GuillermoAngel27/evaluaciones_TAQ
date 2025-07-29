@@ -307,18 +307,19 @@ const Evaluaciones = () => {
 
   return (
     <>
-              <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+      <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
         <Container fluid>
           <div className="header-body">
             <Row>
               <Col>
+                <h6 className="h2 text-white d-inline-block mb-0"></h6>
               </Col>
             </Row>
           </div>
         </Container>
       </div>
 
-      <Container className="mt--7" fluid>
+      <Container className="mt--8" fluid>
         <Row>
           <Col>
             <Card className="shadow">
@@ -330,6 +331,8 @@ const Evaluaciones = () => {
                 </Row>
               </CardHeader>
               <CardBody>
+                
+                
                 {/* Filtros y búsqueda */}
                 <Row className="mb-4 g-3">
                   {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
