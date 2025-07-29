@@ -20,8 +20,8 @@ frontend/administrador/public/images/
 
 ### Características de la imagen:
 
-1. **Área del QR**: Deja espacio en el centro (aproximadamente 80mm desde arriba) para el código QR
-2. **Área de texto**: Deja espacio debajo del QR (aproximadamente 180mm desde arriba) para el nombre del local
+1. **Área del QR**: Deja espacio en el centro (aproximadamente 100mm desde arriba) para el código QR
+2. **Área de texto**: Deja espacio debajo del QR (aproximadamente 190mm desde arriba) para el nombre del local
 3. **Contraste**: Asegúrate de que el texto y QR sean legibles sobre tu imagen de fondo
 
 ### Ejemplo de layout:
@@ -29,10 +29,9 @@ frontend/administrador/public/images/
 ┌─────────────────────┐
 │                     │
 │                     │
-│   [Código QR]       │  ← Centrado en Y=80mm
+│   [Código QR]       │  ← Centrado en Y=100mm
 │                     │
-│                     │
-│   Nombre del Local  │  ← Centrado debajo del QR
+│   Nombre del Local  │  ← Centrado debajo del QR (10mm separación)
 │                     │
 │                     │
 └─────────────────────┘

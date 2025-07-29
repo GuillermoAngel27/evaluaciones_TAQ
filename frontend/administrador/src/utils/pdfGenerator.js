@@ -9,8 +9,8 @@ export const generateLocalQRPDF = async (localName, localId) => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // URL para la evaluación (ajusta según tu frontend)
-    const evaluationUrl = `http://localhost:3000/evaluacion/${localId}`;
+    // URL para la evaluación - apunta a la aplicación de evaluación en puerto 3001
+    const evaluationUrl = `http://localhost:3001/?id=${localId}`;
     
     // Generar QR code como data URL
     const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -75,19 +75,19 @@ const generatePDFWithBackground = (pdf, qrDataUrl, localName, backgroundImage) =
     pdf.rect(0, 0, pageWidth, pageHeight, 'F');
   }
 
-  // QR code centrado (reducido de 100 a 80)
+  // QR code centrado (subido para centrarlo mejor en el cuadro)
   const qrSize = 80;
   const qrX = (pageWidth - qrSize) / 2;
-  const qrY = 80; // Posicionado más arriba para dejar espacio al nombre debajo
+  const qrY = 100; // Subido de 120 a 100 para centrarlo mejor
   pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
 
   // Configurar fuente para el nombre del local
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(90, 12, 98);
-  pdf.setFontSize(20); // Reducido de 24 a 20
+  pdf.setFontSize(20);
   
-  // Nombre del local centrado debajo del QR
-  const nameY = qrY + qrSize + 20; // 20mm debajo del QR
+  // Nombre del local centrado más cerca del QR
+  const nameY = qrY + qrSize + 10; // 10mm debajo del QR
   pdf.text(localName, pageWidth / 2, nameY, { align: 'center' });
 
   // Guardar el PDF
@@ -110,7 +110,7 @@ export const generateBulkQRPDF = async (locales) => {
 
     for (let i = 0; i < locales.length; i++) {
       const local = locales[i];
-      const evaluationUrl = `http://localhost:3000/evaluacion/${local.id}`;
+      const evaluationUrl = `http://localhost:3001/?id=${local.id}`;
       
       // Generar QR para cada local
       const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -156,12 +156,12 @@ export const generateBulkQRPDF = async (locales) => {
       const qrX = (pageWidth - qrSize) / 2;
       const qrY = currentY;
       pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
-      currentY += qrSize + 10;
+      currentY += qrSize + 5; // Reducida separación de 10 a 5
 
       // Nombre del local debajo del QR
       pdf.setFontSize(16); // Reducido de 18 a 16
       pdf.text(local.nombre, pageWidth / 2, currentY, { align: 'center' });
-      currentY += 20;
+      currentY += 15; // Reducida separación de 20 a 15
     }
 
     // Guardar el PDF
