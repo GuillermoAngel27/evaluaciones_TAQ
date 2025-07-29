@@ -73,8 +73,6 @@ const Locales = () => {
         position: relative;
       }
       
-      
-      
       .modern-select option {
         padding: 12px 16px !important;
         font-weight: 500 !important;
@@ -85,6 +83,47 @@ const Locales = () => {
       .modern-select option:hover {
         background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
         color: white !important;
+      }
+
+      /* Estilos para botones móviles */
+      .mobile-button {
+        transition: all 0.3s ease !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      }
+
+      .mobile-button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+      }
+
+      .mobile-button:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      }
+
+      /* Responsive para botones en móviles */
+      @media (max-width: 576px) {
+        .mobile-button {
+          min-width: 120px !important;
+          padding: 12px 16px !important;
+          font-size: 13px !important;
+          margin-bottom: 8px !important;
+        }
+        
+        .mobile-button:last-child {
+          margin-bottom: 0 !important;
+        }
+      }
+
+      /* Mejoras para tablets */
+      @media (min-width: 577px) and (max-width: 768px) {
+        .mobile-button {
+          min-width: 130px !important;
+          padding: 11px 18px !important;
+          font-size: 13px !important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -374,23 +413,47 @@ const Locales = () => {
                     <h3 className="mb-0">Lista de Locales</h3>
                   </div>
                   <div className="col text-right">
-                                         <Button
-                       color="primary"
-                       size="sm"
-                       onClick={handleCreate}
-                       className="mr-2"
-                     >
-                       <FaPlus className="mr-1" />
-                       Agregar Local
-                     </Button>
-                    <Button
-                      color="success"
-                      size="sm"
-                      onClick={handleCreateQr}
-                    >
-                      <FaQrcode className="mr-1" />
-                      Crear QR
-                    </Button>
+                    {/* Botones responsivos para móviles */}
+                    <div className="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                      <Button
+                        color="primary"
+                        size="sm"
+                        onClick={handleCreate}
+                        className="mb-2 mb-sm-0 mobile-button"
+                        style={{
+                          minWidth: '140px',
+                          padding: '10px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <FaPlus className="mr-1" />
+                        <span className="d-none d-sm-inline">Agregar Local</span>
+                        <span className="d-sm-none">Agregar</span>
+                      </Button>
+                      <Button
+                        color="success"
+                        size="sm"
+                        onClick={handleCreateQr}
+                        className="mobile-button"
+                        style={{
+                          minWidth: '140px',
+                          padding: '10px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <FaQrcode className="mr-1" />
+                        <span className="d-none d-sm-inline">Crear QR</span>
+                        <span className="d-sm-none">QR</span>
+                      </Button>
+                    </div>
                   </div>
                 </Row>
               </CardHeader>

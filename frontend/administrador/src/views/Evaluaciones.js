@@ -88,7 +88,11 @@ const Evaluaciones = () => {
   const [selectedLocal, setSelectedLocal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
+  const [filterFechaDesde, setFilterFechaDesde] = useState("");
+  const [filterFechaHasta, setFilterFechaHasta] = useState("");
   const [imageErrors, setImageErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // 3 renglones x 4 columnas
 
   // Datos de locales evaluados con imágenes más confiables
   const [localesEvaluados, setLocalesEvaluados] = useState([
@@ -195,6 +199,214 @@ const Evaluaciones = () => {
         { calificacion: 5, comentario: "Muy seguro", fecha: "2024-03-15" },
         { calificacion: 4, comentario: "Conductor profesional", fecha: "2024-03-14" },
       ]
+    },
+    {
+      id: 9,
+      nombre: "Restaurante Mariscos del Mar",
+      tipo: "alimentos",
+      imagen: "https://picsum.photos/400/300?random=9",
+      calificacionPromedio: 4.6,
+      totalEvaluaciones: 56,
+      ultimaEvaluacion: "2024-03-14",
+      evaluaciones: [
+        { calificacion: 5, comentario: "Mariscos frescos y deliciosos", fecha: "2024-03-14" },
+        { calificacion: 4, comentario: "Excelente vista al mar", fecha: "2024-03-13" },
+      ]
+    },
+    {
+      id: 10,
+      nombre: "Miscelánea El Ahorro",
+      tipo: "miscelaneas",
+      imagen: "https://picsum.photos/400/300?random=10",
+      calificacionPromedio: 3.5,
+      totalEvaluaciones: 34,
+      ultimaEvaluacion: "2024-03-12",
+      evaluaciones: [
+        { calificacion: 3, comentario: "Precios económicos", fecha: "2024-03-12" },
+        { calificacion: 4, comentario: "Bien surtida", fecha: "2024-03-11" },
+      ]
+    },
+    {
+      id: 11,
+      nombre: "Taxi Rápido",
+      tipo: "taxis",
+      imagen: "https://picsum.photos/400/300?random=11",
+      calificacionPromedio: 4.3,
+      totalEvaluaciones: 78,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Llegó en tiempo récord", fecha: "2024-03-15" },
+        { calificacion: 4, comentario: "Conductor puntual", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 12,
+      nombre: "Estacionamiento Plaza Mayor",
+      tipo: "estacionamiento",
+      imagen: "https://picsum.photos/400/300?random=12",
+      calificacionPromedio: 4.0,
+      totalEvaluaciones: 29,
+      ultimaEvaluacion: "2024-03-13",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Ubicación céntrica", fecha: "2024-03-13" },
+        { calificacion: 4, comentario: "Seguridad 24/7", fecha: "2024-03-12" },
+      ]
+    },
+    {
+      id: 13,
+      nombre: "Café Gourmet",
+      tipo: "alimentos",
+      imagen: "https://picsum.photos/400/300?random=13",
+      calificacionPromedio: 4.9,
+      totalEvaluaciones: 67,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 5, comentario: "El mejor café de la ciudad", fecha: "2024-03-15" },
+        { calificacion: 5, comentario: "Ambiente perfecto para trabajar", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 14,
+      nombre: "Miscelánea Express",
+      tipo: "miscelaneas",
+      imagen: "https://picsum.photos/400/300?random=14",
+      calificacionPromedio: 3.8,
+      totalEvaluaciones: 42,
+      ultimaEvaluacion: "2024-03-14",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Servicio rápido", fecha: "2024-03-14" },
+        { calificacion: 3, comentario: "Productos básicos", fecha: "2024-03-13" },
+      ]
+    },
+    {
+      id: 15,
+      nombre: "Taxi Premium",
+      tipo: "taxis",
+      imagen: "https://picsum.photos/400/300?random=15",
+      calificacionPromedio: 4.8,
+      totalEvaluaciones: 95,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 5, comentario: "Servicio de lujo", fecha: "2024-03-15" },
+        { calificacion: 5, comentario: "Vehículo impecable", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 16,
+      nombre: "Estacionamiento Subterráneo",
+      tipo: "estacionamiento",
+      imagen: "https://picsum.photos/400/300?random=16",
+      calificacionPromedio: 3.2,
+      totalEvaluaciones: 18,
+      ultimaEvaluacion: "2024-03-11",
+      evaluaciones: [
+        { calificacion: 3, comentario: "Precio accesible", fecha: "2024-03-11" },
+        { calificacion: 3, comentario: "Ubicación conveniente", fecha: "2024-03-10" },
+      ]
+    },
+    {
+      id: 17,
+      nombre: "Restaurante Vegetariano",
+      tipo: "alimentos",
+      imagen: "https://picsum.photos/400/300?random=17",
+      calificacionPromedio: 4.4,
+      totalEvaluaciones: 38,
+      ultimaEvaluacion: "2024-03-14",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Comida saludable y deliciosa", fecha: "2024-03-14" },
+        { calificacion: 5, comentario: "Opciones veganas excelentes", fecha: "2024-03-13" },
+      ]
+    },
+    {
+      id: 18,
+      nombre: "Miscelánea Familiar",
+      tipo: "miscelaneas",
+      imagen: "https://picsum.photos/400/300?random=18",
+      calificacionPromedio: 4.2,
+      totalEvaluaciones: 51,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Atención familiar", fecha: "2024-03-15" },
+        { calificacion: 4, comentario: "Productos de calidad", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 19,
+      nombre: "Taxi Económico",
+      tipo: "taxis",
+      imagen: "https://picsum.photos/400/300?random=19",
+      calificacionPromedio: 3.9,
+      totalEvaluaciones: 63,
+      ultimaEvaluacion: "2024-03-13",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Precios justos", fecha: "2024-03-13" },
+        { calificacion: 3, comentario: "Servicio básico pero eficiente", fecha: "2024-03-12" },
+      ]
+    },
+    {
+      id: 20,
+      nombre: "Estacionamiento VIP",
+      tipo: "estacionamiento",
+      imagen: "https://picsum.photos/400/300?random=20",
+      calificacionPromedio: 4.6,
+      totalEvaluaciones: 25,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 5, comentario: "Servicio premium", fecha: "2024-03-15" },
+        { calificacion: 4, comentario: "Seguridad garantizada", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 21,
+      nombre: "Restaurante de Mariscos",
+      tipo: "alimentos",
+      imagen: "https://picsum.photos/400/300?random=21",
+      calificacionPromedio: 4.7,
+      totalEvaluaciones: 73,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 5, comentario: "Mariscos frescos del día", fecha: "2024-03-15" },
+        { calificacion: 4, comentario: "Vista espectacular", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 22,
+      nombre: "Miscelánea del Centro",
+      tipo: "miscelaneas",
+      imagen: "https://picsum.photos/400/300?random=22",
+      calificacionPromedio: 3.6,
+      totalEvaluaciones: 47,
+      ultimaEvaluacion: "2024-03-12",
+      evaluaciones: [
+        { calificacion: 3, comentario: "Ubicación céntrica", fecha: "2024-03-12" },
+        { calificacion: 4, comentario: "Variedad de productos", fecha: "2024-03-11" },
+      ]
+    },
+    {
+      id: 23,
+      nombre: "Taxi Ejecutivo",
+      tipo: "taxis",
+      imagen: "https://picsum.photos/400/300?random=23",
+      calificacionPromedio: 4.9,
+      totalEvaluaciones: 82,
+      ultimaEvaluacion: "2024-03-15",
+      evaluaciones: [
+        { calificacion: 5, comentario: "Servicio ejecutivo de primera", fecha: "2024-03-15" },
+        { calificacion: 5, comentario: "Conductor profesional", fecha: "2024-03-14" },
+      ]
+    },
+    {
+      id: 24,
+      nombre: "Estacionamiento Residencial",
+      tipo: "estacionamiento",
+      imagen: "https://picsum.photos/400/300?random=24",
+      calificacionPromedio: 3.8,
+      totalEvaluaciones: 31,
+      ultimaEvaluacion: "2024-03-13",
+      evaluaciones: [
+        { calificacion: 4, comentario: "Ideal para residentes", fecha: "2024-03-13" },
+        { calificacion: 3, comentario: "Precios razonables", fecha: "2024-03-12" },
+      ]
     }
   ]);
 
@@ -224,8 +436,37 @@ const Evaluaciones = () => {
   const filteredLocales = localesEvaluados.filter((local) => {
     const matchesSearch = local.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTipo = filterTipo === "all" || local.tipo === filterTipo;
-    return matchesSearch && matchesTipo;
+    
+    // Filtrado por fecha
+    let matchesFecha = true;
+    if (filterFechaDesde || filterFechaHasta) {
+      const fechaLocal = new Date(local.ultimaEvaluacion);
+      
+      if (filterFechaDesde) {
+        const fechaDesde = new Date(filterFechaDesde);
+        matchesFecha = matchesFecha && fechaLocal >= fechaDesde;
+      }
+      
+      if (filterFechaHasta) {
+        const fechaHasta = new Date(filterFechaHasta);
+        fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día
+        matchesFecha = matchesFecha && fechaLocal <= fechaHasta;
+      }
+    }
+    
+    return matchesSearch && matchesTipo && matchesFecha;
   });
+
+  // Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentLocales = filteredLocales.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredLocales.length / itemsPerPage);
+
+  // Resetear a la primera página cuando cambian los filtros
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterTipo, filterFechaDesde, filterFechaHasta]);
 
   // Funciones de utilidad
   const getRatingStars = (rating) => {
@@ -335,8 +576,8 @@ const Evaluaciones = () => {
                 
                 {/* Filtros y búsqueda */}
                 <Row className="mb-4 g-3">
-                  {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
-                  <Col xs="12" sm="12" md="12" lg="6" xl="6">
+                  {/* Buscar - Ocupa todo el ancho en móviles */}
+                  <Col xs="12" sm="12" md="6" lg="4" xl="3">
                     <FormGroup>
                       <Input
                         type="text"
@@ -348,8 +589,8 @@ const Evaluaciones = () => {
                     </FormGroup>
                   </Col>
                   
-                  {/* Tipo - Mitad en móviles, lado a lado en tablets */}
-                  <Col xs="6" sm="6" md="6" lg="3" xl="3">
+                  {/* Tipo - Mitad en móviles */}
+                  <Col xs="6" sm="6" md="3" lg="2" xl="2">
                     <FormGroup>
                       <div className="custom-select-wrapper">
                         <Input
@@ -372,7 +613,7 @@ const Evaluaciones = () => {
                           }}
                         >
                           <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
-                            🏪 Todos los tipos
+                            🏪 Todos
                           </option>
                           <option value="alimentos" style={{ fontWeight: '500' }}>
                             🍽️ Alimentos
@@ -391,14 +632,63 @@ const Evaluaciones = () => {
                     </FormGroup>
                   </Col>
                   
-                  {/* Botón Limpiar - Ancho completo en móviles y tablets */}
-                  <Col xs="6" sm="6" md="6" lg="3" xl="3">
+                  {/* Fecha Desde */}
+                  <Col xs="6" sm="6" md="3" lg="2" xl="2">
+                    <FormGroup>
+                      <Input
+                        type="date"
+                        value={filterFechaDesde}
+                        onChange={(e) => setFilterFechaDesde(e.target.value)}
+                        className="form-control-alternative"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      />
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Fecha Hasta */}
+                  <Col xs="6" sm="6" md="3" lg="2" xl="2">
+                    <FormGroup>
+                      <Input
+                        type="date"
+                        value={filterFechaHasta}
+                        onChange={(e) => setFilterFechaHasta(e.target.value)}
+                        className="form-control-alternative"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      />
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Botón Limpiar */}
+                  <Col xs="6" sm="6" md="3" lg="2" xl="3">
                     <Button
                       color="secondary"
                       block
                       onClick={() => {
                         setSearchTerm("");
                         setFilterTipo("all");
+                        setFilterFechaDesde("");
+                        setFilterFechaHasta("");
+                        setCurrentPage(1);
                       }}
                       style={{ width: '100%' }}
                     >
@@ -410,8 +700,8 @@ const Evaluaciones = () => {
 
                 {/* Grid de locales */}
                 <Row>
-                  {filteredLocales.map((local) => (
-                    <Col key={local.id} lg="4" md="6" className="mb-4">
+                  {currentLocales.map((local) => (
+                    <Col key={local.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
                       <Card className="card-lift--hover shadow border-0">
                         <div className="position-relative">
                           <img
@@ -442,32 +732,6 @@ const Evaluaciones = () => {
                         <CardBody className="py-3">
                           <div className="d-flex justify-content-between align-items-start mb-2">
                             <h5 className="card-title mb-0">{local.nombre}</h5>
-                            <div className="d-flex">
-                              <Button
-                                color="info"
-                                size="sm"
-                                className="mr-1"
-                                onClick={() => handleView(local)}
-                                id={`view-${local.id}`}
-                              >
-                                <FaEye />
-                              </Button>
-                              <UncontrolledTooltip target={`view-${local.id}`}>
-                                Ver detalles
-                              </UncontrolledTooltip>
-
-                              <Button
-                                color="danger"
-                                size="sm"
-                                onClick={() => handleDelete(local.id)}
-                                id={`delete-${local.id}`}
-                              >
-                                <FaTrash />
-                              </Button>
-                              <UncontrolledTooltip target={`delete-${local.id}`}>
-                                Eliminar
-                              </UncontrolledTooltip>
-                            </div>
                           </div>
                           
                           <div className="row text-center">
@@ -478,10 +742,7 @@ const Evaluaciones = () => {
                             <div className="col-6">
                               <div className="text-sm text-muted">Calificación</div>
                               <div className="d-flex align-items-center justify-content-center">
-                                <div className="me-1">{getRatingStars(local.calificacionPromedio)}</div>
-                                <Badge color={getRatingColor(local.calificacionPromedio)} size="sm">
-                                  {local.calificacionPromedio.toFixed(1)}
-                                </Badge>
+                                {getRatingStars(local.calificacionPromedio)}
                               </div>
                             </div>
                           </div>
@@ -490,6 +751,151 @@ const Evaluaciones = () => {
                     </Col>
                   ))}
                 </Row>
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                  <Row className="mt-4">
+                    <Col>
+                      <div className="d-flex justify-content-end align-items-center">
+                        {/* Controles de paginación */}
+                        <nav aria-label="Paginación de evaluaciones">
+                          <ul className="pagination pagination-sm mb-0">
+                            {/* Botón Anterior */}
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === 1 ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === 1 ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>«</span>
+                              </button>
+                            </li>
+                            
+                            {/* Números de página */}
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <li key={page} className="page-item">
+                                <button
+                                  className="page-link border-0"
+                                  onClick={() => setCurrentPage(page)}
+                                  style={{
+                                    borderRadius: '8px',
+                                    margin: '0 2px',
+                                    padding: '8px 12px',
+                                    fontSize: '14px',
+                                    fontWeight: page === currentPage ? '600' : '500',
+                                    color: page === currentPage ? 'white' : '#495057',
+                                    backgroundColor: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white',
+                                    border: page === currentPage 
+                                      ? '1px solid #5A0C62' 
+                                      : '1px solid #e9ecef',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '36px',
+                                    height: '36px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = '#f8f9fa';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = 'white';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = 'none';
+                                    }
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            ))}
+                            
+                            {/* Botón Siguiente */}
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === totalPages ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === totalPages ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>»</span>
+                              </button>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </Col>
+                  </Row>
+                )}
 
                 {filteredLocales.length === 0 && (
                   <div className="text-center py-5">
