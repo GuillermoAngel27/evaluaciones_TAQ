@@ -638,7 +638,13 @@ const Evaluaciones = () => {
                       <Input
                         type="date"
                         value={filterFechaDesde}
-                        onChange={(e) => setFilterFechaDesde(e.target.value)}
+                        onChange={(e) => {
+                          setFilterFechaDesde(e.target.value);
+                          // Si la fecha "hasta" es anterior a la nueva fecha "de", limpiarla
+                          if (filterFechaHasta && e.target.value && filterFechaHasta < e.target.value) {
+                            setFilterFechaHasta("");
+                          }
+                        }}
                         className="form-control-alternative"
                         style={{
                           background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
@@ -662,6 +668,7 @@ const Evaluaciones = () => {
                         type="date"
                         value={filterFechaHasta}
                         onChange={(e) => setFilterFechaHasta(e.target.value)}
+                        min={filterFechaDesde} // Establece el mínimo basado en la fecha "de"
                         className="form-control-alternative"
                         style={{
                           background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
@@ -690,7 +697,10 @@ const Evaluaciones = () => {
                         setFilterFechaHasta("");
                         setCurrentPage(1);
                       }}
-                      style={{ width: '100%' }}
+                      style={{ 
+                        width: '100px',
+                        padding: '12px 16px'
+                      }}
                     >
                       <FaFilter className="mr-1" />
                       Limpiar

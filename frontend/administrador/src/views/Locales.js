@@ -210,6 +210,48 @@ const Locales = () => {
       tipo_local: "Misceláneas",
       estatus: "Activo",
     },
+    {
+      id: 9,
+      nombre: "Restaurante Mariscos del Mar",
+      tipo_local: "Alimentos",
+      estatus: "Activo",
+    },
+    {
+      id: 10,
+      nombre: "Café Gourmet",
+      tipo_local: "Alimentos",
+      estatus: "Activo",
+    },
+    {
+      id: 11,
+      nombre: "Taxi Premium",
+      tipo_local: "Taxis",
+      estatus: "Activo",
+    },
+    {
+      id: 12,
+      nombre: "Estacionamiento VIP",
+      tipo_local: "Estacionamiento",
+      estatus: "Activo",
+    },
+    {
+      id: 13,
+      nombre: "Miscelánea Express",
+      tipo_local: "Misceláneas",
+      estatus: "Activo",
+    },
+    {
+      id: 14,
+      nombre: "Restaurante Vegetariano",
+      tipo_local: "Alimentos",
+      estatus: "Activo",
+    },
+    {
+      id: 15,
+      nombre: "Taxi Ejecutivo",
+      tipo_local: "Taxis",
+      estatus: "Activo",
+    }
   ]);
 
   const [formData, setFormData] = useState({
@@ -365,6 +407,11 @@ const Locales = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLocales = filteredLocales.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLocales.length / itemsPerPage);
+
+  // Resetear a la primera página cuando cambian los filtros
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterType]);
 
   const getStatusBadge = (status) => {
     const colors = {
@@ -562,6 +609,7 @@ const Locales = () => {
                         setSearchTerm("");
                         setFilterStatus("all");
                         setFilterType("all");
+                        setCurrentPage(1);
                       }}
                       style={{ 
                         width: 'auto',
@@ -626,68 +674,147 @@ const Locales = () => {
 
                 {/* Paginación */}
                 {totalPages > 1 && (
-                  <nav aria-label="Paginación">
-                    <Pagination
-                      className="justify-content-center"
-                      listClassName="justify-content-center"
-                    >
-                      <PaginationItem disabled={currentPage === 1}>
-                        <PaginationLink
-                          first
-                          href="#pablo"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(1);
-                          }}
-                        />
-                      </PaginationItem>
-                      <PaginationItem disabled={currentPage === 1}>
-                        <PaginationLink
-                          previous
-                          href="#pablo"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(currentPage - 1);
-                          }}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <PaginationItem key={page} active={page === currentPage}>
-                            <PaginationLink
-                              href="#pablo"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setCurrentPage(page);
-                              }}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )
-                      )}
-                      <PaginationItem disabled={currentPage === totalPages}>
-                        <PaginationLink
-                          next
-                          href="#pablo"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(currentPage + 1);
-                          }}
-                        />
-                      </PaginationItem>
-                      <PaginationItem disabled={currentPage === totalPages}>
-                        <PaginationLink
-                          last
-                          href="#pablo"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(totalPages);
-                          }}
-                        />
-                      </PaginationItem>
-                    </Pagination>
-                  </nav>
+                  <Row className="mt-4">
+                    <Col>
+                      <div className="d-flex justify-content-end align-items-center">
+                        {/* Controles de paginación */}
+                        <nav aria-label="Paginación de locales">
+                          <ul className="pagination pagination-sm mb-0">
+                            {/* Botón Anterior */}
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === 1 ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === 1 ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>«</span>
+                              </button>
+                            </li>
+                            
+                            {/* Números de página */}
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <li key={page} className="page-item">
+                                <button
+                                  className="page-link border-0"
+                                  onClick={() => setCurrentPage(page)}
+                                  style={{
+                                    borderRadius: '8px',
+                                    margin: '0 2px',
+                                    padding: '8px 12px',
+                                    fontSize: '14px',
+                                    fontWeight: page === currentPage ? '600' : '500',
+                                    color: page === currentPage ? 'white' : '#495057',
+                                    backgroundColor: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white',
+                                    border: page === currentPage 
+                                      ? '1px solid #5A0C62' 
+                                      : '1px solid #e9ecef',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '36px',
+                                    height: '36px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = '#f8f9fa';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = 'white';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = 'none';
+                                    }
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            ))}
+                            
+                            {/* Botón Siguiente */}
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === totalPages ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === totalPages ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>»</span>
+                              </button>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </Col>
+                  </Row>
                 )}
               </CardBody>
             </Card>
