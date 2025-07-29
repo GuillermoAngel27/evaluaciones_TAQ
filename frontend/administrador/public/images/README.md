@@ -27,7 +27,7 @@ frontend/administrador/public/images/
 ### Ejemplo de layout:
 ```
 ┌─────────────────────┐
-│                     │
+│ [Tu imagen de fondo] │
 │                     │
 │   [Código QR]       │  ← Centrado en Y=100mm
 │                     │
@@ -37,10 +37,28 @@ frontend/administrador/public/images/
 └─────────────────────┘
 ```
 
+### Tipos de PDF generados:
+
+#### 1. QR Individual
+- **Tamaño del QR**: 80mm x 80mm
+- **Posición del QR**: Y=100mm desde arriba
+- **Posición del nombre**: Y=190mm desde arriba
+- **Tamaño de fuente**: 20pt
+
+#### 2. QR Masivo (múltiples locales)
+- **Formato**: Un QR por página con fondo completo
+- **Tamaño del QR**: 80mm x 80mm (igual que individual)
+- **Posición del QR**: Y=100mm desde arriba (igual que individual)
+- **Posición del nombre**: Y=190mm desde arriba (igual que individual)
+- **Tamaño de fuente**: 20pt (igual que individual)
+- **Fondo**: Imagen de fondo completa en cada página
+- **Resultado**: PDF con una página por cada local
+
 ### Notas importantes:
 
 - Si no se encuentra la imagen `background.png`, el sistema usará un fondo sólido gris claro como respaldo
 - La imagen se redimensionará automáticamente para ajustarse al tamaño A4
 - Para mejores resultados, usa imágenes con colores que contrasten bien con el texto negro del QR
-- El QR tiene un tamaño de 80mm x 80mm
-- El nombre del local se muestra en fuente de 20pt 
+- El QR individual tiene un tamaño de 80mm x 80mm
+- El nombre del local se muestra en fuente de 20pt
+- En el PDF masivo, los QR son más pequeños (60mm) para optimizar el espacio 

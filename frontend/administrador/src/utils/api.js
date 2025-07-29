@@ -75,6 +75,9 @@ export const localesAPI = {
   
   // Eliminar local
   delete: (id) => api.delete(`/locales/${id}`),
+  
+  // Obtener local por token_publico
+  getByToken: (token) => api.get(`/locales/token/${token}`),
 };
 
 // Funciones de API para autenticación

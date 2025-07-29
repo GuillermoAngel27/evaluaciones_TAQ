@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import PreguntasForm from '../components/PreguntasForm';
 
-function getLocalIdFromUrl() {
+function getQrTokenFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('id');
+  return params.get('token');
 }
 
 // Función para generar un ID único del dispositivo
@@ -40,7 +40,7 @@ export default function EvaluacionPage() {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [localCargado, setLocalCargado] = useState(false); // Para distinguir entre carga y no encontrado
   const [localInactivo, setLocalInactivo] = useState(false); // Para controlar si el local está inactivo
-  const localId = getLocalIdFromUrl();
+  const tokenPublico = getQrTokenFromUrl();
   const [tipoLocalFiltro, setTipoLocalFiltro] = useState("");
 
   // Función para cargar preguntas desde el backend según el tipo de local
@@ -112,66 +112,58 @@ export default function EvaluacionPage() {
 
   // Al cargar la página, consulta al backend si puede evaluar
   useEffect(() => {
-    if (!localId) return;
+    if (!tokenPublico) return;
     
     
-    // Cargar información del local desde la base de datos
-    fetch("http://localhost:4000/api/locales/")
+    // Cargar información del local por token_publico
+    fetch(`http://localhost:4000/api/locales/token/${tokenPublico}`)
       .then(res => res.json())
       .then(data => {
-        const found = data.find(l => l.id === parseInt(localId));
-        
-        if (found) {
-          // Verificar si el local está activo
-          if (found.estatus !== 'Activo') {
-            setLocalInactivo(true);
-            setLocal(found);
-            setLocalCargado(true);
-            return;
-          }
-          
-          // Cargar preguntas dinámicamente según el tipo de local
-          if (found.tipo_local) {
-            cargarPreguntas(found.tipo_local);
-          } else {
-            // Fallback si no tiene tipo_local
-            const preguntasBasicas = [
-              "¿El personal fue amable?",
-              "¿El local estaba limpio?",
-              "¿La atención fue rápida?"
-            ];
-            setPreguntas(preguntasBasicas);
-            setRespuestas(Array(preguntasBasicas.length).fill(0));
-          }
-          
-          setLocal(found);
+        if (!data || data.estatus !== 'Activo') {
+          setLocalInactivo(true);
+          setLocal(data);
           setLocalCargado(true);
-        } else {
-          setLocal(null);
-          setLocalCargado(true);
+          return;
         }
+        // Cargar preguntas dinámicamente según el tipo de local
+        if (data.tipo_local) {
+          cargarPreguntas(data.tipo_local);
+        } else {
+          // Fallback si no tiene tipo_local
+          const preguntasBasicas = [
+            "¿El personal fue amable?",
+            "¿El local estaba limpio?",
+            "¿La atención fue rápida?"
+          ];
+          setPreguntas(preguntasBasicas);
+          setRespuestas(Array(preguntasBasicas.length).fill(0));
+        }
+        setLocal(data);
+        setLocalCargado(true);
       })
       .catch(err => {
         setError("Error al cargar información del local");
         setLocalCargado(true);
       });
+  }, [tokenPublico]);
+
+  // Verificar si puede evaluar después de que el local esté cargado
+  useEffect(() => {
+    if (!local || !local.id || localInactivo) return;
     
-    // Consultar al backend si puede evaluar (solo si el local está activo)
-    if (!localInactivo) {
-      fetch("http://localhost:4000/api/tokens/verificar-evaluacion", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ local_id: parseInt(localId), device_id: deviceId })
+    fetch("http://localhost:4000/api/tokens/verificar-evaluacion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ local_id: parseInt(local.id), device_id: deviceId })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setPuedeEvaluar(!!data.puede_evaluar);
       })
-        .then(res => res.json())
-        .then(data => {
-          setPuedeEvaluar(!!data.puede_evaluar);
-        })
-        .catch(err => {
-          setPuedeEvaluar(false);
-        });
-    }
-  }, [localId, deviceId, localInactivo]);
+      .catch(err => {
+        setPuedeEvaluar(false);
+      });
+  }, [local, localInactivo, deviceId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -199,12 +191,12 @@ export default function EvaluacionPage() {
         const response = await fetch("http://localhost:4000/api/tokens/generar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ local_id: parseInt(localId), device_id: deviceId })
+          body: JSON.stringify({ local_id: parseInt(local.id), device_id: deviceId })
         });
         const data = await response.json();
         tokenParaUsar = data.token;
         setTokenInfo({ token: data.token, local_id: data.local_id, usado: false });
-        guardarTokenLocalStorage(localId, { token: data.token, local_id: data.local_id, usado: false });
+        guardarTokenLocalStorage(local.id, { token: data.token, local_id: data.local_id, usado: false });
       }
       
       const response = await fetch("http://localhost:4000/api/evaluaciones/", {
@@ -238,8 +230,8 @@ export default function EvaluacionPage() {
     setEnviando(false);
   };
 
-  if (!localId) {
-    return <div style={{textAlign: 'center', marginTop: 40, color: 'red'}}>No se ha especificado el local a evaluar.<br/>Agrega <b>?id=ID_DEL_LOCAL</b> a la URL.</div>;
+  if (!tokenPublico) {
+    return <div style={{textAlign: 'center', marginTop: 40, color: 'red'}}>No se ha especificado el local a evaluar.<br/>Agrega <b>?token=TOKEN_DEL_LOCAL</b> a la URL.</div>;
   }
   
   // Mostrar mensaje si el local está inactivo

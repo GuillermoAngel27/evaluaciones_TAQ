@@ -327,7 +327,7 @@ const Locales = () => {
         setSuccessMessage('Generando PDF con QR...');
         
         // Generar PDF
-        const fileName = await generateLocalQRPDF(selectedLocalForQr.nombre, selectedLocalForQr.id);
+        const fileName = await generateLocalQRPDF(selectedLocalForQr.nombre, selectedLocalForQr.token_publico);
         
         setSuccessMessage(`PDF generado exitosamente: ${fileName}`);
         

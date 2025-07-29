@@ -2,15 +2,15 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 
 // Función para generar PDF con QR y nombre del local usando imagen de fondo
-export const generateLocalQRPDF = async (localName, localId) => {
+export const generateLocalQRPDF = async (localName, tokenPublico) => {
   try {
     // Crear un nuevo documento PDF
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // URL para la evaluación - apunta a la aplicación de evaluación en puerto 3001
-    const evaluationUrl = `http://localhost:3001/?id=${localId}`;
+    // URL para la evaluación - ahora usa token_publico
+    const evaluationUrl = `http://localhost:3001/?token=${tokenPublico}`;
     
     // Generar QR code como data URL
     const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -28,7 +28,7 @@ export const generateLocalQRPDF = async (localName, localId) => {
     // Generar PDF con imagen de fondo
     generatePDFWithBackground(pdf, qrDataUrl, localName, backgroundImage);
     
-    const fileName = `QR_${localName.replace(/[^a-zA-Z0-9]/g, '_')}_${localId}.pdf`;
+    const fileName = `QR_${localName.replace(/[^a-zA-Z0-9]/g, '_')}_${tokenPublico}.pdf`;
     return fileName;
 
   } catch (error) {
@@ -104,13 +104,10 @@ export const generateBulkQRPDF = async (locales) => {
     
     // Cargar imagen de fondo
     const backgroundImage = await loadBackgroundImage();
-    
-    let currentY = 20;
-    let pageNumber = 1;
 
     for (let i = 0; i < locales.length; i++) {
       const local = locales[i];
-      const evaluationUrl = `http://localhost:3001/?id=${local.id}`;
+      const evaluationUrl = `http://localhost:3001/?token=${local.token_publico}`;
       
       // Generar QR para cada local
       const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -122,46 +119,33 @@ export const generateBulkQRPDF = async (locales) => {
         }
       });
 
-      // Verificar si necesitamos nueva página
-      if (currentY > pageHeight - 80) {
+      // Agregar nueva página para cada QR (excepto la primera)
+      if (i > 0) {
         pdf.addPage();
-        currentY = 20;
-        pageNumber++;
-        
-        // Agregar imagen de fondo a la nueva página
-        if (backgroundImage) {
-          pdf.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
-        } else {
-          pdf.setFillColor(248, 249, 250);
-          pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-        }
       }
 
-      // Agregar imagen de fondo a la primera página
-      if (pageNumber === 1 && i === 0) {
-        if (backgroundImage) {
-          pdf.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
-        } else {
-          pdf.setFillColor(248, 249, 250);
-          pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-        }
+      // Agregar imagen de fondo a cada página
+      if (backgroundImage) {
+        pdf.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
+      } else {
+        pdf.setFillColor(248, 249, 250);
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
       }
 
       // Configurar fuente
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(90, 12, 98);
 
-      // QR code (reducido de 60 a 50)
-      const qrSize = 50;
+      // QR code centrado (mismo layout que individual)
+      const qrSize = 80; // Mismo tamaño que individual
       const qrX = (pageWidth - qrSize) / 2;
-      const qrY = currentY;
+      const qrY = 100; // Misma posición que individual
       pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
-      currentY += qrSize + 5; // Reducida separación de 10 a 5
-
-      // Nombre del local debajo del QR
-      pdf.setFontSize(16); // Reducido de 18 a 16
-      pdf.text(local.nombre, pageWidth / 2, currentY, { align: 'center' });
-      currentY += 15; // Reducida separación de 20 a 15
+      
+      // Nombre del local centrado debajo del QR (mismo layout que individual)
+      const nameY = qrY + qrSize + 10; // 10mm debajo del QR (igual que individual)
+      pdf.setFontSize(20); // Mismo tamaño de fuente que individual
+      pdf.text(local.nombre, pageWidth / 2, nameY, { align: 'center' });
     }
 
     // Guardar el PDF

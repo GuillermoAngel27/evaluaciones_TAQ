@@ -5,7 +5,7 @@ const db = require('../db');
 // GET - Obtener todos los locales
 router.get('/', (req, res) => {
   console.log('GET / - Obteniendo todos los locales');
-  const sql = 'SELECT id, nombre, estatus, tipo_local FROM locales ORDER BY nombre';
+  const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales ORDER BY nombre';
   db.query(sql, (err, results) => {
     if (err) {
       console.error('Error obteniendo locales:', err);
@@ -15,6 +15,16 @@ router.get('/', (req, res) => {
     res.json(results);
   });
 });
+
+// Función para generar token público único
+function generarTokenPublico() {
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let token = '';
+  for (let i = 0; i < 16; i++) {
+    token += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+  }
+  return token;
+}
 
 // POST - Crear un nuevo local
 router.post('/', (req, res) => {
@@ -27,8 +37,11 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Todos los campos son requeridos' });
   }
   
-  const sql = 'INSERT INTO locales (nombre, estatus, tipo_local) VALUES (?, ?, ?)';
-  db.query(sql, [nombre, estatus, tipo_local], (err, result) => {
+  // Generar token público único
+  const tokenPublico = generarTokenPublico();
+  
+  const sql = 'INSERT INTO locales (nombre, estatus, tipo_local, token_publico) VALUES (?, ?, ?, ?)';
+  db.query(sql, [nombre, estatus, tipo_local, tokenPublico], (err, result) => {
     if (err) {
       console.error('Error creando local:', err);
       return res.status(500).json({ error: err.message });
@@ -38,7 +51,7 @@ router.post('/', (req, res) => {
     
     // Obtener el local creado
     const newLocalId = result.insertId;
-    const selectSql = 'SELECT id, nombre, estatus, tipo_local FROM locales WHERE id = ?';
+    const selectSql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
     db.query(selectSql, [newLocalId], (err, results) => {
       if (err) {
         console.error('Error obteniendo local creado:', err);
@@ -49,11 +62,54 @@ router.post('/', (req, res) => {
   });
 });
 
+// POST - Generar tokens públicos para locales que no los tengan
+router.post('/generar-tokens', (req, res) => {
+  console.log('POST /generar-tokens - Generando tokens públicos faltantes');
+  
+  // Buscar locales sin token público
+  const checkSql = 'SELECT id, nombre FROM locales WHERE token_publico IS NULL OR token_publico = ""';
+  db.query(checkSql, (err, results) => {
+    if (err) {
+      console.error('Error buscando locales sin token:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (results.length === 0) {
+      return res.json({ message: 'Todos los locales ya tienen tokens públicos' });
+    }
+    
+    console.log(`Generando tokens para ${results.length} locales`);
+    
+    // Generar tokens para cada local
+    let completed = 0;
+    const total = results.length;
+    
+    results.forEach(local => {
+      const tokenPublico = generarTokenPublico();
+      const updateSql = 'UPDATE locales SET token_publico = ? WHERE id = ?';
+      
+      db.query(updateSql, [tokenPublico, local.id], (err) => {
+        if (err) {
+          console.error(`Error actualizando token para local ${local.id}:`, err);
+        }
+        
+        completed++;
+        if (completed === total) {
+          res.json({ 
+            message: `Se generaron tokens para ${total} locales`,
+            locales_actualizados: total
+          });
+        }
+      });
+    });
+  });
+});
+
 // GET - Obtener un local específico
 router.get('/:id', (req, res) => {
   const { id } = req.params;
   console.log(`GET /${id} - Obteniendo local específico`);
-  const sql = 'SELECT id, nombre, estatus, tipo_local FROM locales WHERE id = ?';
+  const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
   db.query(sql, [id], (err, results) => {
     if (err) {
       console.error('Error obteniendo local:', err);
@@ -95,7 +151,7 @@ router.put('/:id', (req, res) => {
     }
     
     // Obtener el local actualizado
-    const selectSql = 'SELECT id, nombre, estatus, tipo_local FROM locales WHERE id = ?';
+    const selectSql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
     db.query(selectSql, [id], (err, results) => {
       if (err) {
         console.error('Error obteniendo local actualizado:', err);
@@ -127,6 +183,22 @@ router.delete('/:id', (req, res) => {
     }
     
     res.json({ message: 'Local eliminado exitosamente' });
+  });
+});
+
+// GET - Obtener un local por token_publico
+router.get('/token/:token_publico', (req, res) => {
+  const { token_publico } = req.params;
+  const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE token_publico = ?';
+  db.query(sql, [token_publico], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo local por token_publico:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Local no encontrado' });
+    }
+    res.json(results[0]);
   });
 });
 
