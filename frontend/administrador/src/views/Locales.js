@@ -742,21 +742,7 @@ const Locales = () => {
                                   </>
                                 )}
                                 
-                                {canDeleteLocales && (
-                                  <>
-                                    <Button
-                                      color="danger"
-                                      size="sm"
-                                      onClick={() => handleDelete(local.id)}
-                                      id={`delete-${local.id}`}
-                                    >
-                                      <FaTrash />
-                                    </Button>
-                                    <UncontrolledTooltip target={`delete-${local.id}`}>
-                                      Eliminar
-                                    </UncontrolledTooltip>
-                                  </>
-                                )}
+
                               </div>
                             </td>
                           </tr>
