@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken, requireRole, requireAdmin } = require('./auth');
 const db = require('../db');
 
-// GET - Obtener todos los locales
-router.get('/', (req, res) => {
+// GET - Obtener todos los locales (ambos roles pueden ver)
+router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   console.log('GET / - Obteniendo todos los locales');
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales ORDER BY nombre';
   db.query(sql, (err, results) => {
@@ -26,8 +27,8 @@ function generarTokenPublico() {
   return token;
 }
 
-// POST - Crear un nuevo local
-router.post('/', (req, res) => {
+// POST - Crear un nuevo local (solo administradores)
+router.post('/', authenticateToken, requireAdmin, (req, res) => {
   console.log('POST / - Creando nuevo local:', req.body);
   const { nombre, estatus, tipo_local } = req.body;
   
@@ -62,8 +63,8 @@ router.post('/', (req, res) => {
   });
 });
 
-// POST - Generar tokens públicos para locales que no los tengan
-router.post('/generar-tokens', (req, res) => {
+// POST - Generar tokens públicos para locales que no los tengan (solo administradores)
+router.post('/generar-tokens', authenticateToken, requireAdmin, (req, res) => {
   console.log('POST /generar-tokens - Generando tokens públicos faltantes');
   
   // Buscar locales sin token público
@@ -105,8 +106,8 @@ router.post('/generar-tokens', (req, res) => {
   });
 });
 
-// GET - Obtener un local específico
-router.get('/:id', (req, res) => {
+// GET - Obtener un local específico (ambos roles pueden ver)
+router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
   console.log(`GET /${id} - Obteniendo local específico`);
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
@@ -124,8 +125,8 @@ router.get('/:id', (req, res) => {
   });
 });
 
-// PUT - Actualizar un local
-router.put('/:id', (req, res) => {
+// PUT - Actualizar un local (solo administradores)
+router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   console.log(`PUT /${id} - Actualizando local:`, req.body);
   const { nombre, estatus, tipo_local } = req.body;
@@ -163,8 +164,8 @@ router.put('/:id', (req, res) => {
   });
 });
 
-// DELETE - Eliminar un local
-router.delete('/:id', (req, res) => {
+// DELETE - Eliminar un local (solo administradores)
+router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   console.log(`DELETE /${id} - Eliminando local`);
   
@@ -186,8 +187,8 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// GET - Obtener un local por token_publico
-router.get('/token/:token_publico', (req, res) => {
+// GET - Obtener un local por token_publico (ambos roles pueden ver)
+router.get('/token/:token_publico', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { token_publico } = req.params;
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE token_publico = ?';
   db.query(sql, [token_publico], (err, results) => {

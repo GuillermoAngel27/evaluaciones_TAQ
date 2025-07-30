@@ -70,6 +70,11 @@ const Sidebar = (props) => {
   // creates the links that appear in the left menu / Sidebar
   const createLinks = (routes) => {
     return routes.map((prop, key) => {
+      // Filtrar rutas según el rol del usuario
+      if (prop.adminOnly && user?.rol !== 'administrador') {
+        return null;
+      }
+      
       return (
         <NavItem key={key}>
           <NavLink

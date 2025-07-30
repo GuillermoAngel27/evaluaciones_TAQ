@@ -95,4 +95,25 @@ export const authAPI = {
   changePassword: (data) => api.put('/auth/password', data),
 };
 
+// Funciones de API para usuarios
+export const usuariosAPI = {
+  // Obtener todos los usuarios
+  getAll: () => api.get('/usuarios'),
+  
+  // Obtener usuario por ID
+  getById: (id) => api.get(`/usuarios/${id}`),
+  
+  // Crear nuevo usuario
+  create: (data) => api.post('/usuarios', data),
+  
+  // Actualizar usuario
+  update: (id, data) => api.put(`/usuarios/${id}`, data),
+  
+  // Cambiar contraseña de usuario
+  changePassword: (id, data) => api.put(`/usuarios/${id}/password`, data),
+  
+  // Eliminar usuario
+  delete: (id) => api.delete(`/usuarios/${id}`),
+};
+
 export default api; 

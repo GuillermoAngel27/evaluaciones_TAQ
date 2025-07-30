@@ -37,7 +37,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -89,13 +89,13 @@ const Login = () => {
               <FormGroup className="mb-3">
                 <InputGroup className="input-group-alternative">
                   <InputGroupText>
-                    <i className="ni ni-email-83" />
+                    <i className="ni ni-single-02" />
                   </InputGroupText>
                   <Input
                     placeholder="Usuario"
                     type="text"
-                    name="email"
-                    value={credentials.email}
+                    name="username"
+                    value={credentials.username}
                     onChange={handleInputChange}
                     autoComplete="username"
                     required
@@ -164,9 +164,11 @@ const Login = () => {
             
             <div className="text-center text-muted mt-3">
               <small>
-                <strong>Credenciales de desarrollo:</strong><br />
-                Usuario: <code>admin</code><br />
-                Contraseña: <code>admin1234</code>
+                <strong>Credenciales disponibles:</strong><br />
+                <strong>Admin:</strong> admin / admin123<br />
+                <strong>Supervisor:</strong> supervisor1 / supervisor123<br />
+                <strong>Evaluador:</strong> evaluador1 / evaluador123<br />
+                <strong>Viewer:</strong> viewer1 / viewer123
               </small>
             </div>
           </CardBody>

@@ -46,8 +46,11 @@ import {
 } from "react-icons/fa";
 import { localesAPI } from "../utils/api";
 import { generateLocalQRPDF, generateBulkQRPDF } from "../utils/pdfGenerator";
+import { usePermissions } from "../hooks/usePermissions";
 
 const Locales = () => {
+  const { canCreateLocales, canEditLocales, canDeleteLocales, canGenerateTokens } = usePermissions();
+  
   // Estilos CSS personalizados para dropdowns modernos
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -501,44 +504,48 @@ const Locales = () => {
                   <div className="col text-right">
                     {/* Botones responsivos para móviles */}
                     <div className="d-flex flex-column flex-sm-row justify-content-end gap-2">
-                      <Button
-                        color="primary"
-                        size="sm"
-                        onClick={handleCreate}
-                        className="mb-2 mb-sm-0 mobile-button"
-                        style={{
-                          minWidth: '140px',
-                          padding: '10px 16px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          borderRadius: '8px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        <FaPlus className="mr-1" />
-                        <span className="d-none d-sm-inline">Agregar Local</span>
-                        <span className="d-sm-none">Agregar</span>
-                      </Button>
-                      <Button
-                        color="success"
-                        size="sm"
-                        onClick={handleCreateQr}
-                        className="mobile-button"
-                        style={{
-                          minWidth: '140px',
-                          padding: '10px 16px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          borderRadius: '8px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        <FaQrcode className="mr-1" />
-                        <span className="d-none d-sm-inline">Crear QR</span>
-                        <span className="d-sm-none">QR</span>
-                      </Button>
+                      {canCreateLocales && (
+                        <Button
+                          color="primary"
+                          size="sm"
+                          onClick={handleCreate}
+                          className="mb-2 mb-sm-0 mobile-button"
+                          style={{
+                            minWidth: '140px',
+                            padding: '10px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <FaPlus className="mr-1" />
+                          <span className="d-none d-sm-inline">Agregar Local</span>
+                          <span className="d-sm-none">Agregar</span>
+                        </Button>
+                      )}
+                      {canGenerateTokens && (
+                        <Button
+                          color="success"
+                          size="sm"
+                          onClick={handleCreateQr}
+                          className="mobile-button"
+                          style={{
+                            minWidth: '140px',
+                            padding: '10px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <FaQrcode className="mr-1" />
+                          <span className="d-none d-sm-inline">Crear QR</span>
+                          <span className="d-sm-none">QR</span>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Row>
@@ -704,18 +711,52 @@ const Locales = () => {
                               </Badge>
                             </td>
                             <td>
-                              <div className="d-flex">
-                                <Button
-                                  color="success"
-                                  size="sm"
-                                  onClick={() => handleEdit(local)}
-                                  id={`edit-${local.id}`}
-                                >
-                                  <FaEdit />
-                                </Button>
-                                <UncontrolledTooltip target={`edit-${local.id}`}>
-                                  Editar
-                                </UncontrolledTooltip>
+                              <div className="d-flex gap-1">
+                                {canEditLocales ? (
+                                  <>
+                                    <Button
+                                      color="success"
+                                      size="sm"
+                                      onClick={() => handleEdit(local)}
+                                      id={`edit-${local.id}`}
+                                    >
+                                      <FaEdit />
+                                    </Button>
+                                    <UncontrolledTooltip target={`edit-${local.id}`}>
+                                      Editar
+                                    </UncontrolledTooltip>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      color="info"
+                                      size="sm"
+                                      onClick={() => handleView(local)}
+                                      id={`view-${local.id}`}
+                                    >
+                                      <FaEye />
+                                    </Button>
+                                    <UncontrolledTooltip target={`view-${local.id}`}>
+                                      Ver
+                                    </UncontrolledTooltip>
+                                  </>
+                                )}
+                                
+                                {canDeleteLocales && (
+                                  <>
+                                    <Button
+                                      color="danger"
+                                      size="sm"
+                                      onClick={() => handleDelete(local.id)}
+                                      id={`delete-${local.id}`}
+                                    >
+                                      <FaTrash />
+                                    </Button>
+                                    <UncontrolledTooltip target={`delete-${local.id}`}>
+                                      Eliminar
+                                    </UncontrolledTooltip>
+                                  </>
+                                )}
                               </div>
                             </td>
                           </tr>

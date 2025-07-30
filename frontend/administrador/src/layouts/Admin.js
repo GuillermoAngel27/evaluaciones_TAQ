@@ -31,11 +31,13 @@ import Dashboard from "views/Dashboard.js";
 import Locales from "views/Locales.js";
 import Evaluaciones from "views/Evaluaciones.js";
 import Estadisticas from "views/Estadisticas.js";
+import Usuarios from "views/Usuarios.js";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
   const [brandText, setBrandText] = React.useState("Inicio");
+  const { user } = useAuth();
 
   React.useEffect(() => {
     // Debug: mostrar información de la ruta actual
@@ -60,6 +62,11 @@ const Admin = (props) => {
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
       if (prop.layout === "/a") {
+        // Filtrar rutas según el rol del usuario
+        if (prop.adminOnly && user?.rol !== 'administrador') {
+          return null;
+        }
+        
         return (
           <Route 
             path={prop.path} 
@@ -116,6 +123,9 @@ const Admin = (props) => {
           />
           <Routes>
             <Route path="/inicio" element={<Dashboard />} />
+            {user?.rol === 'administrador' && (
+              <Route path="/usuarios" element={<Usuarios />} />
+            )}
             <Route path="/locales" element={<Locales />} />
             <Route path="/evaluaciones" element={<Evaluaciones />} />
             <Route path="/estadisticas" element={<Estadisticas />} />

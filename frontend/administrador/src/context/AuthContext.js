@@ -23,14 +23,16 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Para desarrollo, simular un usuario autenticado
-          // const response = await authAPI.verify();
-          // setUser(response.data.user);
-          setUser({ id: 1, name: 'Admin', email: 'admin@example.com' });
+          const response = await authAPI.verify();
+          console.log('Usuario verificado:', response.data.user);
+          setUser(response.data.user);
         } catch (error) {
           console.error('Error verificando autenticación:', error);
           localStorage.removeItem('authToken');
+          setUser(null);
         }
+      } else {
+        setUser(null);
       }
       // Marcar como inicializado después de verificar
       setLoading(false);
@@ -46,27 +48,17 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       
-      // Para desarrollo: credenciales hardcodeadas
-      if (credentials.email === 'admin' && credentials.password === 'admin1234') {
-        const user = { id: 1, name: 'Admin', email: 'admin@example.com' };
-        const token = 'dev-token-' + Date.now();
-        
-        localStorage.setItem('authToken', token);
-        setUser(user);
-        
-        return { success: true };
-      } else {
-        throw new Error('Credenciales inválidas');
-      }
+      // Usar la API real de autenticación
+      const response = await authAPI.login(credentials);
+      const { token, user } = response.data;
       
-      // Para producción, usar la API real:
-      // const response = await authAPI.login(credentials);
-      // const { token, user } = response.data;
-      // localStorage.setItem('authToken', token);
-      // setUser(user);
-      // return { success: true };
+      console.log('Usuario logueado:', user);
+      localStorage.setItem('authToken', token);
+      setUser(user);
+      
+      return { success: true };
     } catch (error) {
-      const errorMessage = error.message || 'Error al iniciar sesión';
+      const errorMessage = error.response?.data?.error || 'Error al iniciar sesión';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -92,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       await authAPI.changePassword(passwordData);
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Error al cambiar contraseña';
+      const errorMessage = error.response?.data?.error || 'Error al cambiar contraseña';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }

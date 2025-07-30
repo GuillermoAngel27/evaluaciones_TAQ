@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken, requireRole, requireAdmin } = require('./auth');
 const db = require('../db');
 
-// GET - Obtener todas las evaluaciones con filtros opcionales
-router.get('/', (req, res) => {
+// GET - Obtener todas las evaluaciones con filtros opcionales (ambos roles pueden ver)
+router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { local_id, fecha_desde, fecha_hasta } = req.query;
   
   let sql = 'SELECT * FROM evaluaciones';
@@ -40,8 +41,8 @@ router.get('/', (req, res) => {
   });
 });
 
-// GET - Obtener preguntas por tipo de local
-router.get('/preguntas/:tipo', (req, res) => {
+// GET - Obtener preguntas por tipo de local (ambos roles pueden ver)
+router.get('/preguntas/:tipo', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { tipo } = req.params;
   
   try {
@@ -76,8 +77,8 @@ router.get('/preguntas/:tipo', (req, res) => {
   }
 });
 
-// GET - Obtener una evaluación específica
-router.get('/:id', (req, res) => {
+// GET - Obtener una evaluación específica (ambos roles pueden ver)
+router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
   const sql = 'SELECT * FROM evaluaciones WHERE id = ?';
   db.query(sql, [id], (err, results) => {
@@ -92,8 +93,8 @@ router.get('/:id', (req, res) => {
   });
 });
 
-// GET - Obtener respuestas de una evaluación específica
-router.get('/:id/respuestas', (req, res) => {
+// GET - Obtener respuestas de una evaluación específica (ambos roles pueden ver)
+router.get('/:id/respuestas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
   const sql = 'SELECT * FROM respuestas WHERE evaluacion_id = ? ORDER BY pregunta';
   db.query(sql, [id], (err, results) => {
@@ -105,7 +106,7 @@ router.get('/:id/respuestas', (req, res) => {
   });
 });
 
-// POST - Crear una nueva evaluación
+// POST - Crear una nueva evaluación (sin autenticación - para evaluación pública)
 router.post('/', (req, res) => {
   const { token, device_id, respuestas, preguntas, comentario } = req.body;
   
@@ -175,8 +176,8 @@ router.post('/', (req, res) => {
   });
 });
 
-// DELETE - Eliminar una evaluación
-router.delete('/:id', (req, res) => {
+// DELETE - Eliminar una evaluación (solo administradores)
+router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   
   // Eliminar respuestas primero

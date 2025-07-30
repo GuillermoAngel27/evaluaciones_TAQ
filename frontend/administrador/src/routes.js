@@ -19,6 +19,7 @@ import Dashboard from "views/Dashboard.js";
 import Locales from "views/Locales.js";
 import Evaluaciones from "views/Evaluaciones.js";
 import Estadisticas from "views/Estadisticas.js";
+import Usuarios from "views/Usuarios.js";
 import Register from "views/examples/Register.js";
 import Login from "views/examples/Login.js";
 
@@ -29,6 +30,14 @@ var routes = [
     icon: "ni ni-chart-bar-32 text-info",
     component: <Dashboard />,
     layout: "/a",
+  },
+  {
+    path: "/usuarios",
+    name: "Gestión de Usuarios",
+    icon: "ni ni-single-02 text-warning",
+    component: <Usuarios />,
+    layout: "/a",
+    adminOnly: true, // Solo para administradores
   },
   {
     path: "/locales",

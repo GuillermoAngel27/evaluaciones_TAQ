@@ -5,6 +5,8 @@ const mysql = require('mysql2');
 const localesRoutes = require('./routes/locales');
 const evaluacionesRoutes = require('./routes/evaluaciones');
 const tokensRoutes = require('./routes/tokens');
+const usuariosRoutes = require('./routes/usuarios');
+const { router: authRoutes } = require('./routes/auth');
 
 const app = express();
 
@@ -57,6 +59,8 @@ app.get('/', (req, res) => {
     message: 'API de Evaluaciones funcionando',
     timestamp: new Date().toISOString(),
     endpoints: {
+      auth: '/api/auth',
+      usuarios: '/api/usuarios',
       locales: '/api/locales',
       evaluaciones: '/api/evaluaciones',
       tokens: '/api/tokens'
@@ -99,6 +103,8 @@ app.get('/test-locales', (req, res) => {
 });
 
 // Rutas de la API
+app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/locales', localesRoutes);
 app.use('/api/evaluaciones', evaluacionesRoutes);
 app.use('/api/tokens', tokensRoutes);
@@ -127,6 +133,8 @@ app.listen(PORT, () => {
   console.log(`🌐 URL: http://localhost:${PORT}`);
   console.log(`🔍 Health check: http://localhost:${PORT}/health`);
   console.log(`📋 API endpoints:`);
+  console.log(`   - Auth: http://localhost:${PORT}/api/auth`);
+  console.log(`   - Usuarios: http://localhost:${PORT}/api/usuarios`);
   console.log(`   - Locales: http://localhost:${PORT}/api/locales`);
   console.log(`   - Evaluaciones: http://localhost:${PORT}/api/evaluaciones`);
   console.log(`   - Tokens: http://localhost:${PORT}/api/tokens`);
