@@ -78,6 +78,18 @@ export const localesAPI = {
   
   // Obtener local por token_publico
   getByToken: (token) => api.get(`/locales/token/${token}`),
+  
+  // Obtener locales con estadísticas de evaluaciones
+  getEstadisticas: () => api.get('/locales/evaluaciones/estadisticas'),
+  
+  // Obtener evaluaciones detalladas de un local
+  getEvaluacionesDetalladas: (id) => api.get(`/locales/${id}/evaluaciones-detalladas`),
+  
+  // Obtener respuestas de una evaluación específica
+  getRespuestasEvaluacion: (evaluacionId) => api.get(`/locales/evaluacion/${evaluacionId}/respuestas`),
+  
+  // Debug: Ver todas las respuestas (solo para desarrollo)
+  debugRespuestas: () => api.get('/locales/debug/respuestas'),
 };
 
 // Funciones de API para autenticación

@@ -223,4 +223,201 @@ router.get('/public/token/:token_publico', (req, res) => {
   });
 });
 
+// GET - Obtener locales con evaluaciones y estadísticas (para vista de evaluaciones)
+router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  console.log('GET /evaluaciones/estadisticas - Obteniendo locales con estadísticas');
+  
+  const sql = `
+    SELECT 
+      l.id,
+      l.nombre,
+      l.tipo_local,
+      l.estatus,
+      COUNT(e.id) as total_evaluaciones,
+      AVG(e.puntuacion) as calificacion_promedio,
+      MAX(e.fecha) as ultima_evaluacion,
+      COUNT(CASE WHEN e.comentario IS NOT NULL AND e.comentario != '' THEN 1 END) as evaluaciones_con_comentario
+    FROM locales l
+    INNER JOIN evaluaciones e ON l.id = e.local_id
+    WHERE l.estatus = 'activo'
+    GROUP BY l.id, l.nombre, l.tipo_local, l.estatus
+    HAVING COUNT(e.id) > 0
+    ORDER BY l.nombre
+  `;
+  
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error obteniendo estadísticas de locales:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    console.log(`Se encontraron ${results.length} locales con estadísticas`);
+    
+    // Formatear los resultados
+    const localesFormateados = results.map(local => ({
+      id: local.id,
+      nombre: local.nombre,
+      tipo: local.tipo_local,
+      estatus: local.estatus,
+      totalEvaluaciones: local.total_evaluaciones || 0,
+      calificacionPromedio: local.calificacion_promedio && !isNaN(local.calificacion_promedio) 
+        ? parseFloat(parseFloat(local.calificacion_promedio).toFixed(1)) 
+        : 0,
+      ultimaEvaluacion: local.ultima_evaluacion ? new Date(local.ultima_evaluacion).toISOString().split('T')[0] : null,
+      evaluacionesConComentario: local.evaluaciones_con_comentario || 0
+    }));
+    
+    res.json(localesFormateados);
+  });
+});
+
+// GET - Debug: Ver todas las respuestas (solo para desarrollo)
+router.get('/debug/respuestas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  console.log('GET /debug/respuestas - Debug de respuestas');
+  
+  const sql = `
+    SELECT 
+      r.evaluacion_id,
+      r.pregunta,
+      r.puntuacion,
+      e.local_id,
+      l.nombre as nombre_local
+    FROM respuestas r
+    INNER JOIN evaluaciones e ON r.evaluacion_id = e.id
+    INNER JOIN locales l ON e.local_id = l.id
+    ORDER BY r.evaluacion_id, r.pregunta
+    LIMIT 20
+  `;
+  
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error en debug de respuestas:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    console.log('Debug - Respuestas encontradas:', results);
+    res.json({
+      message: 'Debug de respuestas',
+      total: results.length,
+      respuestas: results
+    });
+  });
+});
+
+// GET - Obtener respuestas de una evaluación específica
+router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const { evaluacionId } = req.params;
+  console.log(`GET /evaluacion/${evaluacionId}/respuestas - Obteniendo respuestas de la evaluación`);
+  
+  // Primero verificar que la evaluación existe
+  const checkSql = 'SELECT id, local_id FROM evaluaciones WHERE id = ?';
+  db.query(checkSql, [evaluacionId], (err, evalResults) => {
+    if (err) {
+      console.error('Error verificando evaluación:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (evalResults.length === 0) {
+      console.log(`Evaluación con ID ${evaluacionId} no encontrada`);
+      return res.status(404).json({ error: 'Evaluación no encontrada' });
+    }
+    
+    console.log(`Evaluación encontrada:`, evalResults[0]);
+    
+    // Debug: Verificar si hay respuestas para esta evaluación
+    const debugSql = 'SELECT COUNT(*) as total FROM respuestas WHERE evaluacion_id = ?';
+    db.query(debugSql, [evaluacionId], (err, debugResults) => {
+      if (err) {
+        console.error('Error en debug:', err);
+      } else {
+        console.log(`Debug: Total de respuestas en BD para evaluación ${evaluacionId}:`, debugResults[0].total);
+      }
+      
+      // Ahora obtener las respuestas
+      const sql = `
+        SELECT 
+          r.pregunta,
+          r.puntuacion,
+          e.comentario,
+          e.fecha,
+          l.nombre as nombre_local,
+          l.tipo_local
+        FROM respuestas r
+        INNER JOIN evaluaciones e ON r.evaluacion_id = e.id
+        INNER JOIN locales l ON e.local_id = l.id
+        WHERE r.evaluacion_id = ?
+        ORDER BY r.pregunta
+      `;
+      
+      console.log('Ejecutando consulta SQL:', sql);
+      console.log('Parámetros:', [evaluacionId]);
+      
+      db.query(sql, [evaluacionId], (err, results) => {
+        if (err) {
+          console.error('Error obteniendo respuestas:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        
+        console.log(`Se encontraron ${results.length} respuestas`);
+        console.log('Resultados raw:', results);
+        
+        // Formatear las respuestas
+        const respuestasFormateadas = results.map(resp => ({
+          pregunta: resp.pregunta,
+          puntuacion: resp.puntuacion,
+          comentario: resp.comentario,
+          fecha: new Date(resp.fecha).toISOString().split('T')[0],
+          nombreLocal: resp.nombre_local,
+          tipoLocal: resp.tipo_local
+        }));
+        
+        console.log('Respuestas formateadas:', respuestasFormateadas);
+        res.json(respuestasFormateadas);
+      });
+    });
+  });
+});
+
+// GET - Obtener evaluaciones detalladas de un local específico
+router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const { id } = req.params;
+  console.log(`GET /${id}/evaluaciones-detalladas - Obteniendo evaluaciones detalladas del local`);
+  
+  const sql = `
+    SELECT 
+      e.id,
+      e.puntuacion,
+      e.comentario,
+      e.fecha,
+      l.nombre as nombre_local,
+      l.tipo_local
+    FROM evaluaciones e
+    INNER JOIN locales l ON e.local_id = l.id
+    WHERE e.local_id = ?
+    ORDER BY e.fecha DESC
+  `;
+  
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo evaluaciones detalladas:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    console.log(`Se encontraron ${results.length} evaluaciones detalladas`);
+    
+    // Formatear las evaluaciones
+    const evaluacionesFormateadas = results.map(eval => ({
+      id: eval.id,
+      calificacion: eval.puntuacion,
+      comentario: eval.comentario,
+      fecha: new Date(eval.fecha).toISOString().split('T')[0],
+      nombreLocal: eval.nombre_local,
+      tipoLocal: eval.tipo_local
+    }));
+    
+    res.json(evaluacionesFormateadas);
+  });
+});
+
+
 module.exports = router; 

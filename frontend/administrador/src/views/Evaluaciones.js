@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -8,30 +8,29 @@ import {
   Col,
   Button,
   Badge,
+  Form,
+  FormGroup,
+  Input,
+  Alert,
+  Spinner,
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Form,
-  FormGroup,
-  Input,
-  UncontrolledTooltip,
-  Alert,
 } from "reactstrap";
 import {
   FaStar,
   FaSearch,
   FaFilter,
-  FaEye,
-  FaTrash,
-  FaCalendarAlt,
   FaStore,
-  FaComments,
   FaUtensils,
   FaCar,
   FaParking,
   FaShoppingBag,
+  FaArrowLeft,
+  FaEye,
 } from "react-icons/fa";
+import { localesAPI } from "../utils/api";
 
 const Evaluaciones = () => {
   // Estilos CSS personalizados para dropdowns modernos
@@ -84,353 +83,111 @@ const Evaluaciones = () => {
     };
   }, []);
 
-  const [modal, setModal] = useState(false);
-  const [selectedLocal, setSelectedLocal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterFechaDesde, setFilterFechaDesde] = useState("");
   const [filterFechaHasta, setFilterFechaHasta] = useState("");
-  const [imageErrors, setImageErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // 3 renglones x 4 columnas
+  
+  // Estados para datos reales
+  const [localesEvaluados, setLocalesEvaluados] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Estados para vista de evaluaciones detalladas
+  const [selectedLocal, setSelectedLocal] = useState(null);
+  const [evaluacionesDetalladas, setEvaluacionesDetalladas] = useState([]);
+  const [loadingEvaluaciones, setLoadingEvaluaciones] = useState(false);
+  const [showEvaluacionesDetalladas, setShowEvaluacionesDetalladas] = useState(false);
+  
+  // Estados para modal de respuestas
+  const [modalRespuestas, setModalRespuestas] = useState(false);
+  const [selectedEvaluacion, setSelectedEvaluacion] = useState(null);
+  const [respuestas, setRespuestas] = useState([]);
+  const [loadingRespuestas, setLoadingRespuestas] = useState(false);
 
-  // Datos de locales evaluados con imágenes más confiables
-  const [localesEvaluados, setLocalesEvaluados] = useState([
-    {
-      id: 1,
-      nombre: "Restaurante El Buen Sabor",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=1",
-      calificacionPromedio: 4.8,
-      totalEvaluaciones: 45,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Excelente servicio y comida deliciosa", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Muy buena atención", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 2,
-      nombre: "Café Central",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=2",
-      calificacionPromedio: 4.2,
-      totalEvaluaciones: 32,
-      ultimaEvaluacion: "2024-03-14",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Buen café, ambiente agradable", fecha: "2024-03-14" },
-        { calificacion: 3, comentario: "Servicio lento", fecha: "2024-03-13" },
-      ]
-    },
-    {
-      id: 3,
-      nombre: "Miscelánea La Esquina",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=3",
-      calificacionPromedio: 3.9,
-      totalEvaluaciones: 28,
-      ultimaEvaluacion: "2024-03-13",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Bien surtida", fecha: "2024-03-13" },
-        { calificacion: 3, comentario: "Precios altos", fecha: "2024-03-12" },
-      ]
-    },
-    {
-      id: 4,
-      nombre: "Taxi Express",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=4",
-      calificacionPromedio: 4.5,
-      totalEvaluaciones: 67,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Conductor muy amable", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Llegó rápido", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 5,
-      nombre: "Estacionamiento Centro",
-      tipo: "estacionamiento",
-      imagen: "https://picsum.photos/400/300?random=5",
-      calificacionPromedio: 3.7,
-      totalEvaluaciones: 23,
-      ultimaEvaluacion: "2024-03-12",
-      evaluaciones: [
-        { calificacion: 3, comentario: "Precios altos", fecha: "2024-03-12" },
-        { calificacion: 4, comentario: "Bien ubicado", fecha: "2024-03-11" },
-      ]
-    },
-    {
-      id: 6,
-      nombre: "Pizzería Italia",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=6",
-      calificacionPromedio: 2.8,
-      totalEvaluaciones: 19,
-      ultimaEvaluacion: "2024-03-13",
-      evaluaciones: [
-        { calificacion: 2, comentario: "Pizza fría", fecha: "2024-03-13" },
-        { calificacion: 3, comentario: "Servicio lento", fecha: "2024-03-12" },
-      ]
-    },
-    {
-      id: 7,
-      nombre: "Miscelánea 24/7",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=7",
-      calificacionPromedio: 4.1,
-      totalEvaluaciones: 41,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Abierto 24 horas", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Buen servicio", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 8,
-      nombre: "Taxi Seguro",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=8",
-      calificacionPromedio: 4.7,
-      totalEvaluaciones: 89,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Muy seguro", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Conductor profesional", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 9,
-      nombre: "Restaurante Mariscos del Mar",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=9",
-      calificacionPromedio: 4.6,
-      totalEvaluaciones: 56,
-      ultimaEvaluacion: "2024-03-14",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Mariscos frescos y deliciosos", fecha: "2024-03-14" },
-        { calificacion: 4, comentario: "Excelente vista al mar", fecha: "2024-03-13" },
-      ]
-    },
-    {
-      id: 10,
-      nombre: "Miscelánea El Ahorro",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=10",
-      calificacionPromedio: 3.5,
-      totalEvaluaciones: 34,
-      ultimaEvaluacion: "2024-03-12",
-      evaluaciones: [
-        { calificacion: 3, comentario: "Precios económicos", fecha: "2024-03-12" },
-        { calificacion: 4, comentario: "Bien surtida", fecha: "2024-03-11" },
-      ]
-    },
-    {
-      id: 11,
-      nombre: "Taxi Rápido",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=11",
-      calificacionPromedio: 4.3,
-      totalEvaluaciones: 78,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Llegó en tiempo récord", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Conductor puntual", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 12,
-      nombre: "Estacionamiento Plaza Mayor",
-      tipo: "estacionamiento",
-      imagen: "https://picsum.photos/400/300?random=12",
-      calificacionPromedio: 4.0,
-      totalEvaluaciones: 29,
-      ultimaEvaluacion: "2024-03-13",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Ubicación céntrica", fecha: "2024-03-13" },
-        { calificacion: 4, comentario: "Seguridad 24/7", fecha: "2024-03-12" },
-      ]
-    },
-    {
-      id: 13,
-      nombre: "Café Gourmet",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=13",
-      calificacionPromedio: 4.9,
-      totalEvaluaciones: 67,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "El mejor café de la ciudad", fecha: "2024-03-15" },
-        { calificacion: 5, comentario: "Ambiente perfecto para trabajar", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 14,
-      nombre: "Miscelánea Express",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=14",
-      calificacionPromedio: 3.8,
-      totalEvaluaciones: 42,
-      ultimaEvaluacion: "2024-03-14",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Servicio rápido", fecha: "2024-03-14" },
-        { calificacion: 3, comentario: "Productos básicos", fecha: "2024-03-13" },
-      ]
-    },
-    {
-      id: 15,
-      nombre: "Taxi Premium",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=15",
-      calificacionPromedio: 4.8,
-      totalEvaluaciones: 95,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Servicio de lujo", fecha: "2024-03-15" },
-        { calificacion: 5, comentario: "Vehículo impecable", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 16,
-      nombre: "Estacionamiento Subterráneo",
-      tipo: "estacionamiento",
-      imagen: "https://picsum.photos/400/300?random=16",
-      calificacionPromedio: 3.2,
-      totalEvaluaciones: 18,
-      ultimaEvaluacion: "2024-03-11",
-      evaluaciones: [
-        { calificacion: 3, comentario: "Precio accesible", fecha: "2024-03-11" },
-        { calificacion: 3, comentario: "Ubicación conveniente", fecha: "2024-03-10" },
-      ]
-    },
-    {
-      id: 17,
-      nombre: "Restaurante Vegetariano",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=17",
-      calificacionPromedio: 4.4,
-      totalEvaluaciones: 38,
-      ultimaEvaluacion: "2024-03-14",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Comida saludable y deliciosa", fecha: "2024-03-14" },
-        { calificacion: 5, comentario: "Opciones veganas excelentes", fecha: "2024-03-13" },
-      ]
-    },
-    {
-      id: 18,
-      nombre: "Miscelánea Familiar",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=18",
-      calificacionPromedio: 4.2,
-      totalEvaluaciones: 51,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Atención familiar", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Productos de calidad", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 19,
-      nombre: "Taxi Económico",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=19",
-      calificacionPromedio: 3.9,
-      totalEvaluaciones: 63,
-      ultimaEvaluacion: "2024-03-13",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Precios justos", fecha: "2024-03-13" },
-        { calificacion: 3, comentario: "Servicio básico pero eficiente", fecha: "2024-03-12" },
-      ]
-    },
-    {
-      id: 20,
-      nombre: "Estacionamiento VIP",
-      tipo: "estacionamiento",
-      imagen: "https://picsum.photos/400/300?random=20",
-      calificacionPromedio: 4.6,
-      totalEvaluaciones: 25,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Servicio premium", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Seguridad garantizada", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 21,
-      nombre: "Restaurante de Mariscos",
-      tipo: "alimentos",
-      imagen: "https://picsum.photos/400/300?random=21",
-      calificacionPromedio: 4.7,
-      totalEvaluaciones: 73,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Mariscos frescos del día", fecha: "2024-03-15" },
-        { calificacion: 4, comentario: "Vista espectacular", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 22,
-      nombre: "Miscelánea del Centro",
-      tipo: "miscelaneas",
-      imagen: "https://picsum.photos/400/300?random=22",
-      calificacionPromedio: 3.6,
-      totalEvaluaciones: 47,
-      ultimaEvaluacion: "2024-03-12",
-      evaluaciones: [
-        { calificacion: 3, comentario: "Ubicación céntrica", fecha: "2024-03-12" },
-        { calificacion: 4, comentario: "Variedad de productos", fecha: "2024-03-11" },
-      ]
-    },
-    {
-      id: 23,
-      nombre: "Taxi Ejecutivo",
-      tipo: "taxis",
-      imagen: "https://picsum.photos/400/300?random=23",
-      calificacionPromedio: 4.9,
-      totalEvaluaciones: 82,
-      ultimaEvaluacion: "2024-03-15",
-      evaluaciones: [
-        { calificacion: 5, comentario: "Servicio ejecutivo de primera", fecha: "2024-03-15" },
-        { calificacion: 5, comentario: "Conductor profesional", fecha: "2024-03-14" },
-      ]
-    },
-    {
-      id: 24,
-      nombre: "Estacionamiento Residencial",
-      tipo: "estacionamiento",
-      imagen: "https://picsum.photos/400/300?random=24",
-      calificacionPromedio: 3.8,
-      totalEvaluaciones: 31,
-      ultimaEvaluacion: "2024-03-13",
-      evaluaciones: [
-        { calificacion: 4, comentario: "Ideal para residentes", fecha: "2024-03-13" },
-        { calificacion: 3, comentario: "Precios razonables", fecha: "2024-03-12" },
-      ]
-    }
-  ]);
+  // Cargar datos de locales con evaluaciones
+  useEffect(() => {
+    cargarLocalesEvaluados();
+  }, []);
 
-  // Funciones de manejo
-  const toggleModal = () => setModal(!modal);
-
-  const handleView = (local) => {
-    setSelectedLocal(local);
-    toggleModal();
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este local?")) {
-      setLocalesEvaluados(localesEvaluados.filter((local) => local.id !== id));
+  const cargarLocalesEvaluados = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await localesAPI.getEstadisticas();
+      setLocalesEvaluados(response.data);
+    } catch (err) {
+      console.error('Error cargando locales evaluados:', err);
+      setError('Error al cargar los datos de evaluaciones');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleImageError = (localId) => {
-    console.log(`Error loading image for local ${localId}, using placeholder`);
-    setImageErrors(prev => ({
-      ...prev,
-      [localId]: true
-    }));
+  const cargarEvaluacionesDetalladas = async (local) => {
+    try {
+      setLoadingEvaluaciones(true);
+      setSelectedLocal(local);
+      const response = await localesAPI.getEvaluacionesDetalladas(local.id);
+      setEvaluacionesDetalladas(response.data);
+      setShowEvaluacionesDetalladas(true);
+    } catch (err) {
+      console.error('Error cargando evaluaciones detalladas:', err);
+      setError('Error al cargar las evaluaciones detalladas');
+    } finally {
+      setLoadingEvaluaciones(false);
+    }
   };
+
+  const cargarRespuestasEvaluacion = async (evaluacion) => {
+    console.log('Iniciando carga de respuestas para evaluación:', evaluacion);
+    try {
+      setLoadingRespuestas(true);
+      // Asegurar que la evaluación tenga el tipo de local
+      const evaluacionConTipo = {
+        ...evaluacion,
+        tipoLocal: evaluacion.tipoLocal || selectedLocal?.tipo
+      };
+      setSelectedEvaluacion(evaluacionConTipo);
+      console.log('Llamando API para obtener respuestas de evaluación ID:', evaluacion.id);
+      const response = await localesAPI.getRespuestasEvaluacion(evaluacion.id);
+      console.log('Respuestas obtenidas:', response.data);
+      console.log('Estructura de respuestas:', response.data.map(r => ({ pregunta: r.pregunta, puntuacion: r.puntuacion })));
+      setRespuestas(response.data);
+      setModalRespuestas(true);
+      console.log('Modal abierto correctamente');
+    } catch (err) {
+      console.error('Error cargando respuestas:', err);
+      setError('Error al cargar las respuestas de la evaluación');
+    } finally {
+      setLoadingRespuestas(false);
+    }
+  };
+
+  const volverALocales = () => {
+    setShowEvaluacionesDetalladas(false);
+    setSelectedLocal(null);
+    setEvaluacionesDetalladas([]);
+    // Limpiar estados del modal
+    setModalRespuestas(false);
+    setSelectedEvaluacion(null);
+    setRespuestas([]);
+  };
+
+  const toggleModalRespuestas = () => {
+    if (modalRespuestas) {
+      // Cerrar modal
+      setModalRespuestas(false);
+      setSelectedEvaluacion(null);
+      setRespuestas([]);
+    } else {
+      // Abrir modal (no debería pasar aquí, pero por seguridad)
+      setModalRespuestas(true);
+    }
+  };
+
 
   // Filtrado
   const filteredLocales = localesEvaluados.filter((local) => {
@@ -440,17 +197,21 @@ const Evaluaciones = () => {
     // Filtrado por fecha
     let matchesFecha = true;
     if (filterFechaDesde || filterFechaHasta) {
-      const fechaLocal = new Date(local.ultimaEvaluacion);
-      
-      if (filterFechaDesde) {
-        const fechaDesde = new Date(filterFechaDesde);
-        matchesFecha = matchesFecha && fechaLocal >= fechaDesde;
-      }
-      
-      if (filterFechaHasta) {
-        const fechaHasta = new Date(filterFechaHasta);
-        fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día
-        matchesFecha = matchesFecha && fechaLocal <= fechaHasta;
+      if (!local.ultimaEvaluacion) {
+        matchesFecha = false;
+      } else {
+        const fechaLocal = new Date(local.ultimaEvaluacion);
+        
+        if (filterFechaDesde) {
+          const fechaDesde = new Date(filterFechaDesde);
+          matchesFecha = matchesFecha && fechaLocal >= fechaDesde;
+        }
+        
+        if (filterFechaHasta) {
+          const fechaHasta = new Date(filterFechaHasta);
+          fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día
+          matchesFecha = matchesFecha && fechaLocal <= fechaHasta;
+        }
       }
     }
     
@@ -545,6 +306,312 @@ const Evaluaciones = () => {
     };
     return placeholderImages[tipo] || placeholderImages.alimentos;
   };
+
+  const getPreguntasPorTipo = (tipo) => {
+    const preguntas = {
+      alimentos: [
+        "¿El personal fue amable?",
+        "¿El local estaba limpio?",
+        "¿La atención fue rápida?",
+        "¿Al finalizar su compra le entregaron ticket?",
+        "¿La relación calidad-precio fue adecuada?"
+      ],
+      miscelaneas: [
+        "¿El personal fue amable?",
+        "¿El local estaba limpio?",
+        "¿La atención fue rápida?",
+        "¿Al finalizar su compra le entregaron ticket?"
+      ],
+      taxis: [
+        "¿El personal fue amable?",
+        "¿Las instalaciones se encuentra limpias?",
+        "¿La asignación de unidad fue rápida?",
+        "¿Las instalaciones son adecuadas para realizar el abordaje?"
+      ],
+      estacionamiento: [
+        "¿El personal fue amable?",
+        "¿Las instalaciones se encuentran limpias?",
+        "¿El acceso a las instalaciones son adecuadas?",
+        "¿El proceso para pago fue optimo?"
+      ]
+    };
+    return preguntas[tipo] || preguntas.miscelaneas;
+  };
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <>
+        <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+          <Container fluid>
+            <div className="header-body">
+              <Row>
+                <Col>
+                  <h6 className="h2 text-white d-inline-block mb-0"></h6>
+                </Col>
+              </Row>
+            </div>
+          </Container>
+        </div>
+
+        <Container className="mt--8" fluid>
+          <Row>
+            <Col>
+              <Card className="shadow">
+                <CardBody className="text-center py-5">
+                  <Spinner color="primary" size="lg" className="mb-3" />
+                  <h5>Cargando evaluaciones...</h5>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </>
+    );
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <>
+        <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+          <Container fluid>
+            <div className="header-body">
+              <Row>
+                <Col>
+                  <h6 className="h2 text-white d-inline-block mb-0"></h6>
+                </Col>
+              </Row>
+            </div>
+          </Container>
+        </div>
+
+        <Container className="mt--8" fluid>
+          <Row>
+            <Col>
+              <Card className="shadow">
+                <CardBody className="text-center py-5">
+                  <Alert color="danger">
+                    <h5>Error al cargar los datos</h5>
+                    <p>{error}</p>
+                    <Button color="primary" onClick={cargarLocalesEvaluados}>
+                      Reintentar
+                    </Button>
+                  </Alert>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </>
+    );
+  }
+
+  // Vista de evaluaciones detalladas
+  if (showEvaluacionesDetalladas) {
+    return (
+      <>
+        <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
+          <Container fluid>
+            <div className="header-body">
+              <Row>
+                <Col>
+                  <h6 className="h2 text-white d-inline-block mb-0"></h6>
+                </Col>
+              </Row>
+            </div>
+          </Container>
+        </div>
+
+        <Container className="mt--8" fluid>
+          <Row>
+            <Col>
+              <Card className="shadow">
+                <CardHeader className="border-0">
+                  <Row className="align-items-center">
+                    <div className="col">
+                      <Button
+                        color="link"
+                        onClick={volverALocales}
+                        className="p-0 mr-3"
+                      >
+                        <FaArrowLeft size={20} />
+                      </Button>
+                      <h3 className="mb-0 d-inline-block">
+                        Evaluaciones de {selectedLocal?.nombre}
+                      </h3>
+                    </div>
+                  </Row>
+                </CardHeader>
+                <CardBody>
+                  {loadingEvaluaciones ? (
+                    <div className="text-center py-5">
+                      <Spinner color="primary" size="lg" className="mb-3" />
+                      <h5>Cargando evaluaciones...</h5>
+                    </div>
+                  ) : evaluacionesDetalladas.length === 0 ? (
+                    <div className="text-center py-5">
+                      <FaStore size={64} className="text-muted mb-3" />
+                      <h5 className="text-muted">No hay evaluaciones para este local</h5>
+                    </div>
+                  ) : (
+                    <Row>
+                      {evaluacionesDetalladas.map((evaluacion) => (
+                        <Col key={evaluacion.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
+                          <Card className="card-lift--hover shadow border-0">
+                            <CardBody className="py-3">
+                              <div className="text-center mb-3">
+                                <div className="mb-2">
+                                  {getRatingStars(evaluacion.calificacion)}
+                                </div>
+                                <h6 className="mb-1">{evaluacion.calificacion}/5</h6>
+                                <small className="text-muted">
+                                  {new Date(evaluacion.fecha).toLocaleDateString()}
+                                </small>
+                              </div>
+                              
+                              <div className="text-center">
+                                <Button
+                                  color="primary"
+                                  size="sm"
+                                  block
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    cargarRespuestasEvaluacion(evaluacion);
+                                  }}
+                                >
+                                  <FaEye className="mr-1" />
+                                  Ver Detalles
+                                </Button>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  )}
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+
+        {/* Modal de Respuestas */}
+        <Modal isOpen={modalRespuestas} toggle={toggleModalRespuestas} size="lg">
+          <ModalHeader toggle={toggleModalRespuestas}>
+            Detalles de la Evaluación
+          </ModalHeader>
+          <ModalBody>
+            {selectedEvaluacion && (
+              <>
+                {/* Sección del Comentario */}
+                <div className="mb-4">
+                  <h6>Comentario:</h6>
+                  <Alert color="light">
+                    {selectedEvaluacion.comentario ? (
+                      selectedEvaluacion.comentario
+                    ) : (
+                      <span className="text-muted">Sin comentarios</span>
+                    )}
+                  </Alert>
+                </div>
+
+                {/* Sección de Preguntas y Respuestas */}
+                <div>
+                  <h6>Preguntas y Respuestas:</h6>
+                  
+                  {/* Botón de debug temporal */}
+                  <div className="mb-3">
+                    <Button
+                      color="warning"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const response = await localesAPI.debugRespuestas();
+                          console.log('Debug - Todas las respuestas:', response.data);
+                          alert(`Debug: ${response.data.total} respuestas encontradas. Revisa la consola.`);
+                        } catch (err) {
+                          console.error('Error en debug:', err);
+                          alert('Error en debug: ' + err.message);
+                        }
+                      }}
+                    >
+                      Debug: Ver Respuestas en BD
+                    </Button>
+                  </div>
+                  
+                  {loadingRespuestas ? (
+                    <div className="text-center py-3">
+                      <Spinner color="primary" size="sm" className="mr-2" />
+                      Cargando respuestas...
+                    </div>
+                  ) : respuestas.length === 0 ? (
+                    <div>
+                      <p className="text-muted">No hay respuestas disponibles para esta evaluación.</p>
+                      <div className="mt-3">
+                        <small className="text-muted">
+                          Debug info: Tipo de local: {selectedEvaluacion?.tipoLocal || 'No definido'}, 
+                          Respuestas cargadas: {respuestas.length}
+                        </small>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="mb-3">
+                        <small className="text-muted">
+                          Debug: Tipo de local: {selectedEvaluacion?.tipoLocal}, 
+                          Respuestas: {respuestas.length}
+                        </small>
+                      </div>
+                      {getPreguntasPorTipo(selectedEvaluacion?.tipoLocal || 'miscelaneas').map((pregunta, index) => {
+                        const respuesta = respuestas.find(r => r.pregunta === String(index + 1));
+                        console.log(`Pregunta ${index + 1}:`, pregunta, 'Respuesta encontrada:', respuesta);
+                        return (
+                          <Card key={index} className="mb-3">
+                            <CardBody>
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div className="flex-grow-1">
+                                  <h6 className="mb-2">{pregunta}</h6>
+                                  <div className="d-flex align-items-center">
+                                    {respuesta ? (
+                                      <span className="h6 mb-0">{respuesta.puntuacion}</span>
+                                    ) : (
+                                      <span className="text-muted">Sin respuesta</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Información adicional */}
+                <div className="mt-4 pt-3 border-top">
+                  <div className="row text-muted">
+                    <div className="col-6">
+                      <small>Fecha: {selectedEvaluacion.fecha}</small>
+                    </div>
+                    <div className="col-6 text-right">
+                      <small>Local: {selectedEvaluacion.nombreLocal}</small>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={toggleModalRespuestas}>
+              Cerrar
+            </Button>
+          </ModalFooter>
+        </Modal>
+      </>
+    );
+  }
 
   return (
     <>
@@ -712,32 +779,19 @@ const Evaluaciones = () => {
                 <Row>
                   {currentLocales.map((local) => (
                     <Col key={local.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
-                      <Card className="card-lift--hover shadow border-0">
+                      <Card 
+                        className="card-lift--hover shadow border-0" 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => cargarEvaluacionesDetalladas(local)}
+                      >
                         <div className="position-relative">
                           <img
                             alt={local.nombre}
-                            src={imageErrors[local.id] ? getDefaultImage(local.tipo) : local.imagen}
+                            src={getDefaultImage(local.tipo)}
                             className="card-img-top"
                             style={{ height: "200px", objectFit: "cover" }}
-                            onError={() => handleImageError(local.id)}
-                            onLoad={() => {
-                              // Limpiar el error si la imagen se carga correctamente
-                              if (imageErrors[local.id]) {
-                                setImageErrors(prev => ({
-                                  ...prev,
-                                  [local.id]: false
-                                }));
-                              }
-                            }}
                             loading="lazy"
-                            crossOrigin="anonymous"
                           />
-                          <div className="position-absolute top-0 end-0 m-2">
-                            <Badge color={getTipoColor(local.tipo)}>
-                              {getTipoIcon(local.tipo)}
-                              <span className="ms-1">{getTipoNombre(local.tipo)}</span>
-                            </Badge>
-                          </div>
                         </div>
                         <CardBody className="py-3">
                           <div className="d-flex justify-content-between align-items-start mb-2">
@@ -752,9 +806,17 @@ const Evaluaciones = () => {
                             <div className="col-6">
                               <div className="text-sm text-muted">Calificación</div>
                               <div className="d-flex align-items-center justify-content-center">
-                                {getRatingStars(local.calificacionPromedio)}
+                                {local.calificacionPromedio > 0 ? (
+                                  getRatingStars(local.calificacionPromedio)
+                                ) : (
+                                  <span className="text-muted">Sin evaluaciones</span>
+                                )}
                               </div>
                             </div>
+                          </div>
+                          
+                          <div className="text-center mt-3">
+                            <small className="text-muted">Haz clic para ver evaluaciones</small>
                           </div>
                         </CardBody>
                       </Card>
@@ -910,8 +972,18 @@ const Evaluaciones = () => {
                 {filteredLocales.length === 0 && (
                   <div className="text-center py-5">
                     <FaStore size={64} className="text-muted mb-3" />
-                    <h5 className="text-muted">No se encontraron locales</h5>
-                    <p className="text-muted">Intenta ajustar los filtros de búsqueda</p>
+                    <h5 className="text-muted">
+                      {localesEvaluados.length === 0 
+                        ? "No hay locales con evaluaciones" 
+                        : "No se encontraron locales"
+                      }
+                    </h5>
+                    <p className="text-muted">
+                      {localesEvaluados.length === 0 
+                        ? "Los locales aparecerán aquí una vez que reciban evaluaciones" 
+                        : "Intenta ajustar los filtros de búsqueda"
+                      }
+                    </p>
                   </div>
                 )}
               </CardBody>
@@ -919,82 +991,6 @@ const Evaluaciones = () => {
           </Col>
         </Row>
       </Container>
-
-      {/* Modal para ver detalles del local */}
-      <Modal isOpen={modal} toggle={toggleModal} size="lg">
-        <ModalHeader toggle={toggleModal}>
-          Detalles del Local
-        </ModalHeader>
-        <ModalBody>
-          {selectedLocal && (
-            <>
-              <Row className="mb-4">
-                <Col md="6">
-                  <img
-                    alt={selectedLocal.nombre}
-                    src={imageErrors[selectedLocal.id] ? getDefaultImage(selectedLocal.tipo) : selectedLocal.imagen}
-                    className="img-fluid rounded"
-                    style={{ maxHeight: "200px", objectFit: "cover" }}
-                    onError={() => handleImageError(selectedLocal.id)}
-                    onLoad={() => {
-                      // Limpiar el error si la imagen se carga correctamente
-                      if (imageErrors[selectedLocal.id]) {
-                        setImageErrors(prev => ({
-                          ...prev,
-                          [selectedLocal.id]: false
-                        }));
-                      }
-                    }}
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                  />
-                </Col>
-                <Col md="6">
-                  <h4>{selectedLocal.nombre}</h4>
-                  <Badge color={getTipoColor(selectedLocal.tipo)} className="mb-2">
-                    {getTipoIcon(selectedLocal.tipo)}
-                    <span className="ms-1">{getTipoNombre(selectedLocal.tipo)}</span>
-                  </Badge>
-                  <div className="mb-2">
-                    {getRatingStars(selectedLocal.calificacionPromedio)}
-                    <span className="ms-2 h5 mb-0">
-                      {selectedLocal.calificacionPromedio.toFixed(1)}/5
-                    </span>
-                  </div>
-                  <div className="text-muted">
-                    <div>Total de evaluaciones: {selectedLocal.totalEvaluaciones}</div>
-                    <div>Última evaluación: {new Date(selectedLocal.ultimaEvaluacion).toLocaleDateString()}</div>
-                  </div>
-                </Col>
-              </Row>
-
-              <Row>
-                <Col>
-                  <h6>Evaluaciones Recientes</h6>
-                  {selectedLocal.evaluaciones.map((evaluacion, index) => (
-                    <Alert key={index} color="light" className="mb-2">
-                      <div className="d-flex justify-content-between align-items-start">
-                        <div>
-                          <div className="mb-1">{getRatingStars(evaluacion.calificacion)}</div>
-                          <div>{evaluacion.comentario}</div>
-                        </div>
-                        <small className="text-muted">
-                          {new Date(evaluacion.fecha).toLocaleDateString()}
-                        </small>
-                      </div>
-                    </Alert>
-                  ))}
-                </Col>
-              </Row>
-            </>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={toggleModal}>
-            Cerrar
-          </Button>
-        </ModalFooter>
-      </Modal>
     </>
   );
 };
