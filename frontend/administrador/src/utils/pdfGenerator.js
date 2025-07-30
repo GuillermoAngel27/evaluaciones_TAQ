@@ -9,8 +9,8 @@ export const generateLocalQRPDF = async (localName, tokenPublico) => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // URL para la evaluación - ahora usa token_publico
-    const evaluationUrl = `http://localhost:3001/?token=${tokenPublico}`;
+    // URL para la evaluación - formato corto
+    const evaluationUrl = `http://localhost:3001/${tokenPublico}`;
     
     // Generar QR code como data URL
     const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -107,7 +107,7 @@ export const generateBulkQRPDF = async (locales) => {
 
     for (let i = 0; i < locales.length; i++) {
       const local = locales[i];
-      const evaluationUrl = `http://localhost:3001/?token=${local.token_publico}`;
+      const evaluationUrl = `http://localhost:3001/${local.token_publico}`;
       
       // Generar QR para cada local
       const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {

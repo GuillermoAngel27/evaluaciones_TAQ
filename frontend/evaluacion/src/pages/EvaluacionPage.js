@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PreguntasForm from '../components/PreguntasForm';
 
-function getQrTokenFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('token');
-}
-
 // Función para generar un ID único del dispositivo
 function generarDeviceId() {
   let deviceId = localStorage.getItem('deviceId');
@@ -27,7 +22,13 @@ function guardarTokenLocalStorage(localId, tokenInfo) {
   localStorage.setItem('tokens', JSON.stringify(tokens));
 }
 
-export default function EvaluacionPage() {
+export default function EvaluacionPage({ token }) {
+  const tokenPublico = token;
+  
+  // Debug logs
+  console.log('EvaluacionPage - token recibido:', token);
+  console.log('EvaluacionPage - tokenPublico:', tokenPublico);
+  
   const [local, setLocal] = useState(null);
   const [preguntas, setPreguntas] = useState([]);
   const [respuestas, setRespuestas] = useState([]);
@@ -40,7 +41,6 @@ export default function EvaluacionPage() {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [localCargado, setLocalCargado] = useState(false); // Para distinguir entre carga y no encontrado
   const [localInactivo, setLocalInactivo] = useState(false); // Para controlar si el local está inactivo
-  const tokenPublico = getQrTokenFromUrl();
   const [tipoLocalFiltro, setTipoLocalFiltro] = useState("");
 
   // Función para cargar preguntas desde el backend según el tipo de local
@@ -114,13 +114,16 @@ export default function EvaluacionPage() {
   useEffect(() => {
     if (!tokenPublico) return;
     
+    console.log('EvaluacionPage - Consultando local con token:', tokenPublico);
     
-    // Cargar información del local por token_publico
-    fetch(`http://localhost:4000/api/locales/token/${tokenPublico}`)
+    // Cargar información del local por token_publico (ruta pública)
+    fetch(`http://localhost:4000/api/locales/public/token/${tokenPublico}`)
       .then(res => {
+        console.log('EvaluacionPage - Respuesta del servidor:', res.status, res.statusText);
         if (!res.ok) {
           if (res.status === 404) {
             // Token inválido - local no existe
+            console.log('EvaluacionPage - Local no encontrado (404)');
             setLocal(null);
             setLocalCargado(true);
             return;
@@ -254,7 +257,48 @@ export default function EvaluacionPage() {
   };
 
   if (!tokenPublico) {
-    return <div style={{textAlign: 'center', marginTop: 40, color: 'red'}}>No se ha especificado el local a evaluar.<br/>Agrega <b>?token=TOKEN_DEL_LOCAL</b> a la URL.</div>;
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: '#f5f6fa', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        padding: 20 
+      }}>
+        <div style={{ 
+          maxWidth: 500, 
+          background: '#fff', 
+          borderRadius: 16, 
+          padding: 40, 
+          textAlign: 'center', 
+          boxShadow: '0 4px 24px 0 rgba(30, 42, 73, 0.08)' 
+        }}>
+          <img 
+            src={process.env.PUBLIC_URL + '/logoEmp.png'} 
+            alt="Logo" 
+            style={{ width: 200, marginBottom: 24 }} 
+          />
+          <h2 style={{ color: '#1976d2', marginBottom: 16 }}>Token no especificado</h2>
+          <p style={{ color: '#666', marginBottom: 24 }}>
+            No se ha especificado el local a evaluar.
+          </p>
+          <div style={{ 
+            background: '#f8f9fa', 
+            borderRadius: 8, 
+            padding: 16, 
+            marginTop: 16 
+          }}>
+            <p style={{ color: '#666', fontSize: 14, margin: 0 }}>
+              <strong>Formato correcto:</strong><br/>
+              http://localhost:3001/evaluar/TOKEN_DEL_LOCAL<br/>
+              o<br/>
+              http://localhost:3001/TOKEN_DEL_LOCAL
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
   
   // Mostrar mensaje si el local está inactivo

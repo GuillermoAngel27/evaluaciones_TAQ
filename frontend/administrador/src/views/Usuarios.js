@@ -25,9 +25,126 @@ import { usuariosAPI } from "../utils/api";
 import { usePermissions } from "../hooks/usePermissions";
 
 const Usuarios = () => {
+  // Estilos CSS personalizados para dropdown y checkbox modernos
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .modern-select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 12px center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px !important;
+        padding-right: 40px !important;
+        border: 2px solid #e9ecef !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #495057 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+        transition: all 0.3s ease !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      }
+      
+      .modern-select:hover {
+        border-color: #5A0C62 !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.15) !important;
+        transform: translateY(-1px) !important;
+      }
+      
+      .modern-select:focus {
+        border-color: #DC017F !important;
+        box-shadow: 0 0 0 3px rgba(220, 1, 127, 0.1) !important;
+        outline: none !important;
+        background: white !important;
+      }
+      
+      .modern-select option {
+        padding: 12px 16px !important;
+        font-weight: 500 !important;
+        background: white !important;
+        color: #495057 !important;
+      }
+      
+      .modern-select option:hover {
+        background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
+        color: white !important;
+      }
+
+      .modern-checkbox {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 16px 20px !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+        border: 2px solid #e9ecef !important;
+        border-radius: 12px !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        margin-top: 8px !important;
+        min-height: 55px !important;
+        position: relative !important;
+      }
+      
+      .modern-checkbox:hover {
+        border-color: #5A0C62 !important;
+        background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.15) !important;
+      }
+      
+      .modern-checkbox input[type="checkbox"] {
+        width: 24px !important;
+        height: 24px !important;
+        margin-right: 20px !important;
+        accent-color: #5A0C62 !important;
+        cursor: pointer !important;
+        border-radius: 6px !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        z-index: 1 !important;
+      }
+      
+      .modern-checkbox input[type="checkbox"]:checked {
+        background-color: #5A0C62 !important;
+        border-color: #5A0C62 !important;
+      }
+      
+      .modern-checkbox-label {
+        font-weight: 600 !important;
+        color: #495057 !important;
+        margin: 0 !important;
+        cursor: pointer !important;
+        font-size: 14px !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        pointer-events: none !important;
+      }
+
+      .modern-label {
+        font-weight: 600 !important;
+        color: #495057 !important;
+        margin-bottom: 8px !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        display: block !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // create, edit, view
   const [selectedUsuario, setSelectedUsuario] = useState(null);
@@ -48,11 +165,10 @@ const Usuarios = () => {
   const loadUsuarios = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await usuariosAPI.getAll();
       setUsuarios(response.data.usuarios);
     } catch (err) {
-      setError("Error al cargar usuarios: " + (err.response?.data?.error || err.message));
+      alert("Error al cargar usuarios: " + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
     }
@@ -139,18 +255,49 @@ const Usuarios = () => {
 
   // Guardar usuario
   const handleSave = async () => {
+    // Validar campos requeridos
+    const requiredFields = ['username', 'nombre', 'apellido', 'rol'];
+    const missingFields = [];
+    
+    requiredFields.forEach(field => {
+      if (!formData[field] || formData[field].trim() === '') {
+        missingFields.push(field);
+      }
+    });
+    
+    // Validar contraseña solo en modo crear
+    if (modalMode === "create" && (!formData.password || formData.password.trim() === '')) {
+      missingFields.push('password');
+    }
+    
+    if (missingFields.length > 0) {
+      const fieldNames = {
+        username: 'Username',
+        password: 'Contraseña',
+        nombre: 'Nombre',
+        apellido: 'Apellido',
+        rol: 'Rol'
+      };
+      
+      const missingFieldNames = missingFields.map(field => fieldNames[field]).join(', ');
+      alert(`Por favor completa los siguientes campos: ${missingFieldNames}`);
+      return;
+    }
+    
     try {
       if (modalMode === "create") {
         await usuariosAPI.create(formData);
+        alert("Usuario creado exitosamente");
       } else {
         const { password, ...updateData } = formData;
         await usuariosAPI.update(selectedUsuario.id, updateData);
+        alert("Usuario actualizado exitosamente");
       }
       
       setModalOpen(false);
       loadUsuarios();
     } catch (err) {
-      setError("Error al guardar usuario: " + (err.response?.data?.error || err.message));
+      alert("Error al guardar usuario: " + (err.response?.data?.error || err.message));
     }
   };
 
@@ -159,22 +306,29 @@ const Usuarios = () => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${usuario.username}"?`)) {
       try {
         await usuariosAPI.delete(usuario.id);
+        alert("Usuario eliminado exitosamente");
         loadUsuarios();
       } catch (err) {
-        setError("Error al eliminar usuario: " + (err.response?.data?.error || err.message));
+        alert("Error al eliminar usuario: " + (err.response?.data?.error || err.message));
       }
     }
   };
 
   // Cambiar contraseña
   const handleChangePassword = async () => {
+    // Validar que la contraseña no esté vacía
+    if (!newPassword || newPassword.trim() === '') {
+      alert("Por favor ingresa una nueva contraseña");
+      return;
+    }
+    
     try {
       await usuariosAPI.changePassword(selectedUsuario.id, { newPassword });
       setPasswordModalOpen(false);
       setNewPassword("");
       alert("Contraseña cambiada exitosamente");
     } catch (err) {
-      setError("Error al cambiar contraseña: " + (err.response?.data?.error || err.message));
+      alert("Error al cambiar contraseña: " + (err.response?.data?.error || err.message));
     }
   };
 
@@ -198,16 +352,6 @@ const Usuarios = () => {
       </div>
 
       <Container className="mt--7" fluid>
-        {error && (
-          <Alert color="danger" className="mb-4">
-            {error}
-            <Button
-              close
-              onClick={() => setError(null)}
-              className="ml-auto"
-            />
-          </Alert>
-        )}
 
         <Card className="shadow">
           <CardHeader className="border-0">
@@ -411,37 +555,54 @@ const Usuarios = () => {
               </Col>
             </Row>
             <Row>
-              <Col md="6">
-                <FormGroup>
-                  <Label for="rol">Rol *</Label>
-                  <Input
-                    id="rol"
-                    name="rol"
-                    type="select"
-                    value={formData.rol}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="administrador">Administrador</option>
-                  </Input>
-                </FormGroup>
-              </Col>
-              <Col md="6">
-                <FormGroup check className="mt-4">
-                  <Label check>
+                              <Col md="6">
+                  <FormGroup>
+                    <Label for="rol" className="modern-label">Rol *</Label>
                     <Input
-                      type="checkbox"
-                      name="activo"
-                      checked={formData.activo}
+                      id="rol"
+                      name="rol"
+                      type="select"
+                      value={formData.rol}
                       onChange={handleInputChange}
                       disabled={modalMode === "view"}
-                    />
-                    Usuario Activo
-                  </Label>
-                </FormGroup>
-              </Col>
+                      required
+                      className="modern-select"
+                    >
+                      <option value="normal">Usuario Normal</option>
+                      <option value="administrador">Administrador</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+                              <Col md="6">
+                  <FormGroup>
+                    <Label className="modern-label">Estado del Usuario</Label>
+                    <div 
+                      className="modern-checkbox"
+                      onClick={() => {
+                        if (modalMode !== "view") {
+                          handleInputChange({
+                            target: {
+                              name: 'activo',
+                              type: 'checkbox',
+                              checked: !formData.activo
+                            }
+                          });
+                        }
+                      }}
+                    >
+                      <Input
+                        type="checkbox"
+                        name="activo"
+                        checked={formData.activo}
+                        onChange={handleInputChange}
+                        disabled={modalMode === "view"}
+                      />
+                      <span className="modern-checkbox-label">
+                        {formData.activo ? "  Usuario Activo" : "  Usuario Inactivo"}
+                      </span>
+                    </div>
+                  </FormGroup>
+                </Col>
             </Row>
           </Form>
         </ModalBody>

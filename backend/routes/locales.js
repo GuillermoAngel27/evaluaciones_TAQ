@@ -203,4 +203,24 @@ router.get('/token/:token_publico', authenticateToken, requireRole(['administrad
   });
 });
 
+// GET - Obtener un local por token_publico (RUTA PÚBLICA para evaluaciones)
+router.get('/public/token/:token_publico', (req, res) => {
+  const { token_publico } = req.params;
+  console.log(`GET /public/token/${token_publico} - Obteniendo local público por token`);
+  
+  const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE token_publico = ?';
+  db.query(sql, [token_publico], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo local público por token_publico:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      console.log(`Local con token ${token_publico} no encontrado`);
+      return res.status(404).json({ error: 'Local no encontrado' });
+    }
+    console.log(`Local público encontrado:`, results[0]);
+    res.json(results[0]);
+  });
+});
+
 module.exports = router; 
