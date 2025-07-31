@@ -13,6 +13,9 @@ import {
   Button,
   Spinner,
   Alert,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap";
 import {
   FaStar,
@@ -66,6 +69,10 @@ const Estadisticas = () => {
   const [localesData, setLocalesData] = useState([]);
   const [loadingLocales, setLoadingLocales] = useState(true);
   const [errorLocales, setErrorLocales] = useState(null);
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Estados para insights
   const [insightsData, setInsightsData] = useState(null);
@@ -230,6 +237,30 @@ const Estadisticas = () => {
     const matchesTipo = filterTipo === "all" || normalizarTipoLocal(local.tipo) === filterTipo;
     return matchesSearch && matchesTipo;
   });
+
+  // Lógica de paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentLocales = filteredLocales.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredLocales.length / itemsPerPage);
+
+  // Función para cambiar página
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Función para cambiar items por página
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset a la primera página
+  };
+
+  // Función para limpiar filtros y paginación
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setFilterTipo("all");
+    setCurrentPage(1);
+  };
 
   // Función para generar datos de la gráfica de preguntas
   const generarDatosGrafica = () => {
@@ -423,11 +454,11 @@ const Estadisticas = () => {
                           transition: 'all 0.3s ease'
                         }}
                       >
-                        <option value="all">Todos</option>
-                                    <option value="alimentos">Alimentos</option>
-                                    <option value="miscelaneas">Misceláneas</option>
-                                    <option value="taxis">Taxis</option>
-                                    <option value="estacionamiento">Estacionamiento</option>
+                         <option value="all">🏢 Todos los Tipos</option>
+                         <option value="alimentos">🍽️ Alimentos</option>
+                         <option value="miscelaneas">🛍️ Misceláneas</option>
+                         <option value="taxis">🚗 Taxis</option>
+                         <option value="estacionamiento">🅿️ Estacionamiento</option>
                       </Input>
                     </FormGroup>
                   </Col>
@@ -436,10 +467,7 @@ const Estadisticas = () => {
                     <FormGroup className="mb-0">
                       <Button
                         color="secondary"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setFilterTipo("all");
-                        }}
+                         onClick={handleClearFilters}
                         style={{ 
                           width: '100%',
                           borderRadius: '12px',
@@ -478,8 +506,8 @@ const Estadisticas = () => {
                       </tr>
                     </thead>
                     <tbody>
-                                  {filteredLocales.length > 0 ? (
-                                    filteredLocales.map((local) => (
+                       {currentLocales.length > 0 ? (
+                         currentLocales.map((local) => (
                         <tr 
                           key={local.id}
                           style={{
@@ -539,6 +567,158 @@ const Estadisticas = () => {
                     </tbody>
                   </Table>
                 </div>
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                  <Row className="mt-4">
+                    <Col md="6">
+                      <div className="d-flex align-items-center">
+                        <small className="text-muted">
+                          Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredLocales.length)} de {filteredLocales.length} locales
+                        </small>
+                      </div>
+                    </Col>
+                    <Col md="6">
+                      <div className="d-flex justify-content-end align-items-center">
+                        {/* Controles de paginación */}
+                        <nav aria-label="Paginación de estadísticas">
+                          <ul className="pagination pagination-sm mb-0">
+                            {/* Botón Anterior */}
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === 1 ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === 1 ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== 1) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>«</span>
+                              </button>
+                            </li>
+                            
+                            {/* Números de página */}
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <li key={page} className="page-item">
+                                <button
+                                  className="page-link border-0"
+                                  onClick={() => handlePageChange(page)}
+                                  style={{
+                                    borderRadius: '8px',
+                                    margin: '0 2px',
+                                    padding: '8px 12px',
+                                    fontSize: '14px',
+                                    fontWeight: page === currentPage ? '600' : '500',
+                                    color: page === currentPage ? 'white' : '#495057',
+                                    backgroundColor: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white',
+                                    border: page === currentPage 
+                                      ? '1px solid #5A0C62' 
+                                      : '1px solid #e9ecef',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '36px',
+                                    height: '36px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = '#f8f9fa';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (page !== currentPage) {
+                                      e.target.style.backgroundColor = 'white';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = 'none';
+                                    }
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            ))}
+                            
+                            {/* Botón Siguiente */}
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === totalPages ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === totalPages ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = '#f8f9fa';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (currentPage !== totalPages) {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                  }
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>»</span>
+                              </button>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </Col>
+                  </Row>
+                )}
                           </>
                         )}
               </CardBody>
