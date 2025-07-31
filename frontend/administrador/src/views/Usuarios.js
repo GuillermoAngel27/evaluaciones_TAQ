@@ -481,9 +481,36 @@ const Usuarios = () => {
 
       {/* Modal para crear/editar usuario */}
       <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} size="lg">
-        <ModalHeader toggle={() => setModalOpen(false)}>
-          {modalMode === "create" ? "Nuevo Usuario" : 
-           modalMode === "edit" ? "Editar Usuario" : "Ver Usuario"}
+        <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
+          <div className="d-flex align-items-center">
+            <h4 className="mb-0 text-white">
+              {modalMode === "create" ? "Nuevo Usuario" : 
+               modalMode === "edit" ? "Editar Usuario" : "Ver Usuario"}
+            </h4>
+          </div>
+          <button 
+            type="button" 
+            className="btn-close text-white position-absolute" 
+            aria-label="Close"
+            onClick={() => setModalOpen(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '0',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              top: '15px',
+              right: '15px'
+            }}
+          >
+            ×
+          </button>
         </ModalHeader>
         <ModalBody>
           <Form>
@@ -620,8 +647,33 @@ const Usuarios = () => {
 
       {/* Modal para cambiar contraseña */}
       <Modal isOpen={passwordModalOpen} toggle={() => setPasswordModalOpen(false)}>
-        <ModalHeader toggle={() => setPasswordModalOpen(false)}>
-          Cambiar Contraseña
+        <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
+          <div className="d-flex align-items-center">
+            <h4 className="mb-0 text-white">Cambiar Contraseña</h4>
+          </div>
+          <button 
+            type="button" 
+            className="btn-close text-white position-absolute" 
+            aria-label="Close"
+            onClick={() => setPasswordModalOpen(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '0',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              top: '15px',
+              right: '15px'
+            }}
+          >
+            ×
+          </button>
         </ModalHeader>
         <ModalBody>
           <FormGroup>

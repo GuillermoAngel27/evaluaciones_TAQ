@@ -904,10 +904,37 @@ const Locales = () => {
 
       {/* Modal para crear/editar/ver local */}
       <Modal isOpen={modal} toggle={toggleModal} size="lg">
-        <ModalHeader toggle={toggleModal}>
-          {modalMode === "create" && "Nuevo Local"}
-          {modalMode === "edit" && "Editar Local"}
-          {modalMode === "view" && "Detalles del Local"}
+        <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
+          <div className="d-flex align-items-center">
+            <h4 className="mb-0 text-white">
+              {modalMode === "create" && "Nuevo Local"}
+              {modalMode === "edit" && "Editar Local"}
+              {modalMode === "view" && "Detalles del Local"}
+            </h4>
+          </div>
+          <button 
+            type="button" 
+            className="btn-close text-white position-absolute" 
+            aria-label="Close"
+            onClick={toggleModal}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '0',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              top: '15px',
+              right: '15px'
+            }}
+          >
+            ×
+          </button>
         </ModalHeader>
         <Form onSubmit={handleSubmit}>
           <ModalBody>
@@ -1041,9 +1068,34 @@ const Locales = () => {
 
       {/* Modal para Crear QR */}
       <Modal isOpen={qrModal} toggle={toggleQrModal} size="lg">
-        <ModalHeader toggle={toggleQrModal}>
-          <FaQrcode className="mr-2" />
-          Crear Código QR
+        <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
+          <div className="d-flex align-items-center">
+            <FaQrcode className="mr-2 text-white" />
+            <h4 className="mb-0 text-white">Crear Código QR</h4>
+          </div>
+          <button 
+            type="button" 
+            className="btn-close text-white position-absolute" 
+            aria-label="Close"
+            onClick={toggleQrModal}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '0',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              top: '15px',
+              right: '15px'
+            }}
+          >
+            ×
+          </button>
         </ModalHeader>
         <ModalBody>
           <div>

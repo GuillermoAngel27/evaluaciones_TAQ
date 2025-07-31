@@ -29,10 +29,88 @@ import {
   FaShoppingBag,
   FaArrowLeft,
   FaEye,
+  FaComments,
+  FaQuestionCircle,
+  FaCalendarAlt,
+  FaExclamationTriangle,
+  FaTimes,
 } from "react-icons/fa";
 import { localesAPI } from "../utils/api";
 
 const Evaluaciones = () => {
+  // Función de utilidad para formatear fechas
+  const formatearFecha = (fechaString) => {
+    try {
+      console.log('Formateando fecha original:', fechaString);
+      
+      // Si la fecha del backend está en UTC, necesitamos convertirla a hora local de México
+      // Asumir que el backend envía en formato YYYY-MM-DD HH:mm:ss en UTC
+      // y queremos convertir a hora local de México (UTC-6)
+      
+      // Crear fecha UTC
+      const fechaUTC = new Date(fechaString + 'Z');
+      console.log('Fecha UTC interpretada:', fechaUTC.toISOString());
+      
+      // Obtener la diferencia de zona horaria del navegador
+      const offsetNavegador = fechaUTC.getTimezoneOffset(); // en minutos
+      console.log('Offset del navegador (minutos):', offsetNavegador);
+      
+      // Offset para México (UTC-6 = +360 minutos)
+      const offsetMexico = 360; // 6 horas * 60 minutos
+      console.log('Offset México (minutos):', offsetMexico);
+      
+      // Calcular la diferencia total
+      const offsetTotal = offsetMexico - offsetNavegador;
+      console.log('Offset total (minutos):', offsetTotal);
+      
+      // Aplicar la corrección
+      const fechaLocal = new Date(fechaUTC.getTime() + (offsetTotal * 60 * 1000));
+      console.log('Fecha local corregida:', fechaLocal);
+      
+      const day = fechaLocal.getDate().toString().padStart(2, '0');
+      const month = fechaLocal.getMonth();
+      const year = fechaLocal.getFullYear();
+      const hour = fechaLocal.getHours();
+      const minute = fechaLocal.getMinutes();
+      
+      console.log('Componentes finales:', { day, month, year, hour, minute });
+      
+      const monthNames = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      
+      // Convertir a formato AM/PM
+      let hour12, ampm;
+      
+      if (hour === 0) {
+        hour12 = 12;
+        ampm = 'AM';
+      } else if (hour === 12) {
+        hour12 = 12;
+        ampm = 'PM';
+      } else if (hour > 12) {
+        hour12 = hour - 12;
+        ampm = 'PM';
+      } else {
+        hour12 = hour;
+        ampm = 'AM';
+      }
+      
+      // Agregar cero al inicio si la hora es menor a 10
+      const formattedHour = hour12 < 10 ? `0${hour12}` : hour12;
+      const formattedMinute = minute < 10 ? `0${minute}` : minute;
+      
+      const resultado = `${day}-${monthNames[month]}-${year} ${formattedHour}:${formattedMinute} ${ampm}`;
+      console.log('Fecha formateada final:', resultado);
+      
+      return resultado;
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return fechaString; // Retornar el string original si hay error
+    }
+  };
+
   // Estilos CSS personalizados para dropdowns modernos
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -89,7 +167,7 @@ const Evaluaciones = () => {
   const [filterFechaHasta, setFilterFechaHasta] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // 3 renglones x 4 columnas
-  
+
   // Estados para datos reales
   const [localesEvaluados, setLocalesEvaluados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,13 +188,20 @@ const Evaluaciones = () => {
   // Cargar datos de locales con evaluaciones
   useEffect(() => {
     cargarLocalesEvaluados();
-  }, []);
+  }, [filterFechaDesde, filterFechaHasta]);
 
   const cargarLocalesEvaluados = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await localesAPI.getEstadisticas();
+      
+      // Construir parámetros de consulta para filtros de fecha
+      const params = new URLSearchParams();
+      if (filterFechaDesde) params.append('fechaDesde', filterFechaDesde);
+      if (filterFechaHasta) params.append('fechaHasta', filterFechaHasta);
+      
+      const response = await localesAPI.getEstadisticas(params.toString());
+      console.log('Datos de locales evaluados:', response.data);
       setLocalesEvaluados(response.data);
     } catch (err) {
       console.error('Error cargando locales evaluados:', err);
@@ -129,8 +214,14 @@ const Evaluaciones = () => {
   const cargarEvaluacionesDetalladas = async (local) => {
     try {
       setLoadingEvaluaciones(true);
-      setSelectedLocal(local);
-      const response = await localesAPI.getEvaluacionesDetalladas(local.id);
+    setSelectedLocal(local);
+      
+      // Construir parámetros de consulta para filtros de fecha
+      const params = new URLSearchParams();
+      if (filterFechaDesde) params.append('fechaDesde', filterFechaDesde);
+      if (filterFechaHasta) params.append('fechaHasta', filterFechaHasta);
+      
+      const response = await localesAPI.getEvaluacionesDetalladas(local.id, params.toString());
       setEvaluacionesDetalladas(response.data);
       setShowEvaluacionesDetalladas(true);
     } catch (err) {
@@ -153,11 +244,8 @@ const Evaluaciones = () => {
       setSelectedEvaluacion(evaluacionConTipo);
       console.log('Llamando API para obtener respuestas de evaluación ID:', evaluacion.id);
       const response = await localesAPI.getRespuestasEvaluacion(evaluacion.id);
-      console.log('Respuestas obtenidas:', response.data);
-      console.log('Estructura de respuestas:', response.data.map(r => ({ pregunta: r.pregunta, puntuacion: r.puntuacion })));
       setRespuestas(response.data);
       setModalRespuestas(true);
-      console.log('Modal abierto correctamente');
     } catch (err) {
       console.error('Error cargando respuestas:', err);
       setError('Error al cargar las respuestas de la evaluación');
@@ -189,33 +277,21 @@ const Evaluaciones = () => {
   };
 
 
-  // Filtrado
+  // Filtrado (solo búsqueda y tipo, las fechas se filtran en el backend)
   const filteredLocales = localesEvaluados.filter((local) => {
     const matchesSearch = local.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTipo = filterTipo === "all" || local.tipo === filterTipo;
     
-    // Filtrado por fecha
-    let matchesFecha = true;
-    if (filterFechaDesde || filterFechaHasta) {
-      if (!local.ultimaEvaluacion) {
-        matchesFecha = false;
-      } else {
-        const fechaLocal = new Date(local.ultimaEvaluacion);
-        
-        if (filterFechaDesde) {
-          const fechaDesde = new Date(filterFechaDesde);
-          matchesFecha = matchesFecha && fechaLocal >= fechaDesde;
-        }
-        
-        if (filterFechaHasta) {
-          const fechaHasta = new Date(filterFechaHasta);
-          fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día
-          matchesFecha = matchesFecha && fechaLocal <= fechaHasta;
-        }
-      }
-    }
-    
-    return matchesSearch && matchesTipo && matchesFecha;
+    return matchesSearch && matchesTipo;
+  });
+  
+  console.log(`Total locales del backend: ${localesEvaluados.length}`);
+  console.log(`Locales filtrados por búsqueda/tipo: ${filteredLocales.length}`);
+  console.log(`Filtros activos:`, {
+    searchTerm,
+    filterTipo,
+    filterFechaDesde,
+    filterFechaHasta
   });
 
   // Paginación
@@ -458,31 +534,36 @@ const Evaluaciones = () => {
                     <Row>
                       {evaluacionesDetalladas.map((evaluacion) => (
                         <Col key={evaluacion.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
-                          <Card className="card-lift--hover shadow border-0">
-                            <CardBody className="py-3">
+                          <Card 
+                            className="shadow border-0" 
+                            style={{ 
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              transform: 'translateY(0)'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = 'translateY(-8px)';
+                              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)';
+                            }}
+                            onClick={() => cargarRespuestasEvaluacion(evaluacion)}
+                          >
+                            <CardBody className="py-3" style={{ userSelect: 'none', pointerEvents: 'none' }}>
                               <div className="text-center mb-3">
                                 <div className="mb-2">
                                   {getRatingStars(evaluacion.calificacion)}
                                 </div>
                                 <h6 className="mb-1">{evaluacion.calificacion}/5</h6>
                                 <small className="text-muted">
-                                  {new Date(evaluacion.fecha).toLocaleDateString()}
+                                  {formatearFecha(evaluacion.fecha)}
                                 </small>
                               </div>
                               
                               <div className="text-center">
-                                <Button
-                                  color="primary"
-                                  size="sm"
-                                  block
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    cargarRespuestasEvaluacion(evaluacion);
-                                  }}
-                                >
-                                  <FaEye className="mr-1" />
-                                  Ver Detalles
-                                </Button>
+                                <small className="text-muted">Haz clic para ver detalles</small>
                               </div>
                             </CardBody>
                           </Card>
@@ -497,114 +578,141 @@ const Evaluaciones = () => {
         </Container>
 
         {/* Modal de Respuestas */}
-        <Modal isOpen={modalRespuestas} toggle={toggleModalRespuestas} size="lg">
-          <ModalHeader toggle={toggleModalRespuestas}>
-            Detalles de la Evaluación
+        <Modal isOpen={modalRespuestas} toggle={toggleModalRespuestas} size="lg" className="modal-dialog-centered">
+          <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
+                          <div className="d-flex align-items-center">
+                <FaEye className="mr-2 text-white" size={20} />
+                <h4 className="mb-0 text-white">Detalles de la Evaluación</h4>
+              </div>
+            <button 
+              type="button" 
+              className="btn-close text-white position-absolute" 
+              aria-label="Close"
+              onClick={toggleModalRespuestas}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                padding: '0',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                top: '15px',
+                right: '15px'
+              }}
+            >
+              ×
+            </button>
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className="p-4">
             {selectedEvaluacion && (
               <>
+                {/* Información del header */}
+                <div className="mb-4 p-3 bg-light rounded">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="d-flex align-items-center mb-2">
+                        <FaStore className="mr-2 text-primary" />
+                        <strong>{selectedEvaluacion.nombreLocal}</strong>
+                      </div>
+                      <small className="text-muted">
+                        <FaCalendarAlt className="mr-1" />
+                        {formatearFecha(selectedEvaluacion.fecha)}
+                      </small>
+                    </div>
+                    <div className="col-md-6 text-md-right">
+                      <div className="d-flex align-items-center justify-content-md-end">
+                        <span className="badge badge-primary badge-pill mr-2">
+                          {getTipoNombre(selectedEvaluacion.tipoLocal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Sección del Comentario */}
                 <div className="mb-4">
-                  <h6>Comentario:</h6>
-                  <Alert color="light">
+                  <div className="d-flex align-items-center mb-3">
+                    <FaComments className="mr-2 text-info" />
+                    <h5 className="mb-0">Comentario</h5>
+                  </div>
+                  <div className="p-3 bg-light rounded border-left border-info" style={{borderLeftWidth: '4px'}}>
                     {selectedEvaluacion.comentario ? (
-                      selectedEvaluacion.comentario
+                      <p className="mb-0 text-dark">{selectedEvaluacion.comentario}</p>
                     ) : (
-                      <span className="text-muted">Sin comentarios</span>
+                      <p className="mb-0 text-muted font-italic">Sin comentarios</p>
                     )}
-                  </Alert>
+                  </div>
                 </div>
 
                 {/* Sección de Preguntas y Respuestas */}
                 <div>
-                  <h6>Preguntas y Respuestas:</h6>
-                  
-                  {/* Botón de debug temporal */}
-                  <div className="mb-3">
-                    <Button
-                      color="warning"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const response = await localesAPI.debugRespuestas();
-                          console.log('Debug - Todas las respuestas:', response.data);
-                          alert(`Debug: ${response.data.total} respuestas encontradas. Revisa la consola.`);
-                        } catch (err) {
-                          console.error('Error en debug:', err);
-                          alert('Error en debug: ' + err.message);
-                        }
-                      }}
-                    >
-                      Debug: Ver Respuestas en BD
-                    </Button>
+                  <div className="d-flex align-items-center mb-3">
+                    <FaQuestionCircle className="mr-2 text-success" />
+                    <h5 className="mb-0">Preguntas y Respuestas</h5>
                   </div>
                   
                   {loadingRespuestas ? (
-                    <div className="text-center py-3">
-                      <Spinner color="primary" size="sm" className="mr-2" />
-                      Cargando respuestas...
+                    <div className="text-center py-5">
+                      <Spinner color="primary" size="lg" className="mb-3" />
+                      <p className="text-muted">Cargando respuestas...</p>
                     </div>
                   ) : respuestas.length === 0 ? (
-                    <div>
+                    <div className="text-center py-4">
+                      <FaExclamationTriangle className="text-warning mb-3" size={48} />
                       <p className="text-muted">No hay respuestas disponibles para esta evaluación.</p>
-                      <div className="mt-3">
-                        <small className="text-muted">
-                          Debug info: Tipo de local: {selectedEvaluacion?.tipoLocal || 'No definido'}, 
-                          Respuestas cargadas: {respuestas.length}
-                        </small>
-                      </div>
                     </div>
                   ) : (
-                    <div>
-                      <div className="mb-3">
-                        <small className="text-muted">
-                          Debug: Tipo de local: {selectedEvaluacion?.tipoLocal}, 
-                          Respuestas: {respuestas.length}
-                        </small>
-                      </div>
+                    <div className="row">
                       {getPreguntasPorTipo(selectedEvaluacion?.tipoLocal || 'miscelaneas').map((pregunta, index) => {
                         const respuesta = respuestas.find(r => r.pregunta === String(index + 1));
-                        console.log(`Pregunta ${index + 1}:`, pregunta, 'Respuesta encontrada:', respuesta);
                         return (
-                          <Card key={index} className="mb-3">
-                            <CardBody>
-                              <div className="d-flex justify-content-between align-items-start">
-                                <div className="flex-grow-1">
-                                  <h6 className="mb-2">{pregunta}</h6>
-                                  <div className="d-flex align-items-center">
-                                    {respuesta ? (
-                                      <span className="h6 mb-0">{respuesta.puntuacion}</span>
-                                    ) : (
-                                      <span className="text-muted">Sin respuesta</span>
-                                    )}
+                          <Col key={index} xs="12" className="mb-3">
+                            <Card className="border-0 shadow-sm">
+                              <CardBody className="p-3">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div className="flex-grow-1">
+                                    <div className="d-flex align-items-start">
+                                      <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" 
+                                           style={{width: '32px', height: '32px', minWidth: '32px'}}>
+                                        <span className="font-weight-bold">{index + 1}</span>
+                                      </div>
+                                                                             <div className="flex-grow-1">
+                                         <h5 className="mb-2 text-dark">{pregunta}</h5>
+                                        <div className="d-flex align-items-center">
+                                          {respuesta ? (
+                                            <div className="d-flex align-items-center">
+                                              <div className="bg-success text-white rounded-pill px-3 py-1 mr-2">
+                                                <span className="font-weight-bold">{respuesta.puntuacion}</span>
+                                              </div>
+                                              <small className="text-muted">puntos</small>
+                                            </div>
+                                          ) : (
+                                            <span className="text-muted font-italic">Sin respuesta</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </CardBody>
-                          </Card>
+                              </CardBody>
+                            </Card>
+                          </Col>
                         );
                       })}
                     </div>
                   )}
                 </div>
-
-                {/* Información adicional */}
-                <div className="mt-4 pt-3 border-top">
-                  <div className="row text-muted">
-                    <div className="col-6">
-                      <small>Fecha: {selectedEvaluacion.fecha}</small>
-                    </div>
-                    <div className="col-6 text-right">
-                      <small>Local: {selectedEvaluacion.nombreLocal}</small>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
           </ModalBody>
-          <ModalFooter>
-            <Button color="secondary" onClick={toggleModalRespuestas}>
+          <ModalFooter className="border-0 bg-light">
+            <Button color="secondary" onClick={toggleModalRespuestas} className="px-4">
+              <FaTimes className="mr-1" />
               Cerrar
             </Button>
           </ModalFooter>

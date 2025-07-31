@@ -80,10 +80,10 @@ export const localesAPI = {
   getByToken: (token) => api.get(`/locales/token/${token}`),
   
   // Obtener locales con estadísticas de evaluaciones
-  getEstadisticas: () => api.get('/locales/evaluaciones/estadisticas'),
+  getEstadisticas: (params = '') => api.get(`/locales/evaluaciones/estadisticas${params ? `?${params}` : ''}`),
   
   // Obtener evaluaciones detalladas de un local
-  getEvaluacionesDetalladas: (id) => api.get(`/locales/${id}/evaluaciones-detalladas`),
+  getEvaluacionesDetalladas: (id, params = '') => api.get(`/locales/${id}/evaluaciones-detalladas${params ? `?${params}` : ''}`),
   
   // Obtener respuestas de una evaluación específica
   getRespuestasEvaluacion: (evaluacionId) => api.get(`/locales/evaluacion/${evaluacionId}/respuestas`),

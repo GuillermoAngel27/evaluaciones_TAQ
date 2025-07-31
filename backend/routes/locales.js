@@ -226,8 +226,11 @@ router.get('/public/token/:token_publico', (req, res) => {
 // GET - Obtener locales con evaluaciones y estadísticas (para vista de evaluaciones)
 router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   console.log('GET /evaluaciones/estadisticas - Obteniendo locales con estadísticas');
+  console.log('Query params:', req.query);
   
-  const sql = `
+  const { fechaDesde, fechaHasta } = req.query;
+  
+  let sql = `
     SELECT 
       l.id,
       l.nombre,
@@ -240,32 +243,78 @@ router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['admini
     FROM locales l
     INNER JOIN evaluaciones e ON l.id = e.local_id
     WHERE l.estatus = 'activo'
+  `;
+  
+  // Agregar filtros de fecha si están presentes
+  if (fechaDesde || fechaHasta) {
+    if (fechaDesde && fechaHasta) {
+      sql += ` AND DATE(e.fecha) BETWEEN ? AND ?`;
+    } else if (fechaDesde) {
+      sql += ` AND DATE(e.fecha) >= ?`;
+    } else if (fechaHasta) {
+      sql += ` AND DATE(e.fecha) <= ?`;
+    }
+  }
+  
+  sql += `
     GROUP BY l.id, l.nombre, l.tipo_local, l.estatus
     HAVING COUNT(e.id) > 0
     ORDER BY l.nombre
   `;
   
-  db.query(sql, (err, results) => {
+  // Preparar parámetros para la consulta
+  let params = [];
+  if (fechaDesde && fechaHasta) {
+    params = [fechaDesde, fechaHasta];
+  } else if (fechaDesde) {
+    params = [fechaDesde];
+  } else if (fechaHasta) {
+    params = [fechaHasta];
+  }
+  
+  console.log('SQL:', sql);
+  console.log('Params:', params);
+  
+  db.query(sql, params, (err, results) => {
     if (err) {
       console.error('Error obteniendo estadísticas de locales:', err);
       return res.status(500).json({ error: err.message });
     }
     
     console.log(`Se encontraron ${results.length} locales con estadísticas`);
+    console.log('Datos raw de la BD:', results.map(r => ({
+      id: r.id,
+      nombre: r.nombre,
+      ultima_evaluacion: r.ultima_evaluacion
+    })));
     
     // Formatear los resultados
-    const localesFormateados = results.map(local => ({
-      id: local.id,
-      nombre: local.nombre,
-      tipo: local.tipo_local,
-      estatus: local.estatus,
-      totalEvaluaciones: local.total_evaluaciones || 0,
-      calificacionPromedio: local.calificacion_promedio && !isNaN(local.calificacion_promedio) 
-        ? parseFloat(parseFloat(local.calificacion_promedio).toFixed(1)) 
-        : 0,
-      ultimaEvaluacion: local.ultima_evaluacion ? new Date(local.ultima_evaluacion).toISOString().split('T')[0] : null,
-      evaluacionesConComentario: local.evaluaciones_con_comentario || 0
-    }));
+    const localesFormateados = results.map(local => {
+      const ultimaEvaluacion = local.ultima_evaluacion ? 
+        (typeof local.ultima_evaluacion === 'string' ? 
+          local.ultima_evaluacion : 
+          local.ultima_evaluacion.toISOString().replace('T', ' ').split('.')[0]
+        ) : null;
+      console.log(`Local ${local.nombre}: ${local.ultima_evaluacion} -> ${ultimaEvaluacion}`);
+      
+      return {
+        id: local.id,
+        nombre: local.nombre,
+        tipo: local.tipo_local,
+        estatus: local.estatus,
+        totalEvaluaciones: local.total_evaluaciones || 0,
+        calificacionPromedio: local.calificacion_promedio && !isNaN(local.calificacion_promedio) 
+          ? parseFloat(parseFloat(local.calificacion_promedio).toFixed(1)) 
+          : 0,
+        ultimaEvaluacion: ultimaEvaluacion,
+        evaluacionesConComentario: local.evaluaciones_con_comentario || 0
+      };
+    });
+    
+    console.log('Datos formateados enviados:', localesFormateados.map(l => ({
+      nombre: l.nombre,
+      ultimaEvaluacion: l.ultimaEvaluacion
+    })));
     
     res.json(localesFormateados);
   });
@@ -366,7 +415,9 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
           pregunta: resp.pregunta,
           puntuacion: resp.puntuacion,
           comentario: resp.comentario,
-          fecha: new Date(resp.fecha).toISOString().split('T')[0],
+          fecha: typeof resp.fecha === 'string' ? 
+            resp.fecha : 
+            resp.fecha.toISOString().replace('T', ' ').split('.')[0],
           nombreLocal: resp.nombre_local,
           tipoLocal: resp.tipo_local
         }));
@@ -381,9 +432,11 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
 // GET - Obtener evaluaciones detalladas de un local específico
 router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
+  const { fechaDesde, fechaHasta } = req.query;
   console.log(`GET /${id}/evaluaciones-detalladas - Obteniendo evaluaciones detalladas del local`);
+  console.log('Query params:', req.query);
   
-  const sql = `
+  let sql = `
     SELECT 
       e.id,
       e.puntuacion,
@@ -394,10 +447,35 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
     FROM evaluaciones e
     INNER JOIN locales l ON e.local_id = l.id
     WHERE e.local_id = ?
-    ORDER BY e.fecha DESC
   `;
   
-  db.query(sql, [id], (err, results) => {
+  // Agregar filtros de fecha si están presentes
+  if (fechaDesde || fechaHasta) {
+    if (fechaDesde && fechaHasta) {
+      sql += ` AND DATE(e.fecha) BETWEEN ? AND ?`;
+    } else if (fechaDesde) {
+      sql += ` AND DATE(e.fecha) >= ?`;
+    } else if (fechaHasta) {
+      sql += ` AND DATE(e.fecha) <= ?`;
+    }
+  }
+  
+  sql += ` ORDER BY e.fecha DESC`;
+  
+  // Preparar parámetros para la consulta
+  let params = [id];
+  if (fechaDesde && fechaHasta) {
+    params.push(fechaDesde, fechaHasta);
+  } else if (fechaDesde) {
+    params.push(fechaDesde);
+  } else if (fechaHasta) {
+    params.push(fechaHasta);
+  }
+  
+  console.log('SQL:', sql);
+  console.log('Params:', params);
+  
+  db.query(sql, params, (err, results) => {
     if (err) {
       console.error('Error obteniendo evaluaciones detalladas:', err);
       return res.status(500).json({ error: err.message });
@@ -410,7 +488,9 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
       id: eval.id,
       calificacion: eval.puntuacion,
       comentario: eval.comentario,
-      fecha: new Date(eval.fecha).toISOString().split('T')[0],
+      fecha: typeof eval.fecha === 'string' ? 
+        eval.fecha : 
+        eval.fecha.toISOString().replace('T', ' ').split('.')[0],
       nombreLocal: eval.nombre_local,
       tipoLocal: eval.tipo_local
     }));
