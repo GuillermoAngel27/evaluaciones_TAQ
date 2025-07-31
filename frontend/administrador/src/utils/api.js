@@ -85,6 +85,11 @@ export const localesAPI = {
   // Obtener locales con estadísticas de evaluaciones
   getEstadisticas: (params = '') => api.get(`/locales/evaluaciones/estadisticas${params ? `?${params}` : ''}`),
   
+  // Obtener respuestas por pregunta específica
+  getRespuestasPorPregunta: (params = '') => api.get(`/locales/respuestas-por-pregunta${params ? `?${params}` : ''}`),
+  getInsightsEvaluacion: () => api.get('/locales/insights-evaluacion'),
+  getPromediosPorPregunta: (tipoLocal) => api.get(`/locales/promedios-por-pregunta/${tipoLocal}`),
+  
   // Obtener evaluaciones detalladas de un local
   getEvaluacionesDetalladas: (id, params = '') => api.get(`/locales/${id}/evaluaciones-detalladas${params ? `?${params}` : ''}`),
   

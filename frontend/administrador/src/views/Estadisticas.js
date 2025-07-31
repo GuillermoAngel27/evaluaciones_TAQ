@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -11,6 +11,8 @@ import {
   FormGroup,
   Input,
   Button,
+  Spinner,
+  Alert,
 } from "reactstrap";
 import {
   FaStar,
@@ -21,130 +23,151 @@ import {
   FaCar,
   FaParking,
   FaStore,
+  FaBuilding,
+  FaQuestionCircle,
+  FaChartBar,
 } from "react-icons/fa";
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { localesAPI } from "utils/api.js";
+
+// Registrar los componentes necesarios de Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+// Estilos CSS para los bordes de las filas
+const styles = {
+  borderLeftDanger: {
+    borderLeft: '4px solid #dc3545'
+  },
+  borderLeftSuccess: {
+    borderLeft: '4px solid #28a745'
+  }
+};
 
 const Estadisticas = () => {
-  // Estados para el primer formulario (tabla de locales)
+  // Estados para el dashboard unificado
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
+  const [localesData, setLocalesData] = useState([]);
+  const [loadingLocales, setLoadingLocales] = useState(true);
+  const [errorLocales, setErrorLocales] = useState(null);
 
-  // Estados para el segundo formulario (filtros por tipo y preguntas)
-  const [selectedTipo, setSelectedTipo] = useState("all");
-  const [selectedPregunta, setSelectedPregunta] = useState("all");
+  // Estados para insights
+  const [insightsData, setInsightsData] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(true);
+  const [errorInsights, setErrorInsights] = useState(null);
 
-  // Datos de ejemplo para locales con evaluaciones
-  const [localesData] = useState([
-    {
-      id: 1,
-      nombre: "Restaurante El Buen Sabor",
-      tipo: "Alimentos",
-      promedio: 4.8,
-      evaluaciones: 45,
-      estatus: "Activo"
-    },
-    {
-      id: 2,
-      nombre: "Café Central",
-      tipo: "Alimentos",
-      promedio: 4.2,
-      evaluaciones: 32,
-      estatus: "Activo"
-    },
-    {
-      id: 3,
-      nombre: "Miscelánea La Esquina",
-      tipo: "Misceláneas",
-      promedio: 2.9,
-      evaluaciones: 28,
-      estatus: "Activo"
-    },
-    {
-      id: 4,
-      nombre: "Taxi Express",
-      tipo: "Taxis",
-      promedio: 4.5,
-      evaluaciones: 67,
-      estatus: "Activo"
-    },
-    {
-      id: 5,
-      nombre: "Estacionamiento Centro",
-      tipo: "Estacionamiento",
-      promedio: 2.7,
-      evaluaciones: 23,
-      estatus: "Activo"
-    },
-    {
-      id: 6,
-      nombre: "Pizzería Italia",
-      tipo: "Alimentos",
-      promedio: 2.8,
-      evaluaciones: 19,
-      estatus: "Inactivo"
-    },
-    {
-      id: 7,
-      nombre: "Miscelánea 24/7",
-      tipo: "Misceláneas",
-      promedio: 4.1,
-      evaluaciones: 41,
-      estatus: "Activo"
-    },
-    {
-      id: 8,
-      nombre: "Taxi Seguro",
-      tipo: "Taxis",
-      promedio: 4.7,
-      evaluaciones: 89,
-      estatus: "Activo"
+
+
+  // Estado para gráfica de preguntas
+  const [selectedTipoGrafica, setSelectedTipoGrafica] = useState("alimentos");
+  const [datosGrafica, setDatosGrafica] = useState(null);
+  const [loadingGrafica, setLoadingGrafica] = useState(false);
+
+  // Cargar datos de locales y insights al montar el componente
+  useEffect(() => {
+    cargarLocales();
+    cargarInsights();
+  }, []);
+
+  // Cargar datos de la gráfica cuando cambie el tipo seleccionado
+  useEffect(() => {
+    cargarDatosGrafica(selectedTipoGrafica);
+  }, [selectedTipoGrafica]);
+
+  // Función para cargar locales con estadísticas
+  const cargarLocales = async () => {
+    try {
+      setLoadingLocales(true);
+      setErrorLocales(null);
+      
+      const response = await localesAPI.getEstadisticas();
+      console.log('Datos de locales cargados:', response.data);
+      setLocalesData(response.data);
+    } catch (error) {
+      console.error('Error cargando locales:', error);
+      setErrorLocales('Error al cargar los datos de locales. Por favor, intente nuevamente.');
+    } finally {
+      setLoadingLocales(false);
     }
-  ]);
-
-  // Datos de ejemplo para preguntas por tipo de local
-  const preguntasPorTipo = {
-    "Alimentos": [
-      "¿Qué tan satisfecho está con la calidad de la comida?",
-      "¿Cómo calificaría el servicio al cliente?",
-      "¿Qué opina sobre la limpieza del establecimiento?",
-      "¿Recomendaría este lugar a otros?",
-      "¿Cómo calificaría la relación calidad-precio?"
-    ],
-    "Misceláneas": [
-      "¿Qué tan satisfecho está con la variedad de productos?",
-      "¿Cómo calificaría la atención del personal?",
-      "¿Qué opina sobre los precios?",
-      "¿Recomendaría esta tienda?",
-      "¿Cómo calificaría la limpieza del local?"
-    ],
-    "Taxis": [
-      "¿Qué tan satisfecho está con la puntualidad?",
-      "¿Cómo calificaría la seguridad del viaje?",
-      "¿Qué opina sobre la limpieza del vehículo?",
-      "¿Recomendaría este servicio?",
-      "¿Cómo calificaría la amabilidad del conductor?"
-    ],
-    "Estacionamiento": [
-      "¿Qué tan satisfecho está con la seguridad?",
-      "¿Cómo calificaría la facilidad de acceso?",
-      "¿Qué opina sobre los precios?",
-      "¿Recomendaría este estacionamiento?",
-      "¿Cómo calificaría la limpieza del área?"
-    ]
   };
 
-  // Datos de ejemplo para respuestas por pregunta
-  const [respuestasPorPregunta] = useState({
-    "¿Qué tan satisfecho está con la calidad de la comida?": [
-      { local: "Restaurante El Buen Sabor", calificacion: 5, comentario: "Excelente comida" },
-      { local: "Café Central", calificacion: 4, comentario: "Muy buena calidad" },
-      { local: "Pizzería Italia", calificacion: 2, comentario: "Comida fría" }
+  // Función para cargar insights de evaluación
+  const cargarInsights = async () => {
+    try {
+      setLoadingInsights(true);
+      setErrorInsights(null);
+      
+      const response = await localesAPI.getInsightsEvaluacion();
+      console.log('Insights cargados:', response.data);
+      setInsightsData(response.data);
+    } catch (error) {
+      console.error('Error cargando insights:', error);
+      setErrorInsights('Error al cargar los insights. Por favor, intente nuevamente.');
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  // Función para cargar datos de la gráfica por pregunta
+  const cargarDatosGrafica = async (tipoLocal) => {
+    try {
+      setLoadingGrafica(true);
+      
+      const response = await localesAPI.getPromediosPorPregunta(tipoLocal);
+      console.log('Datos de gráfica cargados:', response.data);
+      setDatosGrafica(response.data);
+    } catch (error) {
+      console.error('Error cargando datos de gráfica:', error);
+      setDatosGrafica(null);
+    } finally {
+      setLoadingGrafica(false);
+    }
+  };
+
+  // Configuración de preguntas por tipo de local (usando la configuración del backend)
+  const preguntasPorTipo = {
+    "alimentos": [
+      "¿El personal fue amable?",
+      "¿El local estaba limpio?",
+      "¿La atención fue rápida?",
+      "¿Al finalizar su compra le entregaron ticket?",
+      "¿La relación calidad-precio fue adecuada?"
     ],
-    "¿Cómo calificaría el servicio al cliente?": [
-      { local: "Restaurante El Buen Sabor", calificacion: 5, comentario: "Servicio excepcional" },
-      { local: "Café Central", calificacion: 3, comentario: "Servicio lento" },
-      { local: "Pizzería Italia", calificacion: 2, comentario: "Muy lento" }
+    "miscelaneas": [
+      "¿El personal fue amable?",
+      "¿El local estaba limpio?",
+      "¿La atención fue rápida?",
+      "¿Al finalizar su compra le entregaron ticket?"
+    ],
+    "taxis": [
+      "¿El personal fue amable?",
+      "¿Las instalaciones se encuentra limpias?",
+      "¿La asignación de unidad fue rápida?",
+      "¿Las instalaciones son adecuadas para realizar el abordaje?"
+    ],
+    "estacionamiento": [
+      "¿El personal fue amable?",
+      "¿Las instalaciones se encuentran limpias?",
+      "¿El acceso a las instalaciones son adecuadas?",
+      "¿El proceso para pago fue optimo?"
     ]
-  });
+  };
 
   // Funciones de utilidad
   const getRatingStars = (rating) => {
@@ -163,13 +186,13 @@ const Estadisticas = () => {
 
   const getTipoIcon = (tipo) => {
     switch (tipo) {
-      case "Alimentos":
+      case "alimentos":
         return <FaUtensils size={20} />;
-      case "Misceláneas":
+      case "miscelaneas":
         return <FaShoppingBag size={20} />;
-      case "Taxis":
+      case "taxis":
         return <FaCar size={20} />;
-      case "Estacionamiento":
+      case "estacionamiento":
         return <FaParking size={20} />;
       default:
         return <FaStore size={20} />;
@@ -178,62 +201,184 @@ const Estadisticas = () => {
 
   const getTipoColor = (tipo) => {
     switch (tipo) {
-      case "Alimentos":
+      case "alimentos":
         return "success";
-      case "Misceláneas":
+      case "miscelaneas":
         return "info";
-      case "Taxis":
+      case "taxis":
         return "warning";
-      case "Estacionamiento":
+      case "estacionamiento":
         return "secondary";
       default:
         return "primary";
     }
   };
 
+  const normalizarTipoLocal = (tipo) => {
+    if (!tipo) return '';
+    const tipoLower = tipo.toLowerCase();
+    if (tipoLower.includes('alimento')) return 'alimentos';
+    if (tipoLower.includes('miscelanea')) return 'miscelaneas';
+    if (tipoLower.includes('taxi')) return 'taxis';
+    if (tipoLower.includes('estacionamiento') || tipoLower.includes('parking')) return 'estacionamiento';
+    return tipoLower;
+  };
+
   // Filtrado para el primer formulario
   const filteredLocales = localesData.filter((local) => {
     const matchesSearch = local.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTipo = filterTipo === "all" || local.tipo === filterTipo;
+    const matchesTipo = filterTipo === "all" || normalizarTipoLocal(local.tipo) === filterTipo;
     return matchesSearch && matchesTipo;
   });
 
-  // Filtrado para el segundo formulario
-  const getPreguntasDisponibles = () => {
-    if (selectedTipo === "all") {
-      return Object.values(preguntasPorTipo).flat();
+  // Función para generar datos de la gráfica de preguntas
+  const generarDatosGrafica = () => {
+    if (!datosGrafica || datosGrafica.length === 0) {
+      return null;
     }
-    return preguntasPorTipo[selectedTipo] || [];
+
+    const labels = datosGrafica.map(item => item.pregunta);
+    const data = datosGrafica.map(item => item.promedio);
+    
+    return {
+      labels: labels,
+      datasets: [
+        {
+          label: `Promedio por Pregunta - ${selectedTipoGrafica}`,
+          data: data,
+          backgroundColor: data.map(promedio => {
+            if (promedio >= 4) return 'rgba(40, 167, 69, 0.8)'; // Verde para buenos promedios
+            if (promedio >= 3) return 'rgba(255, 193, 7, 0.8)'; // Amarillo para promedios regulares
+            return 'rgba(220, 53, 69, 0.8)'; // Rojo para promedios bajos
+          }),
+          borderColor: data.map(promedio => {
+            if (promedio >= 4) return 'rgba(40, 167, 69, 1)';
+            if (promedio >= 3) return 'rgba(255, 193, 7, 1)';
+            return 'rgba(220, 53, 69, 1)';
+          }),
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }
+      ]
+    };
   };
 
-  const getRespuestasFiltradas = () => {
-    if (selectedPregunta === "all") return [];
-    return respuestasPorPregunta[selectedPregunta] || [];
+  // Opciones de la gráfica
+  const opcionesGrafica = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+          color: '#495057'
+        }
+      },
+      title: {
+        display: true,
+        text: `Promedio por Pregunta - ${selectedTipoGrafica.charAt(0).toUpperCase() + selectedTipoGrafica.slice(1)}`,
+        font: {
+          size: 18,
+          weight: 'bold'
+        },
+        color: '#495057',
+        padding: 20
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `Promedio: ${context.parsed.y}⭐`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 5,
+        ticks: {
+          stepSize: 1,
+          font: {
+            size: 12
+          },
+          color: '#495057'
+        },
+        grid: {
+          color: 'rgba(0,0,0,0.1)'
+        },
+        title: {
+          display: true,
+          text: 'Promedio (⭐)',
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+          color: '#495057'
+        }
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 11
+          },
+          color: '#495057',
+          maxRotation: 45,
+          minRotation: 0
+        },
+        grid: {
+          color: 'rgba(0,0,0,0.1)'
+        }
+      }
+    }
   };
 
   return (
     <>
       <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
         <Container fluid>
-          <div className="header-body">
-            <Row>
-              <Col>
-                <h6 className="h2 text-white d-inline-block mb-0"></h6>
-              </Col>
-            </Row>
-          </div>
+          
         </Container>
       </div>
 
       <Container className="mt--8" fluid>
-        {/* Primer Formulario: Tabla de Locales */}
-        <Row className="mb-4">
-          <Col>
+        {/* Formularios Independientes */}
+        <Row>
+                  {/* Formulario 1: Estadísticas por Local */}
+                  <Col lg="12" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Estadísticas Generales de Locales</h3>
+                        <h3 className="mb-0">
+                          📋 Estadísticas por Local
+                        </h3>
               </CardHeader>
               <CardBody>
+                        {loadingLocales && (
+                          <div className="text-center py-4">
+                            <Spinner color="primary" />
+                            <p className="mt-2">Cargando datos de locales...</p>
+                          </div>
+                        )}
+
+                        {errorLocales && (
+                          <Alert color="danger" className="mb-3">
+                            {errorLocales}
+                            <Button 
+                              color="link" 
+                              className="p-0 ml-2"
+                              onClick={cargarLocales}
+                            >
+                              Reintentar
+                            </Button>
+                          </Alert>
+                        )}
+
+                        {!loadingLocales && !errorLocales && (
+                          <>
                 {/* Filtros */}
                 <Row className="mb-4 g-2">
                   <Col xs="12" sm="6" md="5" lg="5" xl="5">
@@ -279,10 +424,10 @@ const Estadisticas = () => {
                         }}
                       >
                         <option value="all">Todos</option>
-                        <option value="Alimentos">Alimentos</option>
-                        <option value="Misceláneas">Misceláneas</option>
-                        <option value="Taxis">Taxis</option>
-                        <option value="Estacionamiento">Estacionamiento</option>
+                                    <option value="alimentos">Alimentos</option>
+                                    <option value="miscelaneas">Misceláneas</option>
+                                    <option value="taxis">Taxis</option>
+                                    <option value="estacionamiento">Estacionamiento</option>
                       </Input>
                     </FormGroup>
                   </Col>
@@ -329,14 +474,16 @@ const Estadisticas = () => {
                         <th scope="col">Tipo</th>
                         <th scope="col">Promedio</th>
                         <th scope="col">Evaluaciones</th>
+                                    <th scope="col">Última Evaluación</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredLocales.map((local) => (
+                                  {filteredLocales.length > 0 ? (
+                                    filteredLocales.map((local) => (
                         <tr 
                           key={local.id}
                           style={{
-                            backgroundColor: local.promedio <= 3 ? '#fff5f5' : 'transparent'
+                                          backgroundColor: local.calificacionPromedio <= 3 ? '#fff5f5' : 'transparent'
                           }}
                         >
                           <th scope="row">
@@ -349,251 +496,293 @@ const Estadisticas = () => {
                             </div>
                           </th>
                           <td>
-                            <Badge color={getTipoColor(local.tipo)}>
-                              {local.tipo}
+                                          <Badge color={getTipoColor(normalizarTipoLocal(local.tipo))}>
+                                            {normalizarTipoLocal(local.tipo)}
                             </Badge>
                           </td>
                           <td>
                             <span 
                               style={{ 
-                                color: local.promedio <= 3 ? '#dc3545' : '#495057',
+                                              color: local.calificacionPromedio <= 3 ? '#dc3545' : '#495057',
                                 fontWeight: '600',
                                 fontSize: '16px'
                               }}
                             >
-                              {Math.round(local.promedio)}
+                                            {local.calificacionPromedio.toFixed(1)}
                             </span>
                           </td>
                           <td>
-                            <span className="h6 mb-0">{local.evaluaciones}</span>
+                                          <span className="h6 mb-0">{local.totalEvaluaciones}</span>
+                                        </td>
+                                        <td>
+                                          <span className="text-sm">
+                                            {local.ultimaEvaluacion ? 
+                                              new Date(local.ultimaEvaluacion).toLocaleDateString('es-ES') : 
+                                              'N/A'
+                                            }
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  ) : (
+                                    <tr>
+                                      <td colSpan="5" className="text-center py-4">
+                                        <p className="text-muted mb-0">
+                                          {localesData.length === 0 
+                                            ? 'No hay locales con evaluaciones registradas.' 
+                                            : 'No se encontraron locales que coincidan con los filtros.'
+                                          }
+                                        </p>
                           </td>
                         </tr>
-                      ))}
+                                  )}
                     </tbody>
                   </Table>
                 </div>
+                          </>
+                        )}
               </CardBody>
             </Card>
           </Col>
-        </Row>
 
-        {/* Segundo Formulario: Filtros por Tipo y Preguntas */}
-        <Row>
-          <Col>
+                  {/* Formulario 2: Análisis por Pregunta */}
+                  <Col lg="12" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Análisis por Preguntas Específicas</h3>
+                        <h3 className="mb-0">
+                          ❓ Análisis por Pregunta
+                        </h3>
               </CardHeader>
               <CardBody>
-                {/* Filtros */}
-                <Row className="mb-4 g-2">
-                  <Col xs="12" sm="6" md="4" lg="4" xl="4">
-                    <FormGroup className="mb-0">
-                      <label 
-                        className="form-control-label"
-                        style={{
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#495057',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Tipo de Local
-                      </label>
-                      <Input
-                        type="select"
-                        value={selectedTipo}
-                        onChange={(e) => {
-                          setSelectedTipo(e.target.value);
-                          setSelectedPregunta("all");
-                        }}
-                        className="form-control-alternative"
-                        style={{
-                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                          border: '2px solid #e9ecef',
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#495057',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease',
-                          width: '100%',
-                          marginTop: '0'
-                        }}
-                      >
-                        <option value="all">Todos los tipos</option>
-                        <option value="Alimentos">Alimentos</option>
-                        <option value="Misceláneas">Misceláneas</option>
-                        <option value="Taxis">Taxis</option>
-                        <option value="Estacionamiento">Estacionamiento</option>
-                      </Input>
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col xs="12" sm="6" md="4" lg="4" xl="4">
-                    <FormGroup className="mb-0">
-                      <label 
-                        className="form-control-label"
-                        style={{
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#495057',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Pregunta Específica
-                      </label>
-                      <Input
-                        type="select"
-                        value={selectedPregunta}
-                        onChange={(e) => setSelectedPregunta(e.target.value)}
-                        className="form-control-alternative"
-                        style={{
-                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                          border: '2px solid #e9ecef',
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#495057',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease',
-                          width: '100%',
-                          marginTop: '0'
-                        }}
-                      >
-                        <option value="all">❓ Seleccionar pregunta</option>
-                        {getPreguntasDisponibles().map((pregunta, index) => (
-                          <option key={index} value={pregunta}>
-                            {pregunta}
-                          </option>
-                        ))}
-                      </Input>
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col xs="12" sm="12" md="4" lg="4" xl="4">
-                    <FormGroup className="mb-0">
-                      <label 
-                        className="form-control-label"
-                        style={{
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#495057',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        &nbsp;
-                      </label>
-                      <div className="d-flex gap-2 align-items-end">
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            setSelectedTipo("all");
-                            setSelectedPregunta("all");
-                          }}
-                          style={{ 
-                            width: '120px',
-                            borderRadius: '12px',
-                            padding: '12px 16px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            height: '48px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <FaFilter className="mr-1" />
-                          Limpiar
-                        </Button>
-                        {selectedPregunta !== "all" && (
-                          <Badge 
-                            color="success" 
-                            className="px-3 py-2 d-flex align-items-center"
-                            style={{
-                              height: '48px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            {getRespuestasFiltradas().length} respuestas
-                          </Badge>
+                        {loadingInsights && (
+                          <div className="text-center py-4">
+                            <Spinner color="primary" />
+                            <p className="mt-2">Cargando insights...</p>
+                          </div>
                         )}
-                      </div>
+
+                        {errorInsights && (
+                          <Alert color="danger" className="mb-3">
+                            {errorInsights}
+                            <Button 
+                              color="link" 
+                              className="p-0 ml-2"
+                              onClick={cargarInsights}
+                            >
+                              Reintentar
+                            </Button>
+                          </Alert>
+                        )}
+
+                        {!loadingInsights && !errorInsights && insightsData && (
+                          <>
+                            {/* Selector de Tipo de Local */}
+                            <Row className="mb-4">
+                              <Col>
+                                <Row>
+                                  <Col md="6">
+                                    <FormGroup>
+                                      <label className="form-control-label">
+                                        <strong>Seleccionar Tipo de Local:</strong>
+                      </label>
+                      <Input
+                        type="select"
+                                        value={selectedTipoGrafica}
+                                        onChange={(e) => setSelectedTipoGrafica(e.target.value)}
+                        className="form-control-alternative"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                          transition: 'all 0.3s ease'
+                                        }}
+                                      >
+                                        <option value="alimentos">🍽️ Alimentos</option>
+                                        <option value="miscelaneas">🛍️ Misceláneas</option>
+                                        <option value="taxis">🚗 Taxis</option>
+                                        <option value="estacionamiento">🅿️ Estacionamiento</option>
+                      </Input>
                     </FormGroup>
                   </Col>
-                </Row>
+                                  <Col md="6" className="d-flex align-items-end">
+                                    <div className="text-muted">
+                                      <small>
+                                        <strong>Promedio General del Tipo:</strong> {
+                                          insightsData.tendencias.find(t => t.tipoLocal === selectedTipoGrafica)?.promedio || 0
+                                        }⭐
+                                      </small>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </Col>
+                            </Row>
 
-                {/* Resultados */}
-                {selectedPregunta !== "all" && (
-                  <div className="mt-4">
-                    <h5>Resultados para: "{selectedPregunta}"</h5>
+                            {/* Gráfica de Barras */}
+                            <Row>
+                              <Col>
+                                <Card className="shadow">
+                                  <CardBody>
+                                    <div style={{ height: '500px', position: 'relative' }}>
+                                      {loadingGrafica ? (
+                                        <div className="text-center py-5">
+                                          <Spinner color="primary" />
+                                          <p className="mt-2">Cargando datos de la gráfica...</p>
+                                        </div>
+                                      ) : generarDatosGrafica() ? (
+                                        <Bar 
+                                          data={generarDatosGrafica()} 
+                                          options={opcionesGrafica}
+                                        />
+                                      ) : (
+                                        <div className="text-center py-5">
+                                          <p className="text-muted">
+                                            No hay datos disponibles para el tipo de local seleccionado.
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </CardBody>
+                                </Card>
+                              </Col>
+                            </Row>
+
+                            {/* Leyenda de Colores */}
+                            <Row className="mt-3">
+                              <Col>
+                                <div className="d-flex justify-content-center">
+                                  <div className="d-flex align-items-center mr-4">
+                                    <div 
+                                      style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                                        borderRadius: '4px',
+                                        marginRight: '8px'
+                                      }}
+                                    ></div>
+                                    <small className="text-success font-weight-bold">Excelente (4-5⭐)</small>
+                                  </div>
+                                  <div className="d-flex align-items-center mr-4">
+                                    <div 
+                        style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                                        borderRadius: '4px',
+                                        marginRight: '8px'
+                                      }}
+                                    ></div>
+                                    <small className="text-warning font-weight-bold">Regular (3⭐)</small>
+                                  </div>
+                                  <div className="d-flex align-items-center">
+                                    <div 
+                        style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                                        borderRadius: '4px',
+                                        marginRight: '8px'
+                                      }}
+                                    ></div>
+                                    <small className="text-danger font-weight-bold">Necesita Mejora (1-2⭐)</small>
+                                  </div>
+                                </div>
+                              </Col>
+                            </Row>
+                          </>
+                        )}
+                      </CardBody>
+                    </Card>
+                  </Col>
+                  
+                  {/* Formulario 3: Comparación por Tipo */}
+                  <Col lg="12" className="mb-4">
+                    <Card className="shadow">
+                      <CardHeader className="border-0">
+                        <h3 className="mb-0">
+                          📈 Comparación por Tipo de Local
+                        </h3>
+                      </CardHeader>
+                      <CardBody>
+                        {loadingInsights && (
+                          <div className="text-center py-4">
+                            <Spinner color="primary" />
+                            <p className="mt-2">Cargando tendencias...</p>
+                          </div>
+                        )}
+
+                        {errorInsights && (
+                          <Alert color="danger" className="mb-3">
+                            {errorInsights}
+                        <Button
+                              color="link" 
+                              className="p-0 ml-2"
+                              onClick={cargarInsights}
+                            >
+                              Reintentar
+                        </Button>
+                          </Alert>
+                        )}
+
+                        {!loadingInsights && !errorInsights && insightsData && (
+                          <Row>
+                            <Col>
+                             
                     <div className="table-responsive">
-                      <Table className="align-items-center table-flush">
+                                <Table className="table-flush">
                         <thead className="thead-light">
                           <tr>
-                            <th scope="col">Local</th>
-                            <th scope="col">Calificación</th>
-                            <th scope="col">Comentario</th>
+                                      <th>Tipo de Local</th>
+                                      <th>Promedio</th>
+                                      <th>Total Evaluaciones</th>
+                                      <th>Rendimiento</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {getRespuestasFiltradas().map((respuesta, index) => (
+                                    {insightsData.tendencias.map((tendencia, index) => (
                             <tr key={index}>
-                              <th scope="row">
-                                <span className="name mb-0 text-sm">
-                                  {respuesta.local}
-                                </span>
-                              </th>
                               <td>
                                 <div className="d-flex align-items-center">
-                                  <div className="me-2">{getRatingStars(respuesta.calificacion)}</div>
-                                  <span 
-                                    style={{ 
-                                      color: respuesta.calificacion <= 3 ? '#dc3545' : '#495057',
-                                      fontWeight: '600'
-                                    }}
-                                  >
-                                    {respuesta.calificacion}/5
-                                  </span>
+                                            <div className="mr-3">
+                                              {getTipoIcon(tendencia.tipoLocal)}
+                                            </div>
+                                            <strong>{tendencia.tipoLocal}</strong>
                                 </div>
                               </td>
                               <td>
-                                <span className="text-sm">{respuesta.comentario}</span>
+                                          <span 
+                                            className={`font-weight-bold ${
+                                              parseFloat(tendencia.promedio) >= 4 ? 'text-success' :
+                                              parseFloat(tendencia.promedio) >= 3 ? 'text-warning' : 'text-danger'
+                                            }`}
+                                          >
+                                            {tendencia.promedio}⭐
+                                          </span>
+                                        </td>
+                                        <td>{tendencia.totalEvaluaciones}</td>
+                                        <td>
+                                          <Badge 
+                                            color={
+                                              parseFloat(tendencia.promedio) >= 4 ? 'success' :
+                                              parseFloat(tendencia.promedio) >= 3 ? 'warning' : 'danger'
+                                            }
+                                          >
+                                            {parseFloat(tendencia.promedio) >= 4 ? 'Excelente' :
+                                             parseFloat(tendencia.promedio) >= 3 ? 'Regular' : 'Necesita Mejora'}
+                                          </Badge>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </Table>
                     </div>
-                  </div>
-                )}
-
-                {selectedPregunta === "all" && selectedTipo !== "all" && (
-                  <div className="text-center py-5">
-                    <h5 className="text-muted">Selecciona una pregunta específica</h5>
-                    <p className="text-muted">
-                      Elige una pregunta del tipo "{selectedTipo}" para ver las calificaciones detalladas.
-                    </p>
-                  </div>
-                )}
-
-                {selectedTipo === "all" && (
-                  <div className="text-center py-5">
-                    <h5 className="text-muted">Selecciona un tipo de local</h5>
-                    <p className="text-muted">
-                      Elige un tipo de local para ver las preguntas disponibles y sus calificaciones.
-                    </p>
-                  </div>
+                            </Col>
+                          </Row>
                 )}
               </CardBody>
             </Card>

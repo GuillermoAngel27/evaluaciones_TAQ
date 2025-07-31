@@ -91,11 +91,28 @@ const obtenerTiposDisponibles = () => {
   }));
 };
 
+// Función para convertir texto de pregunta a número
+const textoPreguntaANumero = (textoPregunta, tipoLocal) => {
+  const tipoNormalizado = normalizarTipoLocal(tipoLocal);
+  const preguntas = PREGUNTAS_POR_TIPO[tipoNormalizado] || [];
+  const numero = preguntas.indexOf(textoPregunta) + 1;
+  return numero > 0 ? numero : null;
+};
+
+// Función para convertir número a texto de pregunta
+const numeroATextoPregunta = (numero, tipoLocal) => {
+  const tipoNormalizado = normalizarTipoLocal(tipoLocal);
+  const preguntas = PREGUNTAS_POR_TIPO[tipoNormalizado] || [];
+  return preguntas[numero - 1] || null;
+};
+
 module.exports = {
   obtenerPreguntas,
   obtenerPreguntaEspecifica,
   obtenerTodasLasPreguntas,
   obtenerTiposDisponibles,
   PREGUNTAS_POR_TIPO,
-  normalizarTipoLocal
+  normalizarTipoLocal,
+  textoPreguntaANumero,
+  numeroATextoPregunta
 }; 
