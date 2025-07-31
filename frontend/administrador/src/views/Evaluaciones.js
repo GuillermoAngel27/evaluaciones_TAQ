@@ -111,7 +111,7 @@ const Evaluaciones = () => {
     }
   };
 
-  // Estilos CSS personalizados para dropdowns modernos
+  // Estilos CSS personalizados para dropdowns modernos y evaluaciones
   React.useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -152,6 +152,87 @@ const Evaluaciones = () => {
       .modern-select option:hover {
         background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
         color: white !important;
+      }
+      
+      /* Estilos para el grid de evaluaciones */
+      .evaluaciones-grid {
+        padding: 0;
+      }
+      
+      .evaluacion-card {
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .evaluacion-card .card-header-evaluacion {
+        flex-shrink: 0;
+      }
+      
+      .evaluacion-card .card-body {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 576px) {
+        .evaluacion-card {
+          min-height: 180px;
+        }
+        
+        .evaluacion-card .card-header-evaluacion {
+          padding: 12px !important;
+        }
+        
+        .evaluacion-card .card-body {
+          padding: 12px !important;
+        }
+      }
+      
+      @media (min-width: 577px) and (max-width: 768px) {
+        .evaluacion-card {
+          min-height: 190px;
+        }
+      }
+      
+      @media (min-width: 769px) and (max-width: 992px) {
+        .evaluacion-card {
+          min-height: 200px;
+        }
+      }
+      
+      @media (min-width: 993px) {
+        .evaluacion-card {
+          min-height: 220px;
+        }
+      }
+      
+      /* Animaciones suaves */
+      .evaluacion-card {
+        will-change: transform, box-shadow;
+      }
+      
+      .evaluacion-card:hover {
+        z-index: 10;
+      }
+      
+      /* Mejoras para el header del card */
+      .card-header-evaluacion {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .card-header-evaluacion::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
       }
     `;
     document.head.appendChild(style);
@@ -345,7 +426,10 @@ const Evaluaciones = () => {
       stars.push(
         <FaStar
           key={i}
-          className={`${i <= rating ? "text-warning" : "text-muted"}`}
+          style={{
+            color: i <= rating ? '#FFD700' : '#e9ecef',
+            filter: i <= rating ? 'drop-shadow(0 1px 2px rgba(255, 215, 0, 0.3))' : 'none'
+          }}
           size={16}
         />
       );
@@ -491,9 +575,9 @@ const Evaluaciones = () => {
     if (turnoEspecifico) {
       switch (turnoEspecifico) {
         case '3-madrugada':
-          return 'warning'; // Naranja
+          return 'dark'; // Gris oscuro - más legible
         case '3-noche':
-          return 'info'; // Morado/Azul claro
+          return 'primary'; // Azul - más legible
         default:
           break;
       }
@@ -502,11 +586,11 @@ const Evaluaciones = () => {
     // Fallback al turno numérico
     switch (turno) {
       case 1:
-        return 'primary'; // Azul
+        return 'success'; // Verde - más legible
       case 2:
-        return 'success'; // Verde
+        return 'info'; // Azul claro - más legible
       case 3:
-        return 'warning'; // Naranja
+        return 'warning'; // Naranja - mantener para consistencia
       default:
         return 'secondary';
     }
@@ -603,29 +687,39 @@ const Evaluaciones = () => {
               <Card className="shadow">
                 <CardHeader className="border-0">
                   <Row className="align-items-center">
-                    <div className="col">
-                      <Button
-                        color="link"
-                        onClick={volverALocales}
-                        className="p-0 mr-3"
-                      >
-                        <FaArrowLeft size={20} />
-                      </Button>
-                      <h3 className="mb-0 d-inline-block">
-                        Evaluaciones de {selectedLocal?.nombre}
-                        {filterTurno !== "all" && (
-                          <small className="text-muted ml-2">
-                            ({evaluacionesDetalladas.filter(e => {
-                              if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
-                                return e.turno_especifico === filterTurno;
-                              }
-                              return e.turno === parseInt(filterTurno);
-                            }).length} del {getTurnoTexto(parseInt(filterTurno), filterTurno)})
-                          </small>
-                        )}
-                      </h3>
-                    </div>
-                    <div className="col-auto">
+                    <Col xs="12" md="8">
+                      <div className="d-flex align-items-center flex-wrap">
+                        <Button
+                          color="link"
+                          onClick={volverALocales}
+                          className="p-0 mr-3"
+                          style={{textDecoration: 'none', color: '#5A0C62'}}
+                        >
+                          <FaArrowLeft size={20} />
+                        </Button>
+                        <div className="flex-grow-1">
+                          <h3 className="mb-0" style={{color: '#5A0C62'}}>
+                            Evaluaciones de {selectedLocal?.nombre}
+                          </h3>
+                          <div className="d-flex align-items-center mt-1">
+                            <small className="text-muted mr-3">
+                              Total: {evaluacionesDetalladas.length} evaluaciones
+                            </small>
+                            {filterTurno !== "all" && (
+                              <small className="text-muted">
+                                • Filtradas: {evaluacionesDetalladas.filter(e => {
+                                  if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
+                                    return e.turno_especifico === filterTurno;
+                                  }
+                                  return e.turno === parseInt(filterTurno);
+                                }).length} del {getTurnoTexto(parseInt(filterTurno), filterTurno)}
+                              </small>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs="12" md="4" className="mt-3 mt-md-0">
                       <FormGroup className="mb-0">
                         <Input
                           type="select"
@@ -633,32 +727,32 @@ const Evaluaciones = () => {
                           onChange={(e) => setFilterTurno(e.target.value)}
                           className="form-control-alternative modern-select"
                           style={{
-                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                            border: '2px solid #e9ecef',
+                            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                            border: '2px solid #dee2e6',
                             borderRadius: '12px',
-                            padding: '8px 12px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#495057',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            padding: '12px 16px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#212529',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                             transition: 'all 0.3s ease',
                             cursor: 'pointer',
-                            minWidth: '200px'
+                            width: '100%'
                           }}
                           disabled={loadingTurnos}
                         >
-                          <option value="all">🕐 Todos los turnos</option>
+                          <option value="all">🕐 TODOS LOS TURNOS</option>
                           {turnos.map((turno) => (
                             <option key={turno.id} value={turno.id}>
                               {turno.id === '1' ? '☀️' : 
                                turno.id === '2' ? '⏰' : 
                                turno.id === '3-madrugada' ? '🌅' : 
-                               turno.id === '3-noche' ? '🌙' : '🕐'} {turno.texto}
+                               turno.id === '3-noche' ? '🌙' : '🕐'} {turno.texto.toUpperCase()}
                             </option>
                           ))}
                         </Input>
                       </FormGroup>
-                    </div>
+                    </Col>
                   </Row>
                 </CardHeader>
                 <CardBody>
@@ -669,72 +763,138 @@ const Evaluaciones = () => {
                     </div>
                   ) : evaluacionesDetalladas.length === 0 ? (
                     <div className="text-center py-5">
-                      <FaStore size={64} className="text-muted mb-3" />
-                      <h5 className="text-muted">No hay evaluaciones para este local</h5>
+                      <div className="empty-state">
+                        <div className="empty-icon mb-4">
+                          <FaStore size={80} style={{color: '#dee2e6'}} />
+                        </div>
+                        <h4 className="text-muted mb-3">No hay evaluaciones</h4>
+                        <p className="text-muted mb-0">Este local aún no tiene evaluaciones registradas.</p>
+                      </div>
+                    </div>
+                  ) : evaluacionesDetalladas.filter(evaluacion => {
+                      if (filterTurno === "all") return true;
+                      if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
+                        return evaluacion.turno_especifico === filterTurno;
+                      }
+                      return evaluacion.turno === parseInt(filterTurno);
+                    }).length === 0 ? (
+                    <div className="text-center py-5">
+                      <div className="empty-state">
+                        <div className="empty-icon mb-4">
+                          <FaFilter size={80} style={{color: '#dee2e6'}} />
+                        </div>
+                        <h4 className="text-muted mb-3">No hay evaluaciones en este turno</h4>
+                        <p className="text-muted mb-3">No se encontraron evaluaciones para el turno seleccionado.</p>
+                        <Button 
+                          color="primary" 
+                          size="sm"
+                          onClick={() => setFilterTurno("all")}
+                          style={{
+                            background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 16px'
+                          }}
+                        >
+                          Ver todas las evaluaciones
+                        </Button>
+                      </div>
                     </div>
                                     ) : (
-                    <Row>
-                      {evaluacionesDetalladas
-                        .filter(evaluacion => {
-                          if (filterTurno === "all") return true;
-                          
-                          // Si el filtro es para turno 3 específico
-                          if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
-                            return evaluacion.turno_especifico === filterTurno;
-                          }
-                          
-                          // Para otros turnos, comparar por número
-                          return evaluacion.turno === parseInt(filterTurno);
-                        })
-                        .map((evaluacion) => (
-                        <Col key={evaluacion.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
-                          <Card 
-                            className="shadow border-0" 
-                            style={{ 
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                              transform: 'translateY(0)'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.transform = 'translateY(-8px)';
-                              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)';
-                            }}
-                            onClick={() => cargarRespuestasEvaluacion(evaluacion)}
-                          >
-                            <CardBody className="py-3" style={{ userSelect: 'none', pointerEvents: 'none' }}>
-                              <div className="text-center mb-3">
-                                <div className="mb-2">
+                    <div className="evaluaciones-grid">
+                      <Row className="g-3">
+                        {evaluacionesDetalladas
+                          .filter(evaluacion => {
+                            if (filterTurno === "all") return true;
+                            
+                            // Si el filtro es para turno 3 específico
+                            if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
+                              return evaluacion.turno_especifico === filterTurno;
+                            }
+                            
+                            // Para otros turnos, comparar por número
+                            return evaluacion.turno === parseInt(filterTurno);
+                          })
+                          .map((evaluacion) => (
+                          <Col key={evaluacion.id} xs="12" sm="6" md="4" lg="3" xl="2" className="mb-3">
+                            <Card 
+                              className="evaluacion-card shadow border-0" 
+                              style={{ 
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                transform: 'translateY(0)',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                                border: '1px solid rgba(0,0,0,0.05)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                                e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(90, 12, 98, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+                                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.05)';
+                              }}
+                              onClick={() => cargarRespuestasEvaluacion(evaluacion)}
+                            >
+                              {/* Header con calificación */}
+                              <div 
+                                className="card-header-evaluacion"
+                                style={{
+                                  background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)',
+                                  padding: '16px',
+                                  textAlign: 'center',
+                                  color: 'white'
+                                }}
+                              >
+                                <div className="d-flex justify-content-center align-items-center">
                                   {getRatingStars(evaluacion.calificacion)}
                                 </div>
-                                <h6 className="mb-1">{evaluacion.calificacion}/5</h6>
-                                <small className="text-muted">
-                                  {formatearFecha(evaluacion.fecha)}
-                                </small>
-                                {evaluacion.turno && (
-                                  <div className="mt-2">
-                                    <Badge 
-                                      color={getTurnoColor(evaluacion.turno, evaluacion.turno_especifico)}
-                                      className="badge-pill"
-                                      style={{ fontSize: '11px' }}
-                                    >
-                                      {getTurnoTexto(evaluacion.turno, evaluacion.turno_especifico)}
-                                    </Badge>
-                                  </div>
-                                )}
                               </div>
                               
-                              <div className="text-center">
-                                <small className="text-muted">Haz clic para ver detalles</small>
-                              </div>
-                            </CardBody>
-                          </Card>
-                        </Col>
-                      ))}
-                    </Row>
+                              {/* Body con información */}
+                              <CardBody className="py-3 px-3">
+                                <div className="text-center">
+                                  <small className="text-muted d-block mb-2" style={{fontSize: '11px'}}>
+                                    <FaCalendarAlt className="mr-1" />
+                                    {formatearFecha(evaluacion.fecha)}
+                                  </small>
+                                  
+                                  {evaluacion.turno && (
+                                    <div className="mb-3">
+                                      <Badge 
+                                        color={getTurnoColor(evaluacion.turno, evaluacion.turno_especifico)}
+                                        className="badge-pill"
+                                        style={{ 
+                                          fontSize: '9px',
+                                          fontWeight: '700',
+                                          padding: '6px 10px',
+                                          textTransform: 'uppercase',
+                                          letterSpacing: '0.8px',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                        }}
+                                      >
+                                        {getTurnoTexto(evaluacion.turno, evaluacion.turno_especifico)}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="mt-3">
+                                    <small className="text-primary font-weight-bold" style={{fontSize: '11px'}}>
+                                      <FaEye className="mr-1" />
+                                      VER DETALLES
+                                    </small>
+                                  </div>
+                                </div>
+                              </CardBody>
+                            </Card>
+                          </Col>
+                        ))}
+                      </Row>
+                    </div>
                   )}
                 </CardBody>
               </Card>
@@ -793,7 +953,13 @@ const Evaluaciones = () => {
                           <Badge 
                             color={getTurnoColor(selectedEvaluacion.turno, selectedEvaluacion.turno_especifico)}
                             className="badge-pill"
-                            style={{ fontSize: '12px' }}
+                            style={{ 
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              padding: '5px 10px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
                           >
                             {getTurnoTexto(selectedEvaluacion.turno, selectedEvaluacion.turno_especifico)}
                           </Badge>
