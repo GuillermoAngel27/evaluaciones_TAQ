@@ -242,7 +242,10 @@ const Evaluaciones = () => {
   const cargarEvaluacionesDetalladas = async (local) => {
     try {
       setLoadingEvaluaciones(true);
-    setSelectedLocal(local);
+      setSelectedLocal(local);
+      
+      // Resetear el filtro de turnos a "Todos los turnos"
+      setFilterTurno("all");
       
       // Construir parámetros de consulta para filtros de fecha
       const params = new URLSearchParams();
@@ -286,6 +289,8 @@ const Evaluaciones = () => {
     setShowEvaluacionesDetalladas(false);
     setSelectedLocal(null);
     setEvaluacionesDetalladas([]);
+    // Resetear el filtro de turnos a "Todos los turnos"
+    setFilterTurno("all");
     // Limpiar estados del modal
     setModalRespuestas(false);
     setSelectedEvaluacion(null);

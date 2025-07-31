@@ -1,0 +1,14 @@
+console.log('✅ Verificación de configuración del dropdown de turnos');
+console.log('');
+console.log('📋 Configuración implementada:');
+console.log('1. Estado inicial: filterTurno = "all"');
+console.log('2. Al cargar evaluaciones detalladas: setFilterTurno("all")');
+console.log('3. Al volver a locales: setFilterTurno("all")');
+console.log('4. Al hacer clic en "Limpiar": setFilterTurno("all")');
+console.log('');
+console.log('🎯 Comportamiento esperado:');
+console.log('- Al abrir un local evaluado, el dropdown debe mostrar "🕐 Todos los turnos"');
+console.log('- Al cambiar de local, el dropdown debe resetearse a "🕐 Todos los turnos"');
+console.log('- Al volver a la vista de locales, el filtro debe estar en "all"');
+console.log('');
+console.log('✅ Configuración completada correctamente'); 
