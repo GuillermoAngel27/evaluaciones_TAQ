@@ -165,11 +165,11 @@ const Locales = () => {
 
   const [formData, setFormData] = useState({
     nombre: "",
-    tipo_local: "Miscelaneas",
+    tipo_local: "miscelaneas",
     estatus: "Activo",
   });
 
-  const tiposLocales = ["Miscelaneas", "Alimentos", "Taxis", "Estacionamiento"];
+  const tiposLocales = ["miscelaneas", "alimentos", "taxis", "estacionamiento"];
   const estadosLocales = ["Activo", "Inactivo"];
 
   // Cargar datos del backend
@@ -212,7 +212,7 @@ const Locales = () => {
     setModalMode("create");
     setFormData({
       nombre: "",
-      tipo_local: "Miscelaneas",
+      tipo_local: "miscelaneas",
       estatus: "Activo",
     });
     setSelectedLocal(null);
@@ -397,7 +397,11 @@ const Locales = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || local.estatus === filterStatus;
-    const matchesType = filterType === "all" || local.tipo_local === filterType;
+    
+    // Normalizar el tipo del local para la comparación
+    const localTipoNormalizado = local.tipo_local?.toLowerCase() || 'miscelaneas';
+    const filterTipoNormalizado = filterType === "all" ? "all" : filterType.toLowerCase();
+    const matchesType = filterTipoNormalizado === "all" || localTipoNormalizado === filterTipoNormalizado;
     
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -419,6 +423,24 @@ const Locales = () => {
       Inactivo: "secondary",
     };
     return <Badge color={colors[status]} style={{ fontSize: '14px', padding: '8px 12px' }}>{status}</Badge>;
+  };
+
+  // Función para normalizar y mostrar tipos de local
+  const getTipoDisplay = (tipo) => {
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
+    switch (tipoNormalizado) {
+      case "alimentos":
+        return "Alimentos";
+      case "miscelaneas":
+        return "Misceláneas";
+      case "taxis":
+        return "Taxis";
+      case "estacionamiento":
+        return "Estacionamiento";
+      default:
+        return "Misceláneas";
+    }
   };
 
   // Mostrar mensajes de error o éxito
@@ -631,10 +653,10 @@ const Locales = () => {
                           </option>
                           {tiposLocales.map((tipo) => (
                             <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
-                              {tipo === 'Miscelaneas' ? '🛒 ' : 
-                               tipo === 'Alimentos' ? '🍽️ ' : 
-                               tipo === 'Taxis' ? '🚕 ' : 
-                               tipo === 'Estacionamiento' ? '🅿️ ' : '🏢 '}{tipo}
+                              {tipo === 'miscelaneas' ? '🛒 ' : 
+                               tipo === 'alimentos' ? '🍽️ ' : 
+                               tipo === 'taxis' ? '🚕 ' : 
+                               tipo === 'estacionamiento' ? '🅿️ ' : '🏢 '}{getTipoDisplay(tipo)}
                             </option>
                           ))}
                         </Input>
@@ -700,7 +722,7 @@ const Locales = () => {
                               </div>
                             </th>
                             <td>
-                              <Badge color="info" style={{ fontSize: '10px', padding: '8px 12px' }}>{local.tipo_local}</Badge>
+                              <Badge color="info" style={{ fontSize: '10px', padding: '8px 12px' }}>{getTipoDisplay(local.tipo_local)}</Badge>
                             </td>
                             <td>
                               <Badge 
@@ -992,10 +1014,10 @@ const Locales = () => {
                    >
                     {tiposLocales.map((tipo) => (
                       <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
-                        {tipo === 'Miscelaneas' ? '🛒 ' : 
-                         tipo === 'Alimentos' ? '🍽️ ' : 
-                         tipo === 'Taxis' ? '🚕 ' : 
-                         tipo === 'Estacionamiento' ? '🅿️ ' : '🏢 '}{tipo}
+                        {tipo === 'miscelaneas' ? '🛒 ' : 
+                         tipo === 'alimentos' ? '🍽️ ' : 
+                         tipo === 'taxis' ? '🚕 ' : 
+                         tipo === 'estacionamiento' ? '🅿️ ' : '🏢 '}{getTipoDisplay(tipo)}
                       </option>
                     ))}
                   </Input>
@@ -1166,7 +1188,7 @@ const Locales = () => {
                                 <div>
                                   <strong style={{ fontSize: '13px' }}>{local.nombre}</strong>
                                   <br />
-                                  <small className="text-muted" style={{ fontSize: '11px' }}>{local.tipo_local}</small>
+                                  <small className="text-muted" style={{ fontSize: '11px' }}>{getTipoDisplay(local.tipo_local)}</small>
                                 </div>
                               </div>
                             ))

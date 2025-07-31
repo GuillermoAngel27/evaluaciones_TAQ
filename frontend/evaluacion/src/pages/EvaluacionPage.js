@@ -42,6 +42,7 @@ export default function EvaluacionPage({ token }) {
   const [localCargado, setLocalCargado] = useState(false); // Para distinguir entre carga y no encontrado
   const [localInactivo, setLocalInactivo] = useState(false); // Para controlar si el local está inactivo
   const [tipoLocalFiltro, setTipoLocalFiltro] = useState("");
+  const [turnoActual, setTurnoActual] = useState(null); // Para mostrar el turno actual
 
   // Función para cargar preguntas desde el backend según el tipo de local
   const cargarPreguntas = async (tipoLocal) => {
@@ -110,11 +111,29 @@ export default function EvaluacionPage({ token }) {
     }
   };
 
+  // Función para obtener el turno actual
+  const obtenerTurnoActual = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/evaluaciones/turno-actual');
+      if (response.ok) {
+        const data = await response.json();
+        setTurnoActual(data.turno);
+      }
+    } catch (error) {
+      console.error('Error obteniendo turno actual:', error);
+      // Fallback en caso de error
+      setTurnoActual('Turno 1');
+    }
+  };
+
   // Al cargar la página, consulta al backend si puede evaluar
   useEffect(() => {
     if (!tokenPublico) return;
     
     console.log('EvaluacionPage - Consultando local con token:', tokenPublico);
+    
+    // Obtener turno actual
+    obtenerTurnoActual();
     
     // Cargar información del local por token_publico (ruta pública)
     fetch(`http://localhost:4000/api/locales/public/token/${tokenPublico}`)
@@ -649,6 +668,7 @@ export default function EvaluacionPage({ token }) {
               Evaluar: {local.nombre}
             </h2>
           </div>
+
           <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
             <div style={{ textAlign: 'left' }}>
               <PreguntasForm preguntas={preguntas} respuestas={respuestas} setRespuestas={setRespuestas} />

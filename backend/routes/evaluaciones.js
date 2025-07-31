@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireRole, requireAdmin } = require('./auth');
 const db = require('../db');
+const { obtenerTurnoActual, obtenerTurnoActualTexto } = require('../utils/turnoUtils');
 
 // GET - Obtener todas las evaluaciones con filtros opcionales (ambos roles pueden ver)
 router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
@@ -39,6 +40,41 @@ router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (re
     }
     res.json(results);
   });
+});
+
+// GET - Obtener turno actual (sin autenticación - para evaluación pública)
+router.get('/turno-actual', (req, res) => {
+  obtenerTurnoActualTexto()
+    .then(turno => {
+      res.json({ turno });
+    })
+    .catch(err => {
+      console.error('Error obteniendo turno actual:', err);
+      res.status(500).json({ error: 'Error al obtener el turno actual' });
+    });
+});
+
+// GET - Obtener todos los turnos (para el dropdown)
+router.get('/turnos', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const { obtenerTodosLosTurnos, turnoATexto, generarTurnoId } = require('../utils/turnoUtils');
+  
+  obtenerTodosLosTurnos()
+    .then(turnos => {
+      // Formatear los turnos para el dropdown
+      const turnosFormateados = turnos.map(turno => ({
+        id: generarTurnoId(turno.turno, turno.hra_ini),
+        turno_numero: turno.turno,
+        texto: turnoATexto(turno.turno, turno.hra_ini),
+        hra_ini: turno.hra_ini,
+        hra_fin: turno.hra_fin
+      }));
+      
+      res.json(turnosFormateados);
+    })
+    .catch(err => {
+      console.error('Error obteniendo turnos:', err);
+      res.status(500).json({ error: 'Error al obtener los turnos' });
+    });
 });
 
 // GET - Obtener preguntas por tipo de local (ambos roles pueden ver)
@@ -107,73 +143,84 @@ router.get('/:id/respuestas', authenticateToken, requireRole(['administrador', '
 });
 
 // POST - Crear una nueva evaluación (sin autenticación - para evaluación pública)
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { token, device_id, respuestas, preguntas, comentario } = req.body;
   
   if (!token || !device_id || !respuestas || !preguntas) {
     return res.status(400).json({ error: 'Token, device_id, respuestas y preguntas son obligatorios' });
   }
   
-  // Verificar que el token existe y no ha sido usado
-  const tokenSql = 'SELECT * FROM tokens WHERE token = ? AND device_id = ? AND usado = 0';
-  db.query(tokenSql, [token, device_id], (err, tokenResults) => {
-    if (err) {
-      console.error('Error verificando token:', err);
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    // Obtener el turno actual
+    const turnoActual = await obtenerTurnoActual();
+    console.log('Turno actual:', turnoActual);
     
-    if (tokenResults.length === 0) {
-      return res.status(400).json({ error: 'Token inválido o ya usado' });
-    }
-    
-    const tokenInfo = tokenResults[0];
-    const local_id = tokenInfo.local_id;
-    
-    // Calcular puntuación promedio
-    const puntuacion = respuestas.reduce((sum, val) => sum + val, 0) / respuestas.length;
-    
-    // Insertar evaluación
-    const evalSql = 'INSERT INTO evaluaciones (local_id, puntuacion, comentario, fecha) VALUES (?, ?, ?, NOW())';
-    db.query(evalSql, [local_id, puntuacion, comentario || null], (err, evalResult) => {
+    // Verificar que el token existe y no ha sido usado
+    const tokenSql = 'SELECT * FROM tokens WHERE token = ? AND device_id = ? AND usado = 0';
+    db.query(tokenSql, [token, device_id], (err, tokenResults) => {
       if (err) {
-        console.error('Error creando evaluación:', err);
+        console.error('Error verificando token:', err);
         return res.status(500).json({ error: err.message });
       }
       
-      const evaluacion_id = evalResult.insertId;
+      if (tokenResults.length === 0) {
+        return res.status(400).json({ error: 'Token inválido o ya usado' });
+      }
       
-      // Insertar respuestas
-      const respuestasValues = respuestas.map((respuesta, index) => [
-        evaluacion_id,
-        index + 1,
-        respuesta
-      ]);
+      const tokenInfo = tokenResults[0];
+      const local_id = tokenInfo.local_id;
       
-      const respSql = 'INSERT INTO respuestas (evaluacion_id, pregunta, puntuacion) VALUES ?';
-      db.query(respSql, [respuestasValues], (err, respResult) => {
+      // Calcular puntuación promedio
+      const puntuacion = respuestas.reduce((sum, val) => sum + val, 0) / respuestas.length;
+      
+      // Insertar evaluación con el turno actual
+      const evalSql = 'INSERT INTO evaluaciones (local_id, puntuacion, comentario, fecha, turno) VALUES (?, ?, ?, NOW(), ?)';
+      db.query(evalSql, [local_id, puntuacion, comentario || null, turnoActual], (err, evalResult) => {
         if (err) {
-          console.error('Error insertando respuestas:', err);
+          console.error('Error creando evaluación:', err);
           return res.status(500).json({ error: err.message });
         }
         
-        // Marcar token como usado
-        const updateTokenSql = 'UPDATE tokens SET usado = 1, fecha_usado = NOW() WHERE token = ? AND device_id = ?';
-        db.query(updateTokenSql, [token, device_id], (err) => {
+        const evaluacion_id = evalResult.insertId;
+        
+        // Insertar respuestas
+        const respuestasValues = respuestas.map((respuesta, index) => [
+          evaluacion_id,
+          index + 1,
+          respuesta
+        ]);
+        
+        const respSql = 'INSERT INTO respuestas (evaluacion_id, pregunta, puntuacion) VALUES ?';
+        db.query(respSql, [respuestasValues], (err, respResult) => {
           if (err) {
-            console.error('Error marcando token como usado:', err);
+            console.error('Error insertando respuestas:', err);
+            return res.status(500).json({ error: err.message });
           }
           
-          res.status(201).json({
-            id: evaluacion_id,
-            local_id,
-            puntuacion,
-            comentario,
-            message: 'Evaluación creada correctamente'
+          // Marcar token como usado
+          const updateTokenSql = 'UPDATE tokens SET usado = 1, fecha_usado = NOW() WHERE token = ? AND device_id = ?';
+          db.query(updateTokenSql, [token, device_id], (err) => {
+            if (err) {
+              console.error('Error marcando token como usado:', err);
+            }
+            
+                  res.status(201).json({
+        id: evaluacion_id,
+        local_id,
+        puntuacion,
+        comentario,
+        turno: turnoActual,
+        turno_texto: `Turno ${turnoActual}`,
+        message: 'Evaluación creada correctamente'
+      });
           });
         });
       });
     });
-  });
+  } catch (error) {
+    console.error('Error en la validación de turno:', error);
+    return res.status(500).json({ error: 'Error al validar el turno actual' });
+  }
 });
 
 // DELETE - Eliminar una evaluación (solo administradores)

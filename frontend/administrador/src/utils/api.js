@@ -57,6 +57,9 @@ export const evaluacionesAPI = {
   
   // Obtener estadísticas
   getStats: () => api.get('/evaluaciones/stats'),
+  
+  // Obtener todos los turnos
+  getTurnos: () => api.get('/evaluaciones/turnos'),
 };
 
 // Funciones de API para locales

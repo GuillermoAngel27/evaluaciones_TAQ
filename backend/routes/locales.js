@@ -3,6 +3,21 @@ const router = express.Router();
 const { authenticateToken, requireRole, requireAdmin } = require('./auth');
 const db = require('../db');
 
+// Función para normalizar tipos de local
+const normalizarTipoLocal = (tipo) => {
+  if (!tipo) return 'miscelaneas';
+  
+  const tipoLower = tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Mapeo de variantes a valores estándar
+  if (tipoLower.includes('miscelanea')) return 'miscelaneas';
+  if (tipoLower.includes('alimento')) return 'alimentos';
+  if (tipoLower.includes('taxi')) return 'taxis';
+  if (tipoLower.includes('estacionamiento') || tipoLower.includes('parking')) return 'estacionamiento';
+  
+  return 'miscelaneas'; // fallback
+};
+
 // GET - Obtener todos los locales (ambos roles pueden ver)
 router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   console.log('GET / - Obteniendo todos los locales');
@@ -13,7 +28,14 @@ router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (re
       return res.status(500).json({ error: err.message });
     }
     console.log(`Se encontraron ${results.length} locales`);
-    res.json(results);
+    
+    // Normalizar los tipos de local antes de enviar la respuesta
+    const localesNormalizados = results.map(local => ({
+      ...local,
+      tipo_local: normalizarTipoLocal(local.tipo_local)
+    }));
+    
+    res.json(localesNormalizados);
   });
 });
 
@@ -58,7 +80,14 @@ router.post('/', authenticateToken, requireAdmin, (req, res) => {
         console.error('Error obteniendo local creado:', err);
         return res.status(500).json({ error: err.message });
       }
-      res.status(201).json(results[0]);
+      
+      // Normalizar el tipo de local antes de enviar la respuesta
+      const localNormalizado = {
+        ...results[0],
+        tipo_local: normalizarTipoLocal(results[0].tipo_local)
+      };
+      
+      res.status(201).json(localNormalizado);
     });
   });
 });
@@ -120,8 +149,15 @@ router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), 
       console.log(`Local con ID ${id} no encontrado`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
-    console.log(`Local encontrado:`, results[0]);
-    res.json(results[0]);
+    
+    // Normalizar el tipo de local antes de enviar la respuesta
+    const localNormalizado = {
+      ...results[0],
+      tipo_local: normalizarTipoLocal(results[0].tipo_local)
+    };
+    
+    console.log(`Local encontrado:`, localNormalizado);
+    res.json(localNormalizado);
   });
 });
 
@@ -158,8 +194,15 @@ router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
         console.error('Error obteniendo local actualizado:', err);
         return res.status(500).json({ error: err.message });
       }
-      console.log('Local actualizado:', results[0]);
-      res.json(results[0]);
+      
+      // Normalizar el tipo de local antes de enviar la respuesta
+      const localNormalizado = {
+        ...results[0],
+        tipo_local: normalizarTipoLocal(results[0].tipo_local)
+      };
+      
+      console.log('Local actualizado:', localNormalizado);
+      res.json(localNormalizado);
     });
   });
 });
@@ -199,7 +242,14 @@ router.get('/token/:token_publico', authenticateToken, requireRole(['administrad
     if (results.length === 0) {
       return res.status(404).json({ error: 'Local no encontrado' });
     }
-    res.json(results[0]);
+    
+    // Normalizar el tipo de local antes de enviar la respuesta
+    const localNormalizado = {
+      ...results[0],
+      tipo_local: normalizarTipoLocal(results[0].tipo_local)
+    };
+    
+    res.json(localNormalizado);
   });
 });
 
@@ -218,8 +268,15 @@ router.get('/public/token/:token_publico', (req, res) => {
       console.log(`Local con token ${token_publico} no encontrado`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
-    console.log(`Local público encontrado:`, results[0]);
-    res.json(results[0]);
+    
+    // Normalizar el tipo de local antes de enviar la respuesta
+    const localNormalizado = {
+      ...results[0],
+      tipo_local: normalizarTipoLocal(results[0].tipo_local)
+    };
+    
+    console.log(`Local público encontrado:`, localNormalizado);
+    res.json(localNormalizado);
   });
 });
 
@@ -300,7 +357,7 @@ router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['admini
       return {
         id: local.id,
         nombre: local.nombre,
-        tipo: local.tipo_local,
+        tipo: normalizarTipoLocal(local.tipo_local),
         estatus: local.estatus,
         totalEvaluaciones: local.total_evaluaciones || 0,
         calificacionPromedio: local.calificacion_promedio && !isNaN(local.calificacion_promedio) 
@@ -419,7 +476,7 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
             resp.fecha : 
             resp.fecha.toISOString().replace('T', ' ').split('.')[0],
           nombreLocal: resp.nombre_local,
-          tipoLocal: resp.tipo_local
+          tipoLocal: normalizarTipoLocal(resp.tipo_local)
         }));
         
         console.log('Respuestas formateadas:', respuestasFormateadas);
@@ -442,6 +499,7 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
       e.puntuacion,
       e.comentario,
       e.fecha,
+      e.turno,
       l.nombre as nombre_local,
       l.tipo_local
     FROM evaluaciones e
@@ -483,6 +541,25 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
     
     console.log(`Se encontraron ${results.length} evaluaciones detalladas`);
     
+    // Función para determinar el turno específico basado en la hora
+    const determinarTurnoEspecifico = (turno, fecha) => {
+      if (turno !== 3) return turno.toString();
+      
+      const hora = new Date(fecha).getHours();
+      const minutos = new Date(fecha).getMinutes();
+      const segundos = new Date(fecha).getSeconds();
+      const horaString = `${hora.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+      
+      // Determinar cuál de los dos turnos 3 corresponde
+      if (horaString >= '00:00:00' && horaString <= '05:30:00') {
+        return '3-madrugada';
+      } else if (horaString >= '21:00:01' && horaString <= '23:59:59') {
+        return '3-noche';
+      }
+      
+      return '3'; // Fallback
+    };
+
     // Formatear las evaluaciones
     const evaluacionesFormateadas = results.map(eval => ({
       id: eval.id,
@@ -491,8 +568,10 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
       fecha: typeof eval.fecha === 'string' ? 
         eval.fecha : 
         eval.fecha.toISOString().replace('T', ' ').split('.')[0],
+      turno: parseInt(eval.turno) || 1, // Convertir a número
+      turno_especifico: determinarTurnoEspecifico(parseInt(eval.turno) || 1, eval.fecha),
       nombreLocal: eval.nombre_local,
-      tipoLocal: eval.tipo_local
+      tipoLocal: normalizarTipoLocal(eval.tipo_local)
     }));
     
     res.json(evaluacionesFormateadas);

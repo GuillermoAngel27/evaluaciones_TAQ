@@ -35,7 +35,7 @@ import {
   FaExclamationTriangle,
   FaTimes,
 } from "react-icons/fa";
-import { localesAPI } from "../utils/api";
+import { localesAPI, evaluacionesAPI } from "../utils/api";
 
 const Evaluaciones = () => {
   // Función de utilidad para formatear fechas
@@ -165,6 +165,9 @@ const Evaluaciones = () => {
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterFechaDesde, setFilterFechaDesde] = useState("");
   const [filterFechaHasta, setFilterFechaHasta] = useState("");
+  const [filterTurno, setFilterTurno] = useState("all");
+  const [turnos, setTurnos] = useState([]);
+  const [loadingTurnos, setLoadingTurnos] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // 3 renglones x 4 columnas
 
@@ -189,6 +192,31 @@ const Evaluaciones = () => {
   useEffect(() => {
     cargarLocalesEvaluados();
   }, [filterFechaDesde, filterFechaHasta]);
+
+  // Cargar turnos al iniciar el componente
+  useEffect(() => {
+    cargarTurnos();
+  }, []);
+
+  const cargarTurnos = async () => {
+    try {
+      setLoadingTurnos(true);
+      const response = await evaluacionesAPI.getTurnos();
+      console.log('Turnos cargados:', response.data);
+      setTurnos(response.data);
+    } catch (err) {
+      console.error('Error cargando turnos:', err);
+      // Fallback con turnos básicos si hay error
+      setTurnos([
+        { id: 1, texto: 'Turno 1 (Mañana)' },
+        { id: 2, texto: 'Turno 2 (Tarde)' },
+        { id: 3, texto: 'Turno 3 - Madrugada (00:00 - 05:30)' },
+        { id: 4, texto: 'Turno 3 - Noche (21:00 - 24:00)' }
+      ]);
+    } finally {
+      setLoadingTurnos(false);
+    }
+  };
 
   const cargarLocalesEvaluados = async () => {
     try {
@@ -303,7 +331,7 @@ const Evaluaciones = () => {
   // Resetear a la primera página cuando cambian los filtros
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterTipo, filterFechaDesde, filterFechaHasta]);
+  }, [searchTerm, filterTipo, filterFechaDesde, filterFechaHasta, filterTurno]);
 
   // Funciones de utilidad
   const getRatingStars = (rating) => {
@@ -328,7 +356,9 @@ const Evaluaciones = () => {
   };
 
   const getTipoIcon = (tipo) => {
-    switch (tipo) {
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
+    switch (tipoNormalizado) {
       case "alimentos":
         return <FaUtensils size={24} />;
       case "miscelaneas":
@@ -338,12 +368,15 @@ const Evaluaciones = () => {
       case "estacionamiento":
         return <FaParking size={24} />;
       default:
-        return <FaStore size={24} />;
+        return <FaShoppingBag size={24} />; // Fallback a miscelaneas
     }
   };
 
   const getTipoNombre = (tipo) => {
-    switch (tipo) {
+    // Normalizar el tipo recibido (por si acaso)
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
+    switch (tipoNormalizado) {
       case "alimentos":
         return "Alimentos";
       case "miscelaneas":
@@ -353,12 +386,14 @@ const Evaluaciones = () => {
       case "estacionamiento":
         return "Estacionamiento";
       default:
-        return "Otro";
+        return "Misceláneas"; // Fallback más apropiado
     }
   };
 
   const getTipoColor = (tipo) => {
-    switch (tipo) {
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
+    switch (tipoNormalizado) {
       case "alimentos":
         return "success";
       case "miscelaneas":
@@ -368,11 +403,13 @@ const Evaluaciones = () => {
       case "estacionamiento":
         return "secondary";
       default:
-        return "primary";
+        return "info"; // Fallback a miscelaneas
     }
   };
 
   const getDefaultImage = (tipo) => {
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
     // Imágenes de placeholder por tipo con colores específicos
     const placeholderImages = {
       alimentos: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23d4edda'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='32' fill='%23155724'%3E🍽️%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='18' fill='%23155724'%3EAlimentos%3C/text%3E%3C/svg%3E",
@@ -380,10 +417,12 @@ const Evaluaciones = () => {
       taxis: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23fff3cd'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='32' fill='%23856404'%3E🚕%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='18' fill='%23856404'%3ETaxi%3C/text%3E%3C/svg%3E",
       estacionamiento: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e2e3e5'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='32' fill='%23383d41'%3E🅿️%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='18' fill='%23383d41'%3EEstacionamiento%3C/text%3E%3C/svg%3E"
     };
-    return placeholderImages[tipo] || placeholderImages.alimentos;
+    return placeholderImages[tipoNormalizado] || placeholderImages.miscelaneas;
   };
 
   const getPreguntasPorTipo = (tipo) => {
+    const tipoNormalizado = tipo?.toLowerCase() || 'miscelaneas';
+    
     const preguntas = {
       alimentos: [
         "¿El personal fue amable?",
@@ -411,7 +450,61 @@ const Evaluaciones = () => {
         "¿El proceso para pago fue optimo?"
       ]
     };
-    return preguntas[tipo] || preguntas.miscelaneas;
+    return preguntas[tipoNormalizado] || preguntas.miscelaneas;
+  };
+
+  // Función para obtener el texto del turno
+  const getTurnoTexto = (turno, turnoEspecifico = null) => {
+    // Si tenemos un turno específico, usarlo
+    if (turnoEspecifico) {
+      switch (turnoEspecifico) {
+        case '3-madrugada':
+          return 'Turno 3 - Madrugada (00:00 - 05:30)';
+        case '3-noche':
+          return 'Turno 3 - Noche (21:00 - 24:00)';
+        default:
+          break;
+      }
+    }
+    
+    // Fallback al turno numérico
+    switch (turno) {
+      case 1:
+        return 'Turno 1 (Mañana)';
+      case 2:
+        return 'Turno 2 (Tarde)';
+      case 3:
+        return 'Turno 3';
+      default:
+        return typeof turno === 'string' ? turno : `Turno ${turno}`;
+    }
+  };
+
+  // Función para obtener el color del turno
+  const getTurnoColor = (turno, turnoEspecifico = null) => {
+    // Si tenemos un turno específico, asignar colores diferentes
+    if (turnoEspecifico) {
+      switch (turnoEspecifico) {
+        case '3-madrugada':
+          return 'warning'; // Naranja
+        case '3-noche':
+          return 'info'; // Morado/Azul claro
+        default:
+          break;
+      }
+    }
+    
+    // Fallback al turno numérico
+    switch (turno) {
+      case 1:
+        return 'primary'; // Azul
+      case 2:
+        return 'success'; // Verde
+      case 3:
+        return 'warning'; // Naranja
+      default:
+        return 'secondary';
+    }
   };
 
   // Mostrar loading
@@ -515,7 +608,51 @@ const Evaluaciones = () => {
                       </Button>
                       <h3 className="mb-0 d-inline-block">
                         Evaluaciones de {selectedLocal?.nombre}
+                        {filterTurno !== "all" && (
+                          <small className="text-muted ml-2">
+                            ({evaluacionesDetalladas.filter(e => {
+                              if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
+                                return e.turno_especifico === filterTurno;
+                              }
+                              return e.turno === parseInt(filterTurno);
+                            }).length} del {getTurnoTexto(parseInt(filterTurno), filterTurno)})
+                          </small>
+                        )}
                       </h3>
+                    </div>
+                    <div className="col-auto">
+                      <FormGroup className="mb-0">
+                        <Input
+                          type="select"
+                          value={filterTurno}
+                          onChange={(e) => setFilterTurno(e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '8px 12px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            minWidth: '200px'
+                          }}
+                          disabled={loadingTurnos}
+                        >
+                          <option value="all">🕐 Todos los turnos</option>
+                          {turnos.map((turno) => (
+                            <option key={turno.id} value={turno.id}>
+                              {turno.id === '1' ? '☀️' : 
+                               turno.id === '2' ? '⏰' : 
+                               turno.id === '3-madrugada' ? '🌅' : 
+                               turno.id === '3-noche' ? '🌙' : '🕐'} {turno.texto}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
                     </div>
                   </Row>
                 </CardHeader>
@@ -530,9 +667,21 @@ const Evaluaciones = () => {
                       <FaStore size={64} className="text-muted mb-3" />
                       <h5 className="text-muted">No hay evaluaciones para este local</h5>
                     </div>
-                  ) : (
+                                    ) : (
                     <Row>
-                      {evaluacionesDetalladas.map((evaluacion) => (
+                      {evaluacionesDetalladas
+                        .filter(evaluacion => {
+                          if (filterTurno === "all") return true;
+                          
+                          // Si el filtro es para turno 3 específico
+                          if (filterTurno === "3-madrugada" || filterTurno === "3-noche") {
+                            return evaluacion.turno_especifico === filterTurno;
+                          }
+                          
+                          // Para otros turnos, comparar por número
+                          return evaluacion.turno === parseInt(filterTurno);
+                        })
+                        .map((evaluacion) => (
                         <Col key={evaluacion.id} xs="12" sm="6" md="4" lg="3" className="mb-4">
                           <Card 
                             className="shadow border-0" 
@@ -560,6 +709,17 @@ const Evaluaciones = () => {
                                 <small className="text-muted">
                                   {formatearFecha(evaluacion.fecha)}
                                 </small>
+                                {evaluacion.turno && (
+                                  <div className="mt-2">
+                                    <Badge 
+                                      color={getTurnoColor(evaluacion.turno, evaluacion.turno_especifico)}
+                                      className="badge-pill"
+                                      style={{ fontSize: '11px' }}
+                                    >
+                                      {getTurnoTexto(evaluacion.turno, evaluacion.turno_especifico)}
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
                               
                               <div className="text-center">
@@ -623,6 +783,22 @@ const Evaluaciones = () => {
                         <FaCalendarAlt className="mr-1" />
                         {formatearFecha(selectedEvaluacion.fecha)}
                       </small>
+                      {selectedEvaluacion.turno && (
+                        <div className="mt-1">
+                          <Badge 
+                            color={getTurnoColor(selectedEvaluacion.turno, selectedEvaluacion.turno_especifico)}
+                            className="badge-pill"
+                            style={{ fontSize: '12px' }}
+                          >
+                            {getTurnoTexto(selectedEvaluacion.turno, selectedEvaluacion.turno_especifico)}
+                          </Badge>
+                        </div>
+                      )}
+                      {!selectedEvaluacion.turno && (
+                        <div className="mt-1">
+                          <small className="text-muted">Sin información de turno</small>
+                        </div>
+                      )}
                     </div>
                     <div className="col-md-6 text-md-right">
                       <div className="d-flex align-items-center justify-content-md-end">
@@ -870,6 +1046,7 @@ const Evaluaciones = () => {
                         setFilterTipo("all");
                         setFilterFechaDesde("");
                         setFilterFechaHasta("");
+                        setFilterTurno("all");
                         setCurrentPage(1);
                       }}
                       style={{ 
