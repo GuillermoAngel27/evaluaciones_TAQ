@@ -60,6 +60,24 @@ export const evaluacionesAPI = {
   
   // Obtener todos los turnos
   getTurnos: () => api.get('/evaluaciones/turnos'),
+  
+  // Dashboard - Estadísticas generales
+  getDashboardStats: () => api.get('/evaluaciones/dashboard/stats'),
+  
+  // Dashboard - Top locales más evaluados
+  getTopLocales: (limit = 5) => api.get(`/evaluaciones/dashboard/top-locales?limit=${limit}`),
+  
+  // Dashboard - Últimas evaluaciones
+  getUltimasEvaluaciones: (limit = 6) => api.get(`/evaluaciones/dashboard/ultimas?limit=${limit}`),
+  
+  // Dashboard - Comentarios recientes
+  getComentariosRecientes: (limit = 6) => api.get(`/evaluaciones/dashboard/comentarios?limit=${limit}`),
+  
+  // Dashboard - Calificaciones por tipo de local
+  getCalificacionesPorTipo: () => api.get('/evaluaciones/dashboard/calificaciones-por-tipo'),
+  
+  // Dashboard - Evaluaciones por día (últimos 7 días)
+  getEvaluacionesPorDia: (dias = 7) => api.get(`/evaluaciones/dashboard/por-dia?dias=${dias}`),
 };
 
 // Funciones de API para locales

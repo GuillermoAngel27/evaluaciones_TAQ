@@ -250,4 +250,225 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   });
 });
 
+// ===== ENDPOINTS PARA DASHBOARD =====
+
+// GET - Estadísticas generales del dashboard
+router.get('/dashboard/stats', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const statsSql = `
+    SELECT 
+      COUNT(DISTINCT l.id) as totalLocales,
+      COUNT(e.id) as totalEvaluaciones,
+      ROUND(AVG(e.puntuacion)) as promedioCalificacion,
+      COUNT(CASE WHEN DATE(e.fecha) = CURDATE() THEN 1 END) as evaluacionesHoy,
+      COUNT(DISTINCT CASE WHEN l.estatus = 'activo' THEN l.id END) as localesActivos,
+      COUNT(DISTINCT CASE WHEN l.estatus = 'inactivo' THEN l.id END) as localesInactivos
+    FROM locales l
+    LEFT JOIN evaluaciones e ON l.id = e.local_id
+  `;
+  
+  db.query(statsSql, (err, results) => {
+    if (err) {
+      console.error('Error obteniendo estadísticas del dashboard:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    // Convertir valores a números
+    const stats = results[0];
+    stats.totalLocales = parseInt(stats.totalLocales);
+    stats.totalEvaluaciones = parseInt(stats.totalEvaluaciones);
+    stats.promedioCalificacion = Math.round(parseFloat(stats.promedioCalificacion));
+    stats.evaluacionesHoy = parseInt(stats.evaluacionesHoy);
+    stats.localesActivos = parseInt(stats.localesActivos);
+    stats.localesInactivos = parseInt(stats.localesInactivos);
+    
+    res.json(stats);
+  });
+});
+
+// GET - Top locales más evaluados
+router.get('/dashboard/top-locales', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const limit = parseInt(req.query.limit) || 5;
+  
+  const topSql = `
+    SELECT 
+      l.id,
+      l.nombre,
+      l.tipo_local as tipo,
+      COUNT(e.id) as evaluaciones,
+      ROUND(AVG(e.puntuacion)) as promedio
+    FROM locales l
+    LEFT JOIN evaluaciones e ON l.id = e.local_id
+    GROUP BY l.id, l.nombre, l.tipo_local
+    HAVING COUNT(e.id) > 0
+    ORDER BY evaluaciones DESC
+    LIMIT ?
+  `;
+  
+  db.query(topSql, [limit], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo top locales:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    // Agregar posición manualmente y convertir valores a números
+    const resultsWithPosition = results.map((item, index) => ({
+      ...item,
+      id: parseInt(item.id),
+      evaluaciones: parseInt(item.evaluaciones),
+      promedio: Math.round(parseFloat(item.promedio)),
+      posicion: index + 1
+    }));
+    
+    res.json(resultsWithPosition);
+  });
+});
+
+// GET - Últimas evaluaciones
+router.get('/dashboard/ultimas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const limit = parseInt(req.query.limit) || 6;
+  
+  const ultimasSql = `
+    SELECT 
+      e.id,
+      l.nombre as local,
+      l.tipo_local as tipo,
+      e.puntuacion as calificacion,
+      e.comentario,
+      DATE_FORMAT(e.fecha, '%d/%m/%Y %H:%i') as fecha
+    FROM evaluaciones e
+    JOIN locales l ON e.local_id = l.id
+    ORDER BY e.fecha DESC
+    LIMIT ?
+  `;
+  
+  db.query(ultimasSql, [limit], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo últimas evaluaciones:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// GET - Comentarios recientes
+router.get('/dashboard/comentarios', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const limit = parseInt(req.query.limit) || 6;
+  
+  const comentariosSql = `
+    SELECT 
+      e.id,
+      l.nombre as local,
+      'Usuario' as usuario,
+      e.puntuacion as calificacion,
+      e.comentario,
+      DATE_FORMAT(e.fecha, '%d/%m/%Y %H:%i') as fecha
+    FROM evaluaciones e
+    JOIN locales l ON e.local_id = l.id
+    WHERE e.comentario IS NOT NULL AND e.comentario != ''
+    ORDER BY e.fecha DESC
+    LIMIT ?
+  `;
+  
+  db.query(comentariosSql, [limit], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo comentarios recientes:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// GET - Calificaciones por tipo de local
+router.get('/dashboard/calificaciones-por-tipo', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const calificacionesSql = `
+    SELECT 
+      l.tipo_local as label,
+      ROUND(AVG(e.puntuacion)) as promedio,
+      COUNT(e.id) as evaluaciones
+    FROM locales l
+    LEFT JOIN evaluaciones e ON l.id = e.local_id
+    GROUP BY l.tipo_local
+    HAVING COUNT(e.id) > 0
+    ORDER BY promedio DESC
+  `;
+  
+  db.query(calificacionesSql, (err, results) => {
+    if (err) {
+      console.error('Error obteniendo calificaciones por tipo:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    // Formatear datos para Chart.js
+    const chartData = {
+      labels: results.map(r => r.label),
+      datasets: [
+        {
+          label: 'Promedio de Calificación',
+          data: results.map(r => parseFloat(r.promedio)),
+          backgroundColor: [
+            '#2dce89', // Verde para Alimentos
+            '#11cdef', // Azul para Misceláneas
+            '#fbb040', // Amarillo para Taxis
+            '#f5365c', // Rojo para Estacionamiento
+          ],
+          borderColor: [
+            '#2dce89',
+            '#11cdef',
+            '#fbb040',
+            '#f5365c',
+          ],
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }
+      ]
+    };
+    
+    res.json(chartData);
+  });
+});
+
+// GET - Evaluaciones por día (últimos 7 días)
+router.get('/dashboard/por-dia', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
+  const dias = parseInt(req.query.dias) || 7;
+  
+  const porDiaSql = `
+    SELECT 
+      DATE(e.fecha) as fecha,
+      COUNT(e.id) as evaluaciones
+    FROM evaluaciones e
+    WHERE e.fecha >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+    GROUP BY DATE(e.fecha)
+    ORDER BY fecha
+  `;
+  
+  db.query(porDiaSql, [dias], (err, results) => {
+    if (err) {
+      console.error('Error obteniendo evaluaciones por día:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    // Formatear datos para Chart.js
+    const chartData = {
+      labels: results.map(r => {
+        const fecha = new Date(r.fecha);
+        return fecha.toLocaleDateString('es-ES', { weekday: 'short' });
+      }),
+      datasets: [
+        {
+          label: 'Evaluaciones',
+          data: results.map(r => parseInt(r.evaluaciones)),
+          fill: true,
+          backgroundColor: "rgba(94, 114, 228, 0.1)",
+          borderColor: "rgba(94, 114, 228, 1)",
+          borderWidth: 2,
+          tension: 0.4,
+        }
+      ]
+    };
+    
+    res.json(chartData);
+  });
+});
+
 module.exports = router; 
