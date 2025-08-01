@@ -30,8 +30,14 @@ const AdminNavbar = () => {
         <Container className="px-4">
           <NavbarBrand to="/" tag={Link}>
             <img
-              alt="..."
-              src={require("../../assets/img/brand/argon-react-white.png")}
+              alt="TAQ - Sistema de Evaluaciones"
+              src={require("../../assets/img/brand/taqrob.png")}
+              style={{ 
+                height: 'clamp(60px, 9vw, 120px)', 
+                width: 'auto', 
+                filter: 'brightness(1.1)',
+                transition: 'all 0.3s ease'
+              }}
             />
           </NavbarBrand>
         </Container>

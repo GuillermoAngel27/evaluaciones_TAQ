@@ -79,6 +79,34 @@ const Dashboard = () => {
   const [timeRange, setTimeRange] = useState("7d");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Estilos CSS personalizados para mejorar la presentación
+  const customStyles = `
+    .local-name-hover {
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .local-name-hover:nth-child(odd) {
+      background-color: #f8f9fa;
+    }
+    
+    .local-name-hover:nth-child(even) {
+      background-color: #ffffff;
+    }
+    
+    .local-name-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background-color: #e3f2fd !important;
+    }
+    
+    .local-name-hover:hover .local-name {
+      color: #1976d2 !important;
+    }
+  `;
+
   // Estados para datos dinámicos
   const [statsData, setStatsData] = useState({
     totalLocales: 0,
@@ -338,6 +366,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <style>{customStyles}</style>
       <div className="header pb-8 pt-5 pt-md-8" style={{ background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' }}>
         <Container fluid>
           <div className="header-body">
@@ -501,10 +530,15 @@ const Dashboard = () => {
                   </div>
                 ) : comentariosRecientesData && comentariosRecientesData.length > 0 ? (
                   comentariosRecientesData.map((comentario) => (
-                    <div key={comentario.id} className="border-bottom pb-3 mb-3">
+                    <div key={comentario.id} className="local-name-hover">
                       <div className="d-flex justify-content-between align-items-start mb-2">
                         <div>
-                          <h6 className="mb-0">{comentario.local}</h6>
+                          <h5 className="mb-0 font-weight-bold text-dark local-name" style={{ 
+                            fontSize: '1.15rem', 
+                            lineHeight: '1.3',
+                            color: '#2d3748',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                          }}>{comentario.local}</h5>
                           <small className="text-muted">por {comentario.usuario}</small>
                         </div>
                         <div className="text-right">
@@ -518,7 +552,7 @@ const Dashboard = () => {
                           <small className="text-muted">{comentario.fecha}</small>
                         </div>
                       </div>
-                      <p className="text-sm mb-0" style={{ lineHeight: '1.4' }}>
+                      <p className="text-sm mb-0 mt-2" style={{ lineHeight: '1.4' }}>
                         "{comentario.comentario}"
                       </p>
                     </div>
@@ -559,7 +593,7 @@ const Dashboard = () => {
                   </div>
                 ) : topLocalesData && topLocalesData.length > 0 ? (
                   topLocalesData.map((local, index) => (
-                    <div key={local.id} className="d-flex align-items-center mb-3">
+                    <div key={local.id} className="d-flex align-items-center local-name-hover">
                       <div className="mr-3">
                         <Badge 
                           color={index === 0 ? "warning" : index === 1 ? "secondary" : index === 2 ? "danger" : "info"}
@@ -570,8 +604,13 @@ const Dashboard = () => {
                         </Badge>
                       </div>
                       <div className="flex-grow-1">
-                        <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="mb-0">{local.nombre}</h6>
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <h5 className="mb-0 font-weight-bold text-dark local-name" style={{ 
+                            fontSize: '1.15rem', 
+                            lineHeight: '1.3',
+                            color: '#2d3748',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                          }}>{local.nombre}</h5>
                           <Badge color="success" className="ml-2">
                             {local.promedio}
                           </Badge>
@@ -606,7 +645,7 @@ const Dashboard = () => {
                   <div className="col">
                     <h3 className="mb-0">
                       <FaClock className="mr-2 text-info" />
-                      Últimas Evaluaciones
+                      Últimas 6 Evaluaciones
                     </h3>
                   </div>
                   <div className="col text-right">
@@ -622,10 +661,15 @@ const Dashboard = () => {
                   </div>
                 ) : ultimasEvaluacionesData && ultimasEvaluacionesData.length > 0 ? (
                   ultimasEvaluacionesData.map((evaluacion) => (
-                    <div key={evaluacion.id} className="border-bottom pb-2 mb-2">
-                      <div className="d-flex justify-content-between align-items-start">
+                    <div key={evaluacion.id} className="local-name-hover">
+                      <div className="d-flex justify-content-between align-items-start mb-1">
                         <div className="flex-grow-1">
-                          <h6 className="mb-1">{evaluacion.local}</h6>
+                          <h5 className="mb-1 font-weight-bold text-dark local-name" style={{ 
+                            fontSize: '1.15rem', 
+                            lineHeight: '1.3',
+                            color: '#2d3748',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                          }}>{evaluacion.local}</h5>
                           <small className="text-muted">
                             {evaluacion.tipo === "alimentos" && <FaUtensils className="mr-1" />}
                             {evaluacion.tipo === "miscelaneas" && <FaShoppingBag className="mr-1" />}

@@ -112,7 +112,7 @@ const Admin = (props) => {
           routes={routes.filter(route => route.layout === "/a")}
           logo={{
             innerLink: "/a/inicio",
-            imgSrc: require("../assets/img/brand/argon-react.png"),
+            imgSrc: require("../assets/img/brand/taqro.png"),
             imgAlt: "...",
           }}
         />
