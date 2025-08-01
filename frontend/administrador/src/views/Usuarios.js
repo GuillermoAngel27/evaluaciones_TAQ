@@ -20,7 +20,7 @@ import {
   Alert,
   Spinner,
 } from "reactstrap";
-import { FaPlus, FaEdit, FaTrash, FaEye, FaKey } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash } from "react-icons/fa";
 import { usuariosAPI } from "../utils/api";
 import { usePermissions } from "../hooks/usePermissions";
 
@@ -156,10 +156,9 @@ const Usuarios = () => {
     rol: "normal",
     activo: true,
   });
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { canManageUsers, canCreateUsers, canEditUsers, canDeleteUsers, canChangeUserPassword } = usePermissions();
+  const { canManageUsers, canCreateUsers, canEditUsers, canDeleteUsers } = usePermissions();
 
   // Cargar usuarios
   const loadUsuarios = async () => {
@@ -204,6 +203,7 @@ const Usuarios = () => {
       rol: "normal",
       activo: true,
     });
+    setShowPassword(false); // Resetear visibilidad de contraseña
     setModalOpen(true);
   };
 
@@ -219,6 +219,7 @@ const Usuarios = () => {
       rol: usuario.rol,
       activo: usuario.activo,
     });
+    setShowPassword(false); // Resetear visibilidad de contraseña
     setModalOpen(true);
   };
 
@@ -234,14 +235,13 @@ const Usuarios = () => {
       rol: usuario.rol,
       activo: usuario.activo,
     });
+    setShowPassword(false); // Resetear visibilidad de contraseña
     setModalOpen(true);
   };
 
-  // Abrir modal para cambiar contraseña
-  const openPasswordModal = (usuario) => {
-    setSelectedUsuario(usuario);
-    setNewPassword("");
-    setPasswordModalOpen(true);
+  // Función para alternar visibilidad de contraseña
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   // Manejar cambios en el formulario
@@ -314,23 +314,7 @@ const Usuarios = () => {
     }
   };
 
-  // Cambiar contraseña
-  const handleChangePassword = async () => {
-    // Validar que la contraseña no esté vacía
-    if (!newPassword || newPassword.trim() === '') {
-      alert("Por favor ingresa una nueva contraseña");
-      return;
-    }
-    
-    try {
-      await usuariosAPI.changePassword(selectedUsuario.id, { newPassword });
-      setPasswordModalOpen(false);
-      setNewPassword("");
-      alert("Contraseña cambiada exitosamente");
-    } catch (err) {
-      alert("Error al cambiar contraseña: " + (err.response?.data?.error || err.message));
-    }
-  };
+
 
   // Formatear fecha
   const formatDate = (dateString) => {
@@ -446,16 +430,7 @@ const Usuarios = () => {
                               </Button>
                             )}
                             
-                            {canChangeUserPassword && (
-                              <Button
-                                color="secondary"
-                                size="sm"
-                                onClick={() => openPasswordModal(usuario)}
-                                title="Cambiar contraseña"
-                              >
-                                <FaKey />
-                              </Button>
-                            )}
+
                             
                             {canDeleteUsers && (
                               <Button
@@ -534,15 +509,37 @@ const Usuarios = () => {
                   <Label for="password">
                     Contraseña {modalMode === "create" ? "*" : ""}
                   </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required={modalMode === "create"}
-                  />
+                  <div className="position-relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      disabled={modalMode === "view"}
+                      required={modalMode === "create"}
+                      style={{ paddingRight: '40px' }}
+                    />
+                    <Button
+                      type="button"
+                      color="link"
+                      className="position-absolute"
+                      style={{
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        padding: '4px 8px',
+                        border: 'none',
+                        background: 'none',
+                        color: '#6c757d',
+                        zIndex: 10
+                      }}
+                      onClick={togglePasswordVisibility}
+                      disabled={modalMode === "view"}
+                    >
+                      {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                    </Button>
+                  </div>
                   {modalMode === "edit" && (
                     <small className="form-text text-muted">
                       Deja vacío para mantener la contraseña actual
@@ -645,62 +642,7 @@ const Usuarios = () => {
         </ModalFooter>
       </Modal>
 
-      {/* Modal para cambiar contraseña */}
-      <Modal isOpen={passwordModalOpen} toggle={() => setPasswordModalOpen(false)}>
-        <ModalHeader className="text-white border-0 position-relative" style={{background: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)'}}>
-          <div className="d-flex align-items-center">
-            <h4 className="mb-0 text-white">Cambiar Contraseña</h4>
-          </div>
-          <button 
-            type="button" 
-            className="btn-close text-white position-absolute" 
-            aria-label="Close"
-            onClick={() => setPasswordModalOpen(false)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              padding: '0',
-              width: '30px',
-              height: '30px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              top: '15px',
-              right: '15px'
-            }}
-          >
-            ×
-          </button>
-        </ModalHeader>
-        <ModalBody>
-          <FormGroup>
-            <Label for="newPassword">Nueva Contraseña *</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-          </FormGroup>
-          {selectedUsuario && (
-            <p className="text-muted">
-              Cambiando contraseña para: <strong>{selectedUsuario.username}</strong>
-            </p>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={() => setPasswordModalOpen(false)}>
-            Cancelar
-          </Button>
-          <Button color="primary" onClick={handleChangePassword}>
-            Cambiar Contraseña
-          </Button>
-        </ModalFooter>
-      </Modal>
+
     </>
   );
 };

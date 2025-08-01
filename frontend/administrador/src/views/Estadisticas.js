@@ -382,7 +382,7 @@ const Estadisticas = () => {
                   {/* Formulario 1: Estadísticas por Local */}
                   <Col lg="12" className="mb-4">
             <Card className="shadow">
-              <CardHeader className="border-0">
+              <CardHeader className="border-0" style={{ background: 'linear-gradient(135deg, rgb(239, 232, 240) 0%, rgb(255, 235, 247) 100%)' }}>
                         <h3 className="mb-0">
                           📋 Estadísticas por Local
                         </h3>
@@ -728,7 +728,7 @@ const Estadisticas = () => {
                   {/* Formulario 2: Análisis por Pregunta */}
                   <Col lg="12" className="mb-4">
             <Card className="shadow">
-              <CardHeader className="border-0">
+              <CardHeader className="border-0" style={{ background: 'linear-gradient(135deg, rgb(239, 232, 240) 0%, rgb(255, 235, 247) 100%)' }}>
                         <h3 className="mb-0">
                           ❓ Análisis por Pregunta
                         </h3>
@@ -883,7 +883,7 @@ const Estadisticas = () => {
                   {/* Formulario 3: Comparación por Tipo */}
                   <Col lg="12" className="mb-4">
                     <Card className="shadow">
-                      <CardHeader className="border-0">
+                      <CardHeader className="border-0" style={{ background: 'linear-gradient(135deg, rgb(239, 232, 240) 0%, rgb(255, 235, 247) 100%)' }}>
                         <h3 className="mb-0">
                           📈 Comparación por Tipo de Local
                         </h3>
