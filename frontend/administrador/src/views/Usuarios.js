@@ -19,13 +19,16 @@ import {
   Input,
   Alert,
   Spinner,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap";
-import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaFilter } from "react-icons/fa";
 import { usuariosAPI } from "../utils/api";
 import { usePermissions } from "../hooks/usePermissions";
 
 const Usuarios = () => {
-  // Estilos CSS personalizados para dropdown y checkbox modernos
+  // Estilos CSS personalizados para dropdowns modernos
   React.useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -38,15 +41,6 @@ const Usuarios = () => {
         background-repeat: no-repeat !important;
         background-size: 16px !important;
         padding-right: 40px !important;
-        border: 2px solid #e9ecef !important;
-        border-radius: 12px !important;
-        padding: 12px 16px !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        color: #495057 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-        transition: all 0.3s ease !important;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
       }
       
       .modern-select:hover {
@@ -59,7 +53,10 @@ const Usuarios = () => {
         border-color: #DC017F !important;
         box-shadow: 0 0 0 3px rgba(220, 1, 127, 0.1) !important;
         outline: none !important;
-        background: white !important;
+      }
+      
+      .custom-select-wrapper {
+        position: relative;
       }
       
       .modern-select option {
@@ -72,6 +69,47 @@ const Usuarios = () => {
       .modern-select option:hover {
         background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
         color: white !important;
+      }
+
+      /* Estilos para botones móviles */
+      .mobile-button {
+        transition: all 0.3s ease !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      }
+
+      .mobile-button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+      }
+
+      .mobile-button:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      }
+
+      /* Responsive para botones en móviles */
+      @media (max-width: 576px) {
+        .mobile-button {
+          min-width: 120px !important;
+          padding: 12px 16px !important;
+          font-size: 13px !important;
+          margin-bottom: 8px !important;
+        }
+        
+        .mobile-button:last-child {
+          margin-bottom: 0 !important;
+        }
+      }
+
+      /* Mejoras para tablets */
+      @media (min-width: 577px) and (max-width: 768px) {
+        .mobile-button {
+          min-width: 130px !important;
+          padding: 11px 18px !important;
+          font-size: 13px !important;
+        }
       }
 
       .modern-checkbox {
@@ -157,6 +195,15 @@ const Usuarios = () => {
     activo: true,
   });
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRol, setFilterRol] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const { canManageUsers, canCreateUsers, canEditUsers, canDeleteUsers } = usePermissions();
 
@@ -178,6 +225,11 @@ const Usuarios = () => {
       loadUsuarios();
     }
   }, [canManageUsers]);
+
+  // Resetear página cuando cambien los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterRol, filterEstado]);
 
   // Verificar permisos después de los hooks
   if (!canManageUsers) {
@@ -208,19 +260,30 @@ const Usuarios = () => {
   };
 
   // Abrir modal para editar usuario
-  const openEditModal = (usuario) => {
-    setModalMode("edit");
-    setSelectedUsuario(usuario);
-    setFormData({
-      username: usuario.username,
-      password: "",
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      rol: usuario.rol,
-      activo: usuario.activo,
-    });
-    setShowPassword(false); // Resetear visibilidad de contraseña
-    setModalOpen(true);
+  const openEditModal = async (usuario) => {
+    try {
+      setModalMode("edit");
+      setSelectedUsuario(usuario);
+      
+      // Obtener información completa del usuario incluyendo contraseña
+      const response = await usuariosAPI.getById(usuario.id);
+      const usuarioCompleto = response.data.usuario;
+      
+      setFormData({
+        username: usuarioCompleto.username,
+        password: "••••••••", // Placeholder para mostrar que existe contraseña
+        nombre: usuarioCompleto.nombre,
+        apellido: usuarioCompleto.apellido,
+        rol: usuarioCompleto.rol,
+        activo: usuarioCompleto.activo,
+        passwordHash: usuarioCompleto.password, // Guardar hash para referencia
+      });
+      setShowPassword(false); // Resetear visibilidad de contraseña
+      setModalOpen(true);
+    } catch (err) {
+      console.error('Error obteniendo información del usuario:', err);
+      alert("Error al cargar información del usuario");
+    }
   };
 
   // Abrir modal para ver usuario
@@ -241,16 +304,35 @@ const Usuarios = () => {
 
   // Función para alternar visibilidad de contraseña
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    if (modalMode === "edit" && formData.password === "••••••••") {
+      // Si está en modo edición y tiene placeholder, mostrar información de la contraseña
+      alert(`🔒 Información de la contraseña:\n\n` +
+            `• El usuario tiene una contraseña configurada\n` +
+            `• Hash de la contraseña: ${formData.passwordHash ? formData.passwordHash.substring(0, 20) + '...' : 'No disponible'}\n` +
+            `• Para cambiar la contraseña, haz clic en el botón ✏️ y luego ingresa la nueva contraseña\n\n` +
+            `⚠️ Por seguridad, no se puede mostrar la contraseña original.`);
+    } else {
+      // Comportamiento normal para otros casos
+      setShowPassword(!showPassword);
+    }
   };
 
   // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    
+    // Si es el campo de contraseña y está en modo edición, limpiar el placeholder
+    if (name === 'password' && modalMode === 'edit' && value !== "••••••••") {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
   };
 
   // Guardar usuario
@@ -289,7 +371,12 @@ const Usuarios = () => {
         await usuariosAPI.create(formData);
         alert("Usuario creado exitosamente");
       } else {
-        const { password, ...updateData } = formData;
+        // Para edición, solo incluir contraseña si se cambió
+        const updateData = { ...formData };
+        if (formData.password === "••••••••" || formData.password.trim() === "") {
+          // No cambiar la contraseña si está vacía o es el placeholder
+          delete updateData.password;
+        }
         await usuariosAPI.update(selectedUsuario.id, updateData);
         alert("Usuario actualizado exitosamente");
       }
@@ -303,13 +390,72 @@ const Usuarios = () => {
 
   // Eliminar usuario
   const handleDelete = async (usuario) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${usuario.username}"?`)) {
+    // Obtener el usuario actual del contexto de autenticación
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Verificar si el usuario intenta eliminarse a sí mismo
+    if (currentUser.id === usuario.id) {
+      alert("❌ No puedes eliminar tu propia cuenta. Contacta a otro administrador si necesitas eliminar tu cuenta.");
+      return;
+    }
+    
+    // Verificar si es el último administrador
+    const administradores = usuarios.filter(u => u.rol === 'administrador' && u.activo);
+    if (usuario.rol === 'administrador' && administradores.length <= 1) {
+      alert("❌ No puedes eliminar el último administrador del sistema.");
+      return;
+    }
+    
+    // Confirmación más detallada
+    const confirmMessage = `¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE al usuario "${usuario.username}"?\n\n` +
+                          `• Nombre: ${usuario.nombre} ${usuario.apellido}\n` +
+                          `• Rol: ${usuario.rol}\n` +
+                          `• Estado: ${usuario.activo ? 'Activo' : 'Inactivo'}\n\n` +
+                          `⚠️ Esta acción ELIMINARÁ el usuario de la base de datos y NO se puede deshacer.`;
+    
+    if (window.confirm(confirmMessage)) {
+      // Mostrar indicador de carga
+      const deleteButton = document.querySelector(`[data-delete-user="${usuario.id}"]`);
+      if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      }
+      
       try {
         await usuariosAPI.delete(usuario.id);
-        alert("Usuario eliminado exitosamente");
+        
+        // Mostrar mensaje de éxito
+        alert(`✅ Usuario "${usuario.username}" eliminado exitosamente`);
+        
+        // Recargar la lista de usuarios
         loadUsuarios();
+        
+        // Resetear la página a la primera si es necesario
+        if (currentUsuarios.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
+        
       } catch (err) {
-        alert("Error al eliminar usuario: " + (err.response?.data?.error || err.message));
+        console.error('Error eliminando usuario:', err);
+        
+        let errorMessage = "Error al eliminar usuario";
+        if (err.response?.status === 403) {
+          errorMessage = "❌ No tienes permisos para eliminar este usuario";
+        } else if (err.response?.status === 404) {
+          errorMessage = "❌ Usuario no encontrado";
+        } else if (err.response?.data?.error) {
+          errorMessage = `❌ ${err.response.data.error}`;
+        } else if (err.message) {
+          errorMessage = `❌ ${err.message}`;
+        }
+        
+        alert(errorMessage);
+        
+        // Restaurar el botón
+        if (deleteButton) {
+          deleteButton.disabled = false;
+          deleteButton.innerHTML = '<FaTrash />';
+        }
       }
     }
   };
@@ -320,6 +466,63 @@ const Usuarios = () => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('es-ES');
   };
+
+  // Función para filtrar usuarios
+  const getFilteredUsuarios = () => {
+    return usuarios.filter(usuario => {
+      // Filtro por búsqueda (nombre, apellido, username)
+      const searchMatch = !searchTerm || 
+        usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        usuario.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        usuario.username.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Filtro por rol
+      const rolMatch = !filterRol || usuario.rol === filterRol;
+      
+      // Filtro por estado
+      const estadoMatch = !filterEstado || 
+        (filterEstado === 'activo' && usuario.activo) ||
+        (filterEstado === 'inactivo' && !usuario.activo);
+      
+      return searchMatch && rolMatch && estadoMatch;
+    });
+  };
+
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterRol("");
+    setFilterEstado("");
+    setCurrentPage(1);
+  };
+
+  // Función para manejar cambio de filtros
+  const handleFilterChange = (filterType, value) => {
+    setCurrentPage(1); // Resetear a la primera página cuando se cambia un filtro
+    
+    switch (filterType) {
+      case 'search':
+        setSearchTerm(value);
+        break;
+      case 'rol':
+        setFilterRol(value);
+        break;
+      case 'estado':
+        setFilterEstado(value);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Obtener usuarios filtrados
+  const filteredUsuarios = getFilteredUsuarios();
+
+  // Lógica de paginación con usuarios filtrados
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsuarios = filteredUsuarios.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsuarios.length / itemsPerPage);
 
   return (
     <>
@@ -358,97 +561,342 @@ const Usuarios = () => {
             </Row>
           </CardHeader>
           <CardBody>
+                {/* Filtros y búsqueda */}
+                <Row className="mb-4 g-3">
+                  {/* Buscar - Ocupa todo el ancho en móviles y tablets verticales */}
+                  <Col xs="12" sm="12" md="12" lg="3" xl="2">
+                    <FormGroup>
+                      <Input
+                        type="text"
+                        placeholder="Buscar por nombre, apellido o username..."
+                        value={searchTerm}
+                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                        className="form-control-alternative"
+                      />
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Rol - Mitad en móviles, lado a lado en tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="2">
+                    <FormGroup>
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterRol}
+                          onChange={(e) => handleFilterChange('rol', e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            👥 Roles
+                          </option>
+                          <option value="administrador" style={{ fontWeight: '500' }}>
+                            👑 Administrador
+                          </option>
+                          <option value="normal" style={{ fontWeight: '500' }}>
+                            👤 Usuario Normal
+                          </option>
+                        </Input>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Estado - Mitad en móviles, lado a lado en tablets */}
+                  <Col xs="6" sm="6" md="6" lg="3" xl="2">
+                    <FormGroup>
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterEstado}
+                          onChange={(e) => handleFilterChange('estado', e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            📊 Estados
+                          </option>
+                          <option value="activo" style={{ fontWeight: '500' }}>
+                            🟢 Activo
+                          </option>
+                          <option value="inactivo" style={{ fontWeight: '500' }}>
+                            🔴 Inactivo
+                          </option>
+                        </Input>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Botón Limpiar - Ancho completo en móviles y tablets */}
+                  <Col xs="12" sm="12" md="12" lg="3" xl="3">
+                    <Button
+                      color="secondary"
+                      onClick={clearFilters}
+                      style={{ 
+                        width: 'auto',
+                        minWidth: '120px',
+                        padding: '12px 20px'
+                      }}
+                    >
+                      <FaFilter className="mr-1" />
+                      Limpiar
+                    </Button>
+                  </Col>
+                </Row>
+
             {loading ? (
               <div className="text-center py-4">
                 <Spinner color="primary" />
                 <p className="mt-2">Cargando usuarios...</p>
               </div>
             ) : (
-              <div className="table-responsive">
-                <Table className="align-items-center table-flush" responsive>
-                  <thead className="thead-light">
-                    <tr>
-                      <th scope="col">Usuario</th>
-                      <th scope="col">Nombre</th>
-                      <th scope="col">Rol</th>
-                      <th scope="col">Estado</th>
-                      <th scope="col">Fecha Creación</th>
-                      <th scope="col">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usuarios.map((usuario) => (
-                      <tr key={usuario.id}>
-                        <td>
-                          <div className="media align-items-center">
-                            <div className="media-body">
-                              <span className="name mb-0 text-sm">
-                                {usuario.username}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          {usuario.nombre} {usuario.apellido}
-                        </td>
-                        <td>
-                          <Badge
-                            color={usuario.rol === 'administrador' ? 'danger' : 'info'}
-                          >
-                            {usuario.rol}
-                          </Badge>
-                        </td>
-                        <td>
-                          <Badge
-                            color={usuario.activo ? 'success' : 'secondary'}
-                          >
-                            {usuario.activo ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </td>
-                        <td>
-                          {formatDate(usuario.fecha_creacion)}
-                        </td>
-                        <td>
-                          <div className="btn-group" role="group">
-                            <Button
-                              color="info"
-                              size="sm"
-                              onClick={() => openViewModal(usuario)}
-                              title="Ver detalles"
-                            >
-                              <FaEye />
-                            </Button>
-                            
-                            {canEditUsers && (
-                              <Button
-                                color="warning"
-                                size="sm"
-                                onClick={() => openEditModal(usuario)}
-                                title="Editar"
-                              >
-                                <FaEdit />
-                              </Button>
-                            )}
-                            
-
-                            
-                            {canDeleteUsers && (
-                              <Button
-                                color="danger"
-                                size="sm"
-                                onClick={() => handleDelete(usuario)}
-                                title="Eliminar"
-                              >
-                                <FaTrash />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
+              <>
+                <div className="table-responsive">
+                  <Table className="align-items-center table-flush" responsive>
+                    <thead className="thead-light">
+                      <tr>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Fecha Creación</th>
+                        <th scope="col">Acciones</th>
                       </tr>
-                    ))}
+                    </thead>
+                    <tbody>
+                      {currentUsuarios.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="text-center py-4">
+                            <p className="text-muted mb-0">
+                              {filteredUsuarios.length === 0 && usuarios.length > 0 ? 
+                                "No se encontraron usuarios que coincidan con los filtros aplicados." :
+                                "No hay usuarios registrados en el sistema."
+                              }
+                            </p>
+                            {filteredUsuarios.length === 0 && usuarios.length > 0 && (
+                              <Button
+                                color="link"
+                                onClick={clearFilters}
+                                className="mt-2"
+                                style={{ fontSize: '14px' }}
+                              >
+                                🔄 Limpiar filtros
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ) : (
+                        currentUsuarios.map((usuario) => (
+                        <tr key={usuario.id}>
+                          <td>
+                            <div className="media align-items-center">
+                              <div className="media-body">
+                                <span className="name mb-0 text-sm">
+                                  {usuario.username}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            {usuario.nombre} {usuario.apellido}
+                          </td>
+                          <td>
+                            <Badge
+                              color={usuario.rol === 'administrador' ? 'danger' : 'info'}
+                            >
+                              {usuario.rol}
+                            </Badge>
+                          </td>
+                          <td>
+                            <Badge
+                              color={usuario.activo ? 'success' : 'secondary'}
+                            >
+                              {usuario.activo ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                          </td>
+                          <td>
+                            {formatDate(usuario.fecha_creacion)}
+                          </td>
+                          <td>
+                            <div className="btn-group" role="group">
+                              <Button
+                                color="info"
+                                size="sm"
+                                onClick={() => openViewModal(usuario)}
+                                title="Ver detalles"
+                              >
+                                <FaEye />
+                              </Button>
+                              
+                              {canEditUsers && (
+                                <Button
+                                  color="warning"
+                                  size="sm"
+                                  onClick={() => openEditModal(usuario)}
+                                  title="Editar"
+                                >
+                                  <FaEdit />
+                                </Button>
+                              )}
+                              
+                              {canDeleteUsers && (
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  onClick={() => handleDelete(usuario)}
+                                  title="Eliminar"
+                                  data-delete-user={usuario.id}
+                                  style={{
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <FaTrash />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
-                </Table>
-              </div>
+                  </Table>
+                </div>
+                
+                {/* Paginación */}
+                {totalPages > 1 && (
+                  <Row className="mt-4">
+                    <Col>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <small className="text-muted">
+                          📄 Página {currentPage} de {totalPages} • Mostrando {currentUsuarios.length} de {filteredUsuarios.length} usuarios
+                          {filteredUsuarios.length !== usuarios.length && (
+                            <span className="ml-1">
+                              (filtrado de {usuarios.length} total)
+                            </span>
+                          )}
+                        </small>
+                        <nav aria-label="Paginación de usuarios">
+                          <ul className="pagination pagination-sm mb-0">
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === 1 ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === 1 ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>«</span>
+                              </button>
+                            </li>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <li key={page} className="page-item">
+                                <button
+                                  className="page-link border-0"
+                                  onClick={() => setCurrentPage(page)}
+                                  style={{
+                                    borderRadius: '8px',
+                                    margin: '0 2px',
+                                    padding: '8px 12px',
+                                    fontSize: '14px',
+                                    fontWeight: page === currentPage ? '600' : '500',
+                                    color: page === currentPage ? 'white' : '#495057',
+                                    backgroundColor: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white',
+                                    border: page === currentPage 
+                                      ? '1px solid #5A0C62' 
+                                      : '1px solid #e9ecef',
+                                    transition: 'all 0.2s ease',
+                                    minWidth: '36px',
+                                    height: '36px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: page === currentPage 
+                                      ? 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)' 
+                                      : 'white'
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            ))}
+                            
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                              <button
+                                className="page-link border-0"
+                                onClick={() => setCurrentPage(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                  borderRadius: '8px',
+                                  margin: '0 2px',
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: currentPage === totalPages ? '#6c757d' : '#495057',
+                                  backgroundColor: currentPage === totalPages ? '#f8f9fa' : 'white',
+                                  border: '1px solid #e9ecef',
+                                  transition: 'all 0.2s ease',
+                                  minWidth: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <span style={{ fontSize: '12px' }}>»</span>
+                              </button>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </Col>
+                  </Row>
+                )}
+              </>
             )}
           </CardBody>
         </Card>
@@ -518,6 +966,7 @@ const Usuarios = () => {
                       onChange={handleInputChange}
                       disabled={modalMode === "view"}
                       required={modalMode === "create"}
+                      placeholder={modalMode === "edit" ? "•••••••• (Contraseña actual)" : "Ingresa la contraseña"}
                       style={{ paddingRight: '40px' }}
                     />
                     <Button
@@ -531,18 +980,53 @@ const Usuarios = () => {
                         padding: '4px 8px',
                         border: 'none',
                         background: 'none',
-                        color: '#6c757d',
+                        color: modalMode === "edit" && formData.password === "••••••••" ? '#007bff' : '#6c757d',
                         zIndex: 10
                       }}
                       onClick={togglePasswordVisibility}
                       disabled={modalMode === "view"}
+                      title={modalMode === "edit" && formData.password === "••••••••" ? "Ver información de la contraseña" : "Mostrar/ocultar contraseña"}
                     >
-                      {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                      {modalMode === "edit" && formData.password === "••••••••" ? 
+                        <span style={{ fontSize: '14px' }}>ℹ️</span> : 
+                        (showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />)
+                      }
                     </Button>
+                    {modalMode === "edit" && formData.password === "••••••••" && (
+                      <Button
+                        type="button"
+                        color="link"
+                        className="position-absolute"
+                        style={{
+                          right: '40px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          padding: '4px 8px',
+                          border: 'none',
+                          background: 'none',
+                          color: '#dc3545',
+                          zIndex: 10,
+                          fontSize: '12px'
+                        }}
+                        onClick={() => setFormData(prev => ({ ...prev, password: "" }))}
+                        title="Limpiar campo de contraseña"
+                      >
+                        ✏️
+                      </Button>
+                    )}
                   </div>
                   {modalMode === "edit" && (
                     <small className="form-text text-muted">
-                      Deja vacío para mantener la contraseña actual
+                      <strong>🔒 Contraseña actual:</strong> El usuario tiene una contraseña configurada. 
+                      {formData.password === "••••••••" ? 
+                        " Haz clic en ℹ️ para ver información de la contraseña, o en ✏️ para cambiarla." :
+                        " Ingresa una nueva contraseña para actualizarla."
+                      }
+                    </small>
+                  )}
+                  {modalMode === "create" && (
+                    <small className="form-text text-muted">
+                      <strong>🔑 Nueva contraseña:</strong> Ingresa una contraseña segura para el nuevo usuario.
                     </small>
                   )}
                 </FormGroup>

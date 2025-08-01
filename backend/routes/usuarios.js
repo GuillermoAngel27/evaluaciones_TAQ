@@ -26,12 +26,14 @@ router.get('/', authenticateToken, requireAdmin, (req, res) => {
   }
 });
 
+
+
 // GET /api/usuarios/:id - Obtener usuario por ID (solo admin)
 router.get('/:id', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { id } = req.params;
     
-    const sql = 'SELECT id, username, nombre, apellido, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?';
+    const sql = 'SELECT id, username, nombre, apellido, rol, activo, fecha_creacion, fecha_actualizacion, password FROM usuarios WHERE id = ?';
     
     db.query(sql, [id], (err, results) => {
       if (err) {
@@ -233,7 +235,7 @@ router.put('/:id/password', authenticateToken, requireAdmin, async (req, res) =>
   }
 });
 
-// DELETE /api/usuarios/:id - Eliminar usuario (solo admin)
+// DELETE /api/usuarios/:id - Eliminar usuario físicamente (solo admin)
 router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { id } = req.params;
@@ -250,20 +252,24 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
       
-      // Eliminar usuario (soft delete - marcar como inactivo)
-      const deleteSql = 'UPDATE usuarios SET activo = 0, fecha_actualizacion = NOW() WHERE id = ?';
+      const usuario = checkResults[0];
+      
+      // Eliminar usuario físicamente
+      const deleteSql = 'DELETE FROM usuarios WHERE id = ?';
       db.query(deleteSql, [id], (deleteErr, deleteResult) => {
         if (deleteErr) {
           console.error('Error eliminando usuario:', deleteErr);
           return res.status(500).json({ error: 'Error interno del servidor' });
         }
         
+        console.log(`Usuario ${usuario.username} (ID: ${id}) eliminado físicamente de la base de datos`);
+        
         res.json({
           success: true,
           message: 'Usuario eliminado exitosamente',
           usuario: {
             id: parseInt(id),
-            username: checkResults[0].username
+            username: usuario.username
           }
         });
       });
@@ -273,5 +279,7 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+
 
 module.exports = router; 
