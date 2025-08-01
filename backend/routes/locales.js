@@ -211,7 +211,7 @@ router.get('/insights-evaluacion', authenticateToken, requireRole(['administrado
   const sqlEstadoGeneral = `
     SELECT 
       AVG(r.puntuacion) as promedio_general,
-      COUNT(*) as total_evaluaciones,
+      COUNT(DISTINCT e.id) as total_evaluaciones,
       SUM(CASE WHEN r.puntuacion >= 4 THEN 1 ELSE 0 END) as satisfechos,
       SUM(CASE WHEN r.puntuacion = 3 THEN 1 ELSE 0 END) as regulares,
       SUM(CASE WHEN r.puntuacion <= 2 THEN 1 ELSE 0 END) as insatisfechos
@@ -262,7 +262,7 @@ router.get('/insights-evaluacion', authenticateToken, requireRole(['administrado
     SELECT 
       l.tipo_local,
       AVG(r.puntuacion) as promedio,
-      COUNT(*) as total_evaluaciones
+      COUNT(DISTINCT e.id) as total_evaluaciones
     FROM respuestas r
     INNER JOIN evaluaciones e ON r.evaluacion_id = e.id
     INNER JOIN locales l ON e.local_id = l.id
