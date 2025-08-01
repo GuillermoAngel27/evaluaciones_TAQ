@@ -278,13 +278,13 @@ const Estadisticas = () => {
           label: `Promedio por Pregunta - ${selectedTipoGrafica}`,
           data: data,
           backgroundColor: data.map(promedio => {
-            if (promedio >= 4) return 'rgba(40, 167, 69, 0.8)'; // Verde para buenos promedios
-            if (promedio >= 3) return 'rgba(255, 193, 7, 0.8)'; // Amarillo para promedios regulares
-            return 'rgba(220, 53, 69, 0.8)'; // Rojo para promedios bajos
+            if (promedio === 5) return 'rgba(40, 167, 69, 0.8)'; // Verde para excelente (5⭐)
+            if (promedio === 4) return 'rgba(255, 193, 7, 0.8)'; // Amarillo para regular (4⭐)
+            return 'rgba(220, 53, 69, 0.8)'; // Rojo para necesita mejora (3-1⭐)
           }),
           borderColor: data.map(promedio => {
-            if (promedio >= 4) return 'rgba(40, 167, 69, 1)';
-            if (promedio >= 3) return 'rgba(255, 193, 7, 1)';
+            if (promedio === 5) return 'rgba(40, 167, 69, 1)';
+            if (promedio === 4) return 'rgba(255, 193, 7, 1)';
             return 'rgba(220, 53, 69, 1)';
           }),
           borderWidth: 2,
@@ -312,7 +312,11 @@ const Estadisticas = () => {
       },
       title: {
         display: true,
-        text: `Promedio por Pregunta - ${selectedTipoGrafica.charAt(0).toUpperCase() + selectedTipoGrafica.slice(1)}`,
+        text: `Promedio de ${selectedTipoGrafica.charAt(0).toUpperCase() + selectedTipoGrafica.slice(1)}: ${
+          datosGrafica && datosGrafica.length > 0 
+            ? Math.round(datosGrafica.reduce((sum, item) => sum + parseFloat(item.promedio), 0) / datosGrafica.length)
+            : 0
+        }⭐`,
         font: {
           size: 18,
           weight: 'bold'
@@ -790,13 +794,7 @@ const Estadisticas = () => {
                     </FormGroup>
                   </Col>
                                   <Col md="6" className="d-flex align-items-end">
-                                    <div className="text-muted">
-                                      <small>
-                                        <strong>Promedio General del Tipo:</strong> {
-                                          insightsData.tendencias.find(t => t.tipoLocal === selectedTipoGrafica)?.promedio || 0
-                                        }⭐
-                                      </small>
-                                    </div>
+                                    {/* Espacio reservado para futuras funcionalidades */}
                                   </Col>
                                 </Row>
                               </Col>
@@ -845,7 +843,7 @@ const Estadisticas = () => {
                                         marginRight: '8px'
                                       }}
                                     ></div>
-                                    <small className="text-success font-weight-bold">Excelente (4-5⭐)</small>
+                                    <small className="text-success font-weight-bold">Excelente (5⭐)</small>
                                   </div>
                                   <div className="d-flex align-items-center mr-4">
                                     <div 
@@ -857,7 +855,7 @@ const Estadisticas = () => {
                                         marginRight: '8px'
                                       }}
                                     ></div>
-                                    <small className="text-warning font-weight-bold">Regular (3⭐)</small>
+                                    <small className="text-warning font-weight-bold">Regular (4⭐)</small>
                                   </div>
                                   <div className="d-flex align-items-center">
                                     <div 
@@ -869,7 +867,7 @@ const Estadisticas = () => {
                                         marginRight: '8px'
                                       }}
                                     ></div>
-                                    <small className="text-danger font-weight-bold">Necesita Mejora (1-2⭐)</small>
+                                    <small className="text-danger font-weight-bold">Necesita Mejora (3-1⭐)</small>
                                   </div>
                                 </div>
                               </Col>
@@ -937,8 +935,8 @@ const Estadisticas = () => {
                               <td>
                                           <span 
                                             className={`font-weight-bold ${
-                                              parseFloat(tendencia.promedio) >= 4 ? 'text-success' :
-                                              parseFloat(tendencia.promedio) >= 3 ? 'text-warning' : 'text-danger'
+                                              parseFloat(tendencia.promedio) === 5 ? 'text-success' :
+                                              parseFloat(tendencia.promedio) === 4 ? 'text-warning' : 'text-danger'
                                             }`}
                                           >
                                             {tendencia.promedio}⭐
@@ -948,12 +946,12 @@ const Estadisticas = () => {
                                         <td>
                                           <Badge 
                                             color={
-                                              parseFloat(tendencia.promedio) >= 4 ? 'success' :
-                                              parseFloat(tendencia.promedio) >= 3 ? 'warning' : 'danger'
+                                              parseFloat(tendencia.promedio) === 5 ? 'success' :
+                                              parseFloat(tendencia.promedio) === 4 ? 'warning' : 'danger'
                                             }
                                           >
-                                            {parseFloat(tendencia.promedio) >= 4 ? 'Excelente' :
-                                             parseFloat(tendencia.promedio) >= 3 ? 'Regular' : 'Necesita Mejora'}
+                                            {parseFloat(tendencia.promedio) === 5 ? 'Excelente' :
+                                             parseFloat(tendencia.promedio) === 4 ? 'Regular' : 'Necesita Mejora'}
                                           </Badge>
                               </td>
                             </tr>
