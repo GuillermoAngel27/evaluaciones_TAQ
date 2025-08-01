@@ -275,7 +275,7 @@ const Estadisticas = () => {
       labels: labels,
       datasets: [
         {
-          label: `Promedio por Pregunta - ${selectedTipoGrafica}`,
+          label: '',
           data: data,
           backgroundColor: data.map(promedio => {
             if (promedio === 5) return 'rgba(40, 167, 69, 0.8)'; // Verde para excelente (5⭐)
@@ -301,14 +301,7 @@ const Estadisticas = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
-        labels: {
-          font: {
-            size: 14,
-            weight: 'bold'
-          },
-          color: '#495057'
-        }
+        display: false
       },
       title: {
         display: true,
@@ -414,10 +407,11 @@ const Estadisticas = () => {
 
                         {!loadingLocales && !errorLocales && (
                           <>
-                {/* Filtros */}
-                <Row className="mb-4 g-2">
-                  <Col xs="12" sm="6" md="5" lg="5" xl="5">
-                    <FormGroup className="mb-0">
+                {/* Filtros y búsqueda */}
+                <Row className="mb-4 g-3">
+                  {/* Buscar - Ancho completo en móviles, mitad en tablets */}
+                  <Col xs="12" sm="12" md="6" lg="3" xl="2">
+                    <FormGroup>
                       <Input
                         type="text"
                         placeholder="Buscar por nombre de local..."
@@ -439,45 +433,66 @@ const Estadisticas = () => {
                     </FormGroup>
                   </Col>
                   
-                  <Col xs="6" sm="3" md="3" lg="3" xl="3">
-                    <FormGroup className="mb-0">
-                      <Input
-                        type="select"
-                        value={filterTipo}
-                        onChange={(e) => setFilterTipo(e.target.value)}
-                        className="form-control-alternative"
-                        style={{
-                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                          border: '2px solid #e9ecef',
+                  {/* Tipo - Ancho completo en móviles, mitad en tablets */}
+                  <Col xs="12" sm="12" md="6" lg="3" xl="2">
+                    <FormGroup>
+                      <div className="custom-select-wrapper">
+                        <Input
+                          type="select"
+                          value={filterTipo}
+                          onChange={(e) => setFilterTipo(e.target.value)}
+                          className="form-control-alternative modern-select"
+                          style={{
+                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#495057',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="all" style={{ fontWeight: '600', color: '#6c757d' }}>
+                            🏢 Tipos
+                          </option>
+                          <option value="alimentos" style={{ fontWeight: '500' }}>
+                            🍽️ Alimentos
+                          </option>
+                          <option value="miscelaneas" style={{ fontWeight: '500' }}>
+                            🛒 Misceláneas
+                          </option>
+                          <option value="taxis" style={{ fontWeight: '500' }}>
+                            🚕 Taxis
+                          </option>
+                          <option value="estacionamiento" style={{ fontWeight: '500' }}>
+                            🅿️ Estacionamiento
+                          </option>
+                        </Input>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                  
+                  {/* Botón Limpiar - Ancho completo en móviles, mitad en tablets */}
+                  <Col xs="12" sm="6" md="6" lg="3" xl="3">
+                    <FormGroup>
+                      <Button
+                        color="secondary"
+                        onClick={handleClearFilters}
+                        className="w-100"
+                        style={{ 
                           borderRadius: '12px',
                           padding: '12px 16px',
                           fontSize: '14px',
                           fontWeight: '500',
-                          color: '#495057',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                         <option value="all">🏢 Todos los Tipos</option>
-                         <option value="alimentos">🍽️ Alimentos</option>
-                         <option value="miscelaneas">🛍️ Misceláneas</option>
-                         <option value="taxis">🚗 Taxis</option>
-                         <option value="estacionamiento">🅿️ Estacionamiento</option>
-                      </Input>
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col xs="6" sm="3" md="2" lg="2" xl="2">
-                    <FormGroup className="mb-0">
-                      <Button
-                        color="secondary"
-                         onClick={handleClearFilters}
-                        style={{ 
-                          width: '100%',
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          fontWeight: '500'
+                          background: '#f7fafc',
+                          border: 'none',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          transition: 'all 0.3s ease',
+                          color: '#495057'
                         }}
                       >
                         <FaFilter className="mr-1" />
@@ -486,10 +501,22 @@ const Estadisticas = () => {
                     </FormGroup>
                   </Col>
                   
-                  <Col xs="12" sm="12" md="2" lg="2" xl="2">
-                    <FormGroup className="mb-0">
-                      <div className="d-flex justify-content-end">
-                        <Badge color="info" className="px-3 py-2">
+                  {/* Información de resultados - Ancho completo en móviles, mitad en tablets */}
+                  <Col xs="12" sm="6" md="6" lg="3" xl="3">
+                    <FormGroup>
+                      <div className="d-flex justify-content-center justify-content-sm-end">
+                        <Badge 
+                          color="info" 
+                          className="px-3 py-2"
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
+                            border: 'none',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}
+                        >
                           {filteredLocales.length} locales
                         </Badge>
                       </div>
