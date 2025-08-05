@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
 const localesRoutes = require('./routes/locales');
 const evaluacionesRoutes = require('./routes/evaluaciones');
 const tokensRoutes = require('./routes/tokens');
@@ -39,6 +40,52 @@ const db = mysql.createConnection({
   port: process.env.DB_PORT || 3306
 });
 
+// Función para crear usuario admin si no existe
+const createAdminUser = async () => {
+  try {
+    // Verificar si el usuario admin ya existe
+    const checkSql = 'SELECT id FROM usuarios WHERE username = ?';
+    db.query(checkSql, ['admin'], (err, results) => {
+      if (err) {
+        console.error('❌ Error verificando usuario admin:', err.message);
+        return;
+      }
+
+      if (results.length > 0) {
+        console.log('✅ Usuario admin ya existe, no se necesita crear');
+        return;
+      }
+
+      // Si no existe, crear el usuario admin
+      const hashedPassword = bcrypt.hashSync('admin2025', 10);
+      const insertSql = `
+        INSERT INTO usuarios (username, password, nombre, apellido, rol, activo) 
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      
+      db.query(insertSql, [
+        'admin',
+        hashedPassword,
+        'Administrador',
+        'Sistema',
+        'administrador',
+        1
+      ], (insertErr, insertResults) => {
+        if (insertErr) {
+          console.error('❌ Error creando usuario admin:', insertErr.message);
+        } else {
+          console.log('✅ Usuario admin creado exitosamente');
+          console.log('   Username: admin');
+          console.log('   Password: admin2025');
+          console.log('   Rol: administrador');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('❌ Error en createAdminUser:', error.message);
+  }
+};
+
 // Manejar errores de conexión
 db.connect((err) => {
   if (err) {
@@ -50,6 +97,8 @@ db.connect((err) => {
     process.exit(1);
   } else {
     console.log('✅ Conectado a MySQL exitosamente');
+    // Crear usuario admin después de conectar exitosamente
+    createAdminUser();
   }
 });
 
