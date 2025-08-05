@@ -406,16 +406,16 @@ router.get('/dashboard/calificaciones-por-tipo', authenticateToken, requireRole(
           label: 'Promedio de Calificación',
           data: results.map(r => parseFloat(r.promedio)),
           backgroundColor: [
-            '#2dce89', // Verde para Alimentos
-            '#11cdef', // Azul para Misceláneas
-            '#fbb040', // Amarillo para Taxis
-            '#f5365c', // Rojo para Estacionamiento
+            '#16697A', // Azul oscuro para Alimentos
+            '#489FB5', // Azul medio para Misceláneas
+            '#82C0CC', // Azul claro para Taxis
+            '#EDE7E3', // Gris claro para Estacionamiento
           ],
           borderColor: [
-            '#2dce89',
-            '#11cdef',
-            '#fbb040',
-            '#f5365c',
+            '#16697A',
+            '#489FB5',
+            '#82C0CC',
+            '#EDE7E3',
           ],
           borderWidth: 2,
           borderRadius: 8,

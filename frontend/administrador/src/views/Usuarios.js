@@ -37,23 +37,48 @@ const Usuarios = () => {
         appearance: none !important;
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
-        background-position: right 12px center !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e") !important;
+        background-position: right 16px center !important;
         background-repeat: no-repeat !important;
-        background-size: 16px !important;
-        padding-right: 40px !important;
+        background-size: 20px !important;
+        padding: 14px 20px !important;
+        padding-right: 50px !important;
+        border: 2px solid #e9ecef !important;
+        border-radius: 12px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #495057 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+        cursor: pointer !important;
+        min-height: 50px !important;
+        /* Ocultar flecha nativa en diferentes navegadores */
+        text-indent: 0.01px !important;
+        text-overflow: '' !important;
+        -ms-expand: none !important;
       }
       
       .modern-select:hover {
-        border-color: #5A0C62 !important;
-        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.15) !important;
-        transform: translateY(-1px) !important;
+        border-color: #7e3866 !important;
+        background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%) !important;
+        box-shadow: 0 4px 16px rgba(126, 56, 102, 0.15) !important;
+        transform: translateY(-2px) !important;
       }
       
       .modern-select:focus {
-        border-color: #DC017F !important;
-        box-shadow: 0 0 0 3px rgba(220, 1, 127, 0.1) !important;
+        border-color: #7e3866 !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+        box-shadow: 0 0 0 4px rgba(126, 56, 102, 0.1) !important;
         outline: none !important;
+        transform: translateY(-1px) !important;
+      }
+
+      .modern-select:disabled {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+        color: #6c757d !important;
+        cursor: not-allowed !important;
+        opacity: 0.7 !important;
       }
       
       .custom-select-wrapper {
@@ -61,15 +86,30 @@ const Usuarios = () => {
       }
       
       .modern-select option {
-        padding: 12px 16px !important;
+        padding: 16px 20px !important;
         font-weight: 500 !important;
+        font-size: 14px !important;
         background: white !important;
         color: #495057 !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
       }
       
       .modern-select option:hover {
-        background: linear-gradient(135deg, #5A0C62 0%, #DC017F 100%) !important;
+        background: linear-gradient(135deg, #7e3866 0%, #b18da5 100%) !important;
         color: white !important;
+        transform: translateX(4px) !important;
+      }
+
+      .modern-select option:checked {
+        background: linear-gradient(135deg, #7e3866 0%, #b18da5 100%) !important;
+        color: white !important;
+        font-weight: 600 !important;
+      }
+
+      /* Estilos para el contenedor del select */
+      .modern-select-container {
+        position: relative !important;
       }
 
       /* Estilos para botones móviles */
@@ -208,6 +248,27 @@ const Usuarios = () => {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
         background: #5a6268 !important;
+      }
+
+      /* Estilos forzados para badges de rol */
+      .badge-rol-administrador {
+        background-color: #7e3866 !important;
+        color: white !important;
+        border: none !important;
+        padding: 6px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+
+      .badge-rol-normal {
+        background-color: #b18da5 !important;
+        color: white !important;
+        border: none !important;
+        padding: 6px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
       }
     `;
     document.head.appendChild(style);
@@ -863,7 +924,7 @@ const Usuarios = () => {
                           </td>
                           <td>
                             <Badge
-                              color={usuario.rol === 'administrador' ? 'danger' : 'info'}
+                              className={`${usuario.rol === 'administrador' ? 'badge-rol-administrador' : 'badge-rol-normal'}`}
                             >
                               {usuario.rol}
                             </Badge>
@@ -1204,19 +1265,21 @@ const Usuarios = () => {
                               <Col md="6">
                   <FormGroup>
                     <Label for="rol" className="modern-label">Rol *</Label>
-                    <Input
-                      id="rol"
-                      name="rol"
-                      type="select"
-                      value={formData.rol}
-                      onChange={handleInputChange}
-                      disabled={modalMode === "view"}
-                      required
-                      className="modern-select"
-                    >
-                      <option value="normal">Usuario Normal</option>
-                      <option value="administrador">Administrador</option>
-                    </Input>
+                    <div className="modern-select-container">
+                      <Input
+                        id="rol"
+                        name="rol"
+                        type="select"
+                        value={formData.rol}
+                        onChange={handleInputChange}
+                        disabled={modalMode === "view"}
+                        required
+                        className="modern-select"
+                      >
+                        <option value="normal">👤 Usuario Normal</option>
+                        <option value="administrador">👑 Administrador</option>
+                      </Input>
+                    </div>
                   </FormGroup>
                 </Col>
                               <Col md="6">

@@ -170,6 +170,86 @@ const Locales = () => {
         box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
         background: #5a6268 !important;
       }
+
+      /* Estilos forzados para badges de tipo de local */
+      .badge-tipo-alimentos {
+        background-color: #F5D5E0 !important;
+        color: #333333 !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+
+      .badge-tipo-miscelaneas {
+        background-color: #6667AB !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+
+      .badge-tipo-taxis {
+        background-color: #7B337E !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+
+      .badge-tipo-estacionamiento {
+        background-color: #420D4B !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+
+      /* Estilos para botones de acciones */
+      .btn-action-edit {
+        background-color: #7e3866 !important;
+        border-color: #7e3866 !important;
+        color: white !important;
+        transition: all 0.3s ease !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 2px 8px rgba(126, 56, 102, 0.2) !important;
+      }
+
+      .btn-action-edit:hover {
+        background-color: #6a2f55 !important;
+        border-color: #6a2f55 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(126, 56, 102, 0.3) !important;
+      }
+
+      .btn-action-view {
+        background-color: #7e3866 !important;
+        border-color: #7e3866 !important;
+        color: white !important;
+        transition: all 0.3s ease !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 2px 8px rgba(126, 56, 102, 0.2) !important;
+      }
+
+      .btn-action-view:hover {
+        background-color: #6a2f55 !important;
+        border-color: #6a2f55 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(126, 56, 102, 0.3) !important;
+      }
     `;
     document.head.appendChild(style);
     
@@ -867,7 +947,16 @@ const Locales = () => {
                               </div>
                             </th>
                             <td>
-                              <Badge color="info" style={{ fontSize: '10px', padding: '8px 12px' }}>{getTipoDisplay(local.tipo_local)}</Badge>
+                              <Badge
+                                className={`${
+                                  local.tipo_local === 'alimentos' ? 'badge-tipo-alimentos' :
+                                  local.tipo_local === 'miscelaneas' ? 'badge-tipo-miscelaneas' :
+                                  local.tipo_local === 'taxis' ? 'badge-tipo-taxis' :
+                                  local.tipo_local === 'estacionamiento' ? 'badge-tipo-estacionamiento' : ''
+                                }`}
+                              >
+                                {getTipoDisplay(local.tipo_local)}
+                              </Badge>
                             </td>
                             <td>
                               <Badge 
@@ -882,7 +971,7 @@ const Locales = () => {
                                 {canEditLocales ? (
                                   <>
                                     <Button
-                                      color="success"
+                                      className="btn-action-edit"
                                       size="sm"
                                       onClick={() => handleEdit(local)}
                                       id={`edit-${local.id}`}
@@ -896,7 +985,7 @@ const Locales = () => {
                                 ) : (
                                   <>
                                     <Button
-                                      color="info"
+                                      className="btn-action-view"
                                       size="sm"
                                       onClick={() => handleView(local)}
                                       id={`view-${local.id}`}

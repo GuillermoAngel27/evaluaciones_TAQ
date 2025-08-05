@@ -63,6 +63,55 @@ const styles = {
 };
 
 const Estadisticas = () => {
+  // Estilos CSS personalizados para badges de tipo
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Estilos forzados para badges de tipo de local en estadísticas */
+      .badge-tipo-alimentos {
+        background-color: #F5D5E0 !important;
+        color: #333333 !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+      .badge-tipo-miscelaneas {
+        background-color: #6667AB !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+      .badge-tipo-taxis {
+        background-color: #7B337E !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+      .badge-tipo-estacionamiento {
+        background-color: #420D4B !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   // Estados para el dashboard unificado
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("all");
@@ -209,15 +258,15 @@ const Estadisticas = () => {
   const getTipoColor = (tipo) => {
     switch (tipo) {
       case "alimentos":
-        return "success";
+        return "badge-tipo-alimentos";
       case "miscelaneas":
-        return "info";
+        return "badge-tipo-miscelaneas";
       case "taxis":
-        return "warning";
+        return "badge-tipo-taxis";
       case "estacionamiento":
-        return "secondary";
+        return "badge-tipo-estacionamiento";
       default:
-        return "primary";
+        return "badge-tipo-miscelaneas";
     }
   };
 
@@ -555,7 +604,7 @@ const Estadisticas = () => {
                             </div>
                           </th>
                           <td>
-                                          <Badge color={getTipoColor(normalizarTipoLocal(local.tipo))}>
+                                          <Badge className={getTipoColor(normalizarTipoLocal(local.tipo))}>
                                             {normalizarTipoLocal(local.tipo)}
                             </Badge>
                           </td>
