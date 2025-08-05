@@ -47,6 +47,7 @@ import {
 import { localesAPI } from "../utils/api";
 import { generateLocalQRPDF, generateBulkQRPDF } from "../utils/pdfGenerator";
 import { usePermissions } from "../hooks/usePermissions";
+import Swal from 'sweetalert2';
 
 const Locales = () => {
   const { canCreateLocales, canEditLocales, canDeleteLocales, canGenerateTokens } = usePermissions();
@@ -134,6 +135,41 @@ const Locales = () => {
           font-size: 13px !important;
         }
       }
+
+      /* Estilos personalizados para botones de SweetAlert */
+      .swal2-confirm-custom {
+        background: linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.3) !important;
+      }
+
+      .swal2-confirm-custom:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(90, 12, 98, 0.4) !important;
+        background: linear-gradient(135deg, rgb(100, 12, 108) 0%, rgb(230, 1, 137) 100%) !important;
+      }
+
+      .swal2-cancel-custom {
+        background: #6c757d !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+      }
+
+      .swal2-cancel-custom:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+        background: #5a6268 !important;
+      }
     `;
     document.head.appendChild(style);
     
@@ -159,8 +195,6 @@ const Locales = () => {
   // Estados para el manejo de datos del backend
   const [locales, setLocales] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -168,6 +202,8 @@ const Locales = () => {
     tipo_local: "miscelaneas",
     estatus: "Activo",
   });
+  
+  const [nombreError, setNombreError] = useState(false);
 
   const tiposLocales = ["miscelaneas", "alimentos", "taxis", "estacionamiento"];
   const estadosLocales = ["Activo", "Inactivo"];
@@ -180,12 +216,18 @@ const Locales = () => {
   const loadLocales = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await localesAPI.getAll();
       setLocales(response.data);
     } catch (err) {
       console.error('Error cargando locales:', err);
-      setError('Error al cargar los locales. Verifica la conexión con el servidor.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar los locales',
+        text: 'Verifica la conexión con el servidor e intenta nuevamente.',
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     } finally {
       setLoading(false);
     }
@@ -216,6 +258,7 @@ const Locales = () => {
       estatus: "Activo",
     });
     setSelectedLocal(null);
+    setNombreError(false);
     toggleModal();
   };
 
@@ -227,6 +270,7 @@ const Locales = () => {
       tipo_local: local.tipo_local,
       estatus: local.estatus,
     });
+    setNombreError(false);
     toggleModal();
   };
 
@@ -238,26 +282,87 @@ const Locales = () => {
       tipo_local: local.tipo_local,
       estatus: local.estatus,
     });
+    setNombreError(false);
     toggleModal();
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este local?")) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: '¿Eliminar local?',
+      text: '¿Estás seguro de que quieres eliminar este local? Esta acción no se puede deshacer.',
+      showCancelButton: true,
+      confirmButtonColor: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'swal2-confirm-custom',
+        cancelButton: 'swal2-cancel-custom'
+      }
+    });
+
+    if (result.isConfirmed) {
       try {
         await localesAPI.delete(id);
-        setSuccessMessage('Local eliminado exitosamente');
+        Swal.fire({
+          icon: 'success',
+          title: 'Local eliminado exitosamente',
+          text: 'El local ha sido eliminado correctamente',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         loadLocales(); // Recargar datos
-        setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err) {
         console.error('Error eliminando local:', err);
-        setError('Error al eliminar el local');
-        setTimeout(() => setError(null), 3000);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al eliminar el local',
+          text: 'No se pudo eliminar el local. Intenta nuevamente.',
+          timer: 4000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validación del campo nombre
+    if (!formData.nombre || formData.nombre.trim() === '') {
+      setNombreError(true);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campo requerido',
+        text: 'El nombre del local es obligatorio. Por favor, ingresa un nombre válido.',
+        confirmButtonColor: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          confirmButton: 'swal2-confirm-custom'
+        }
+      });
+      return;
+    }
+    
+    // Validación de longitud mínima
+    if (formData.nombre.trim().length < 3) {
+      setNombreError(true);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Nombre muy corto',
+        text: 'El nombre del local debe tener al menos 3 caracteres.',
+        confirmButtonColor: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          confirmButton: 'swal2-confirm-custom'
+        }
+      });
+      return;
+    }
+    
     setSubmitting(true);
     
     try {
@@ -269,34 +374,60 @@ const Locales = () => {
         console.log('Creando nuevo local...');
         const response = await localesAPI.create(formData);
         console.log('Respuesta de creación:', response);
-        setSuccessMessage('Local creado exitosamente');
+        Swal.fire({
+          icon: 'success',
+          title: 'Local creado exitosamente',
+          text: 'El local ha sido creado correctamente',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       } else if (modalMode === "edit") {
         console.log('Actualizando local con ID:', selectedLocal.id);
         const response = await localesAPI.update(selectedLocal.id, formData);
         console.log('Respuesta de actualización:', response);
-        setSuccessMessage('Local actualizado exitosamente');
+        Swal.fire({
+          icon: 'success',
+          title: 'Local actualizado exitosamente',
+          text: 'Los cambios han sido guardados correctamente',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       }
       
       loadLocales(); // Recargar datos
       toggleModal();
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error guardando local:', err);
       console.error('Error response:', err.response);
       console.error('Error status:', err.response?.status);
       console.error('Error data:', err.response?.data);
-      setError(err.response?.data?.error || 'Error al guardar el local');
-      setTimeout(() => setError(null), 3000);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar el local',
+        text: err.response?.data?.error || 'Error al guardar el local. Intenta nuevamente.',
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    
+    // Limpiar error cuando el usuario empiece a escribir
+    if (name === 'nombre' && nombreError) {
+      setNombreError(false);
+    }
   };
 
   // Funciones para el modal de QR
@@ -327,20 +458,34 @@ const Locales = () => {
         console.log('Generando QR para:', selectedLocalForQr.nombre);
         
         // Mostrar mensaje de carga
-        setSuccessMessage('Generando PDF con QR...');
+        Swal.fire({
+          icon: 'info',
+          title: 'Generando PDF con QR...',
+          text: 'Por favor espera mientras se genera el archivo',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
         
         // Generar PDF
         const fileName = await generateLocalQRPDF(selectedLocalForQr.nombre, selectedLocalForQr.token_publico);
         
-        setSuccessMessage(`PDF generado exitosamente: ${fileName}`);
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF generado exitosamente',
+          text: `QR generado para: ${selectedLocalForQr.nombre}`,
+          timer: 4000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         
         // Limpiar el dropdown y campo de búsqueda
         setSelectedLocalForQr(null);
         setQrSearchTerm("");
         setShowQrDropdown(false);
-        
-        // Ocultar mensaje después de 3 segundos
-        setTimeout(() => setSuccessMessage(null), 3000);
         
         // No cerrar el modal, permitir generar más QR
       } else if (type === 'all') {
@@ -349,28 +494,48 @@ const Locales = () => {
         console.log('Generando QR para todos los locales activos:', activeLocales.length);
         
         // Mostrar mensaje de carga
-        setSuccessMessage(`Generando PDF masivo para ${activeLocales.length} locales...`);
+        Swal.fire({
+          icon: 'info',
+          title: 'Generando PDF masivo...',
+          text: `Procesando ${activeLocales.length} locales activos`,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
         
         // Generar PDF masivo
         const fileName = await generateBulkQRPDF(activeLocales);
         
-        setSuccessMessage(`PDF masivo generado exitosamente: ${fileName}`);
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF masivo generado exitosamente',
+          text: `QR generados para ${activeLocales.length} locales activos`,
+          timer: 4000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         
         // Limpiar el dropdown y campo de búsqueda
         setSelectedLocalForQr(null);
         setQrSearchTerm("");
         setShowQrDropdown(false);
         
-        // Ocultar mensaje después de 3 segundos
-        setTimeout(() => setSuccessMessage(null), 3000);
-        
         // Cerrar el modal solo para QR masivo
         toggleQrModal();
       }
     } catch (error) {
       console.error('Error generando PDF:', error);
-      setError('Error al generar el PDF. Intenta nuevamente.');
-      setTimeout(() => setError(null), 3000);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al generar el PDF',
+        text: 'No se pudo generar el archivo. Intenta nuevamente.',
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -443,26 +608,7 @@ const Locales = () => {
     }
   };
 
-  // Mostrar mensajes de error o éxito
-  const showAlert = () => {
-    if (error) {
-      return (
-        <Alert color="danger" className="mb-4">
-          <FaExclamationTriangle className="mr-2" />
-          {error}
-        </Alert>
-      );
-    }
-    if (successMessage) {
-      return (
-        <Alert color="success" className="mb-4">
-          <FaCheckCircle className="mr-2" />
-          {successMessage}
-        </Alert>
-      );
-    }
-    return null;
-  };
+
 
   // Mostrar loading
   if (loading) {
@@ -510,7 +656,6 @@ const Locales = () => {
       </div>
 
       <Container className="mt--8" fluid>
-        {showAlert()}
         
         <Row>
           <Col>
@@ -972,7 +1117,18 @@ const Locales = () => {
                     onChange={handleInputChange}
                     disabled={modalMode === "view"}
                     required
+                    invalid={nombreError}
+                    style={{
+                      borderColor: nombreError ? '#dc3545' : '#e9ecef',
+                      boxShadow: nombreError ? '0 0 0 0.2rem rgba(220, 53, 69, 0.25)' : '0 2px 8px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
+                    }}
                   />
+                  {nombreError && (
+                    <div className="invalid-feedback d-block">
+                      El nombre del local es obligatorio y debe tener al menos 3 caracteres.
+                    </div>
+                  )}
                 </FormGroup>
               </Col>
             </Row>

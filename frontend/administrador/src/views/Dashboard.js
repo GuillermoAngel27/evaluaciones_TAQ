@@ -335,8 +335,8 @@ const Dashboard = () => {
   };
 
   // Componente de tarjeta de estadística
-  const StatCard = ({ title, value, icon, color, subtitle, trend }) => (
-    <Card className="card-stats mb-4 mb-xl-0">
+  const StatCard = ({ title, value, icon, color }) => (
+    <Card className="card-stats mb-4 mb-xl-0" style={{ minHeight: '120px' }}>
       <CardBody>
         <Row>
           <div className="col">
@@ -344,18 +344,9 @@ const Dashboard = () => {
               {title}
             </h5>
             <span className="h2 font-weight-bold mb-0">{value}</span>
-            {subtitle && (
-              <p className="mt-3 mb-0 text-muted text-sm">
-                <span className={trend === "up" ? "text-success mr-2" : "text-danger mr-2"}>
-                  <i className={trend === "up" ? "fas fa-arrow-up" : "fas fa-arrow-down"}></i>
-                  {subtitle}
-                </span>
-                <span className="text-nowrap">Desde el mes pasado</span>
-              </p>
-            )}
           </div>
           <Col className="col-auto">
-            <div className="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
+            <div className={`icon icon-shape ${color} text-white rounded-circle shadow`}>
               {icon}
             </div>
           </Col>
@@ -392,41 +383,33 @@ const Dashboard = () => {
               <Col lg="6" xl="3">
                 <StatCard
                   title="Total Locales"
-                  value={loading ? '...' : (statsData.totalLocales || statsDataFallback.totalLocales)}
+                  value={loading ? '...' : (statsData.totalLocales ?? statsDataFallback.totalLocales)}
                   icon={<FaStore />}
                   color="bg-gradient-red"
-                  subtitle={loading ? '' : "+12%"}
-                  trend="up"
                 />
               </Col>
               <Col lg="6" xl="3">
                 <StatCard
                   title="Evaluaciones Hoy"
-                  value={loading ? '...' : (statsData.evaluacionesHoy || statsDataFallback.evaluacionesHoy)}
+                  value={loading ? '...' : (statsData.evaluacionesHoy ?? statsDataFallback.evaluacionesHoy)}
                   icon={<FaStar />}
                   color="bg-gradient-orange"
-                  subtitle={loading ? '' : "+8%"}
-                  trend="up"
                 />
               </Col>
               <Col lg="6" xl="3">
                 <StatCard
                   title="Promedio Calificación"
-                  value={loading ? '...' : Math.round(parseFloat(statsData.promedioCalificacion) || parseFloat(statsDataFallback.promedioCalificacion) || 0)}
+                  value={loading ? '...' : Math.round(parseFloat(statsData.promedioCalificacion ?? statsDataFallback.promedioCalificacion) || 0)}
                   icon={<FaChartLine />}
                   color="bg-gradient-green"
-                  subtitle={loading ? '' : "+0.3"}
-                  trend="up"
                 />
               </Col>
               <Col lg="6" xl="3">
                 <StatCard
                   title="Total Evaluaciones"
-                  value={loading ? '...' : (statsData.totalEvaluaciones || statsDataFallback.totalEvaluaciones)}
+                  value={loading ? '...' : (statsData.totalEvaluaciones ?? statsDataFallback.totalEvaluaciones)}
                   icon={<FaUsers />}
                   color="bg-gradient-info"
-                  subtitle={loading ? '' : "+15%"}
-                  trend="up"
                 />
               </Col>
             </Row>
@@ -445,7 +428,7 @@ const Dashboard = () => {
 
         {/* Gráfica principal - Calificaciones por Tipo de Local */}
         <Row className="mt-4">
-          <Col lg="8">
+          <Col xs="12" lg="8" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
                 <Row className="align-items-center">
@@ -456,7 +439,7 @@ const Dashboard = () => {
                     </h3>
                   </div>
                   <div className="col text-right">
-                    <Badge color="primary">Promedio por Categoría</Badge>
+                    <Badge color="primary" style={{ color: 'white' }}>Promedio por Categoría</Badge>
                   </div>
                 </Row>
               </CardHeader>
@@ -473,23 +456,23 @@ const Dashboard = () => {
                     </div>
                     <div className="mt-3">
                       <Row>
-                        <Col md="6">
+                        <Col xs="12" md="6" className="mb-3">
                           <div className="text-center">
                             <h6 className="text-muted">Promedio General</h6>
                             <h4 className="text-primary">
-                              {Math.round(parseFloat(statsData.promedioCalificacion) || 0)}/5
+                              {Math.round(parseFloat(statsData.promedioCalificacion ?? 0))}/5
                             </h4>
                           </div>
                         </Col>
-                        <Col md="6">
+                        <Col xs="12" md="6" className="mb-3">
                           <div className="text-center">
                             <h6 className="text-muted">Total Evaluaciones</h6>
-                            <h4 className="text-success">{statsData.totalEvaluaciones || 0}</h4>
+                            <h4 className="text-success">{statsData.totalEvaluaciones ?? 0}</h4>
                           </div>
                         </Col>
                       </Row>
                       <Row className="mt-3">
-                        <Col md="12">
+                        <Col xs="12">
                           <div className="text-center">
                             <small className="text-muted">
                               <strong>Última actualización:</strong> {new Date().toLocaleString('es-ES')}
@@ -507,7 +490,7 @@ const Dashboard = () => {
               </CardBody>
             </Card>
           </Col>
-          <Col lg="4">
+          <Col xs="12" lg="4" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
                 <Row className="align-items-center">
@@ -518,7 +501,7 @@ const Dashboard = () => {
                     </h3>
                   </div>
                   <div className="col text-right">
-                    <Badge color="success">Nuevos</Badge>
+                    <Badge color="success" style={{ color: 'white' }}>Nuevos</Badge>
                   </div>
                 </Row>
               </CardHeader>
@@ -539,7 +522,6 @@ const Dashboard = () => {
                             color: '#2d3748',
                             textShadow: '0 1px 2px rgba(0,0,0,0.05)'
                           }}>{comentario.local}</h5>
-                          <small className="text-muted">por {comentario.usuario}</small>
                         </div>
                         <div className="text-right">
                           <Badge 
@@ -570,7 +552,7 @@ const Dashboard = () => {
         {/* Información de actividad reciente */}
         <Row className="mt-4">
           {/* Top 5 locales más evaluados */}
-          <Col lg="6">
+          <Col xs="12" lg="6" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
                 <Row className="align-items-center">
@@ -581,7 +563,7 @@ const Dashboard = () => {
                     </h3>
                   </div>
                   <div className="col text-right">
-                    <Badge color="warning">Más Evaluados</Badge>
+                    <Badge color="warning" style={{ color: 'white' }}>Más Evaluados</Badge>
                   </div>
                 </Row>
               </CardHeader>
@@ -617,10 +599,10 @@ const Dashboard = () => {
                         </div>
                         <div className="d-flex justify-content-between align-items-center">
                           <small className="text-muted">
-                            {local.tipo === "Alimentos" && <FaUtensils className="mr-1" />}
-                            {local.tipo === "Misceláneas" && <FaShoppingBag className="mr-1" />}
-                            {local.tipo === "Taxis" && <FaCar className="mr-1" />}
-                            {local.tipo === "Estacionamiento" && <FaParking className="mr-1" />}
+                            {(local.tipo === "Alimentos" || local.tipo === "alimentos") && <FaUtensils className="mr-1" />}
+                            {(local.tipo === "Misceláneas" || local.tipo === "miscelaneas" || local.tipo === "misceláneas") && <FaShoppingBag className="mr-1" />}
+                            {(local.tipo === "Taxis" || local.tipo === "taxis") && <FaCar className="mr-1" />}
+                            {(local.tipo === "Estacionamiento" || local.tipo === "estacionamiento") && <FaParking className="mr-1" />}
                             {local.tipo}
                           </small>
                           <small className="text-muted">{local.evaluaciones} eval.</small>
@@ -638,7 +620,7 @@ const Dashboard = () => {
           </Col>
 
           {/* Últimas 6 evaluaciones */}
-          <Col lg="6">
+          <Col xs="12" lg="6" className="mb-4">
             <Card className="shadow">
               <CardHeader className="border-0">
                 <Row className="align-items-center">
@@ -649,7 +631,7 @@ const Dashboard = () => {
                     </h3>
                   </div>
                   <div className="col text-right">
-                    <Badge color="info">Recientes</Badge>
+                    <Badge color="info" style={{ color: 'white' }}>Recientes</Badge>
                   </div>
                 </Row>
               </CardHeader>
@@ -671,10 +653,10 @@ const Dashboard = () => {
                             textShadow: '0 1px 2px rgba(0,0,0,0.05)'
                           }}>{evaluacion.local}</h5>
                           <small className="text-muted">
-                            {evaluacion.tipo === "alimentos" && <FaUtensils className="mr-1" />}
-                            {evaluacion.tipo === "miscelaneas" && <FaShoppingBag className="mr-1" />}
-                            {evaluacion.tipo === "taxis" && <FaCar className="mr-1" />}
-                            {evaluacion.tipo === "estacionamiento" && <FaParking className="mr-1" />}
+                            {(evaluacion.tipo === "alimentos" || evaluacion.tipo === "Alimentos") && <FaUtensils className="mr-1" />}
+                            {(evaluacion.tipo === "miscelaneas" || evaluacion.tipo === "Miscelaneas" || evaluacion.tipo === "miscelneas") && <FaShoppingBag className="mr-1" />}
+                            {(evaluacion.tipo === "taxis" || evaluacion.tipo === "Taxis") && <FaCar className="mr-1" />}
+                            {(evaluacion.tipo === "estacionamiento" || evaluacion.tipo === "Estacionamiento") && <FaParking className="mr-1" />}
                             {evaluacion.tipo} • {evaluacion.fecha}
                           </small>
                         </div>

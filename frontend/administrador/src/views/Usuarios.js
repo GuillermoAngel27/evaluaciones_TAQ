@@ -26,6 +26,7 @@ import {
 import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaFilter } from "react-icons/fa";
 import { usuariosAPI } from "../utils/api";
 import { usePermissions } from "../hooks/usePermissions";
+import Swal from 'sweetalert2';
 
 const Usuarios = () => {
   // Estilos CSS personalizados para dropdowns modernos
@@ -173,6 +174,41 @@ const Usuarios = () => {
         letter-spacing: 0.5px !important;
         display: block !important;
       }
+
+      /* Estilos personalizados para botones de SweetAlert */
+      .swal2-confirm-custom {
+        background: linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(90, 12, 98, 0.3) !important;
+      }
+
+      .swal2-confirm-custom:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(90, 12, 98, 0.4) !important;
+        background: linear-gradient(135deg, rgb(100, 12, 108) 0%, rgb(230, 1, 137) 100%) !important;
+      }
+
+      .swal2-cancel-custom {
+        background: #6c757d !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+      }
+
+      .swal2-cancel-custom:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+        background: #5a6268 !important;
+      }
     `;
     document.head.appendChild(style);
     
@@ -214,7 +250,14 @@ const Usuarios = () => {
       const response = await usuariosAPI.getAll();
       setUsuarios(response.data.usuarios);
     } catch (err) {
-      alert("Error al cargar usuarios: " + (err.response?.data?.error || err.message));
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar usuarios',
+        text: err.response?.data?.error || err.message,
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     } finally {
       setLoading(false);
     }
@@ -282,7 +325,14 @@ const Usuarios = () => {
       setModalOpen(true);
     } catch (err) {
       console.error('Error obteniendo información del usuario:', err);
-      alert("Error al cargar información del usuario");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar información del usuario',
+        text: 'No se pudo obtener la información del usuario seleccionado',
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -306,11 +356,22 @@ const Usuarios = () => {
   const togglePasswordVisibility = () => {
     if (modalMode === "edit" && formData.password === "••••••••") {
       // Si está en modo edición y tiene placeholder, mostrar información de la contraseña
-      alert(`🔒 Información de la contraseña:\n\n` +
-            `• El usuario tiene una contraseña configurada\n` +
-            `• Hash de la contraseña: ${formData.passwordHash ? formData.passwordHash.substring(0, 20) + '...' : 'No disponible'}\n` +
-            `• Para cambiar la contraseña, haz clic en el botón ✏️ y luego ingresa la nueva contraseña\n\n` +
-            `⚠️ Por seguridad, no se puede mostrar la contraseña original.`);
+      Swal.fire({
+        icon: 'info',
+        title: '🔒 Información de la contraseña',
+        html: `
+          <div style="text-align: left;">
+            <p><strong>• El usuario tiene una contraseña configurada</strong></p>
+            <p><strong>• Hash de la contraseña:</strong> ${formData.passwordHash ? formData.passwordHash.substring(0, 20) + '...' : 'No disponible'}</p>
+            <p><strong>• Para cambiar la contraseña:</strong> Haz clic en el botón ✏️ y luego ingresa la nueva contraseña</p>
+            <br>
+            <p><strong>⚠️ Por seguridad, no se puede mostrar la contraseña original.</strong></p>
+          </div>
+        `,
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     } else {
       // Comportamiento normal para otros casos
       setShowPassword(!showPassword);
@@ -362,14 +423,28 @@ const Usuarios = () => {
       };
       
       const missingFieldNames = missingFields.map(field => fieldNames[field]).join(', ');
-      alert(`Por favor completa los siguientes campos: ${missingFieldNames}`);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos requeridos',
+        text: `Por favor completa los siguientes campos: ${missingFieldNames}`,
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       return;
     }
     
     try {
       if (modalMode === "create") {
         await usuariosAPI.create(formData);
-        alert("Usuario creado exitosamente");
+        Swal.fire({
+          icon: 'success',
+          title: 'Usuario creado exitosamente',
+          text: 'El usuario ha sido creado correctamente',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       } else {
         // Para edición, solo incluir contraseña si se cambió
         const updateData = { ...formData };
@@ -378,13 +453,27 @@ const Usuarios = () => {
           delete updateData.password;
         }
         await usuariosAPI.update(selectedUsuario.id, updateData);
-        alert("Usuario actualizado exitosamente");
+        Swal.fire({
+          icon: 'success',
+          title: 'Usuario actualizado exitosamente',
+          text: 'Los cambios han sido guardados correctamente',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       }
       
       setModalOpen(false);
       loadUsuarios();
     } catch (err) {
-      alert("Error al guardar usuario: " + (err.response?.data?.error || err.message));
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar usuario',
+        text: err.response?.data?.error || err.message,
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -395,25 +484,58 @@ const Usuarios = () => {
     
     // Verificar si el usuario intenta eliminarse a sí mismo
     if (currentUser.id === usuario.id) {
-      alert("❌ No puedes eliminar tu propia cuenta. Contacta a otro administrador si necesitas eliminar tu cuenta.");
+      Swal.fire({
+        icon: 'error',
+        title: '❌ No puedes eliminar tu propia cuenta',
+        text: 'Contacta a otro administrador si necesitas eliminar tu cuenta.',
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       return;
     }
     
     // Verificar si es el último administrador
     const administradores = usuarios.filter(u => u.rol === 'administrador' && u.activo);
     if (usuario.rol === 'administrador' && administradores.length <= 1) {
-      alert("❌ No puedes eliminar el último administrador del sistema.");
+      Swal.fire({
+        icon: 'error',
+        title: '❌ No puedes eliminar el último administrador',
+        text: 'El sistema necesita al menos un administrador activo.',
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       return;
     }
     
     // Confirmación más detallada
-    const confirmMessage = `¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE al usuario "${usuario.username}"?\n\n` +
-                          `• Nombre: ${usuario.nombre} ${usuario.apellido}\n` +
-                          `• Rol: ${usuario.rol}\n` +
-                          `• Estado: ${usuario.activo ? 'Activo' : 'Inactivo'}\n\n` +
-                          `⚠️ Esta acción ELIMINARÁ el usuario de la base de datos y NO se puede deshacer.`;
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: '¿Eliminar usuario?',
+      html: `
+        <div style="text-align: left;">
+          <p><strong>¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE al usuario "${usuario.username}"?</strong></p>
+          <br>
+          <p><strong>• Nombre:</strong> ${usuario.nombre} ${usuario.apellido}</p>
+          <p><strong>• Rol:</strong> ${usuario.rol}</p>
+          <p><strong>• Estado:</strong> ${usuario.activo ? 'Activo' : 'Inactivo'}</p>
+          <br>
+          <p><strong>⚠️ Esta acción ELIMINARÁ el usuario de la base de datos y NO se puede deshacer.</strong></p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'linear-gradient(135deg, rgb(90, 12, 98) 0%, rgb(220, 1, 127) 100%)',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'swal2-confirm-custom',
+        cancelButton: 'swal2-cancel-custom'
+      }
+    });
     
-    if (window.confirm(confirmMessage)) {
+    if (result.isConfirmed) {
       // Mostrar indicador de carga
       const deleteButton = document.querySelector(`[data-delete-user="${usuario.id}"]`);
       if (deleteButton) {
@@ -425,7 +547,14 @@ const Usuarios = () => {
         await usuariosAPI.delete(usuario.id);
         
         // Mostrar mensaje de éxito
-        alert(`✅ Usuario "${usuario.username}" eliminado exitosamente`);
+        Swal.fire({
+          icon: 'success',
+          title: '✅ Usuario eliminado exitosamente',
+          text: `El usuario "${usuario.username}" ha sido eliminado correctamente`,
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         
         // Recargar la lista de usuarios
         loadUsuarios();
@@ -456,6 +585,15 @@ const Usuarios = () => {
           deleteButton.disabled = false;
           deleteButton.innerHTML = '<FaTrash />';
         }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al eliminar usuario',
+          text: errorMessage,
+          timer: 4000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
       }
     }
   };

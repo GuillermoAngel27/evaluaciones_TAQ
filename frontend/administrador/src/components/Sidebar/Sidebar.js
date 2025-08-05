@@ -24,11 +24,6 @@ import { PropTypes } from "prop-types";
 // reactstrap components
 import {
   Collapse,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
-  DropdownToggle,
-  Media,
   NavbarBrand,
   Navbar,
   NavItem,
@@ -41,12 +36,13 @@ import {
 
 // Importar el contexto de autenticación
 import { useAuth } from "../../context/AuthContext";
+import UserMenu from "../UserMenu";
 
 var ps;
 
 const Sidebar = (props) => {
   const [collapseOpen, setCollapseOpen] = useState();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   // verifies if routeName is the one active (in browser input)
@@ -62,10 +58,7 @@ const Sidebar = (props) => {
     setCollapseOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/l/login', { replace: true });
-  };
+
 
   // creates the links that appear in the left menu / Sidebar
   const createLinks = (routes) => {
@@ -136,28 +129,7 @@ const Sidebar = (props) => {
 
           {/* Lado derecho - Usuario en móviles */}
           <div className="d-lg-none">
-            <UncontrolledDropdown nav>
-              <DropdownToggle className="pr-0" nav>
-                <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
-                    <img
-                      alt="..."
-                      src={require("../../assets/img/theme/team-4-800x800.jpg")}
-                    />
-                  </span>
-                </Media>
-              </DropdownToggle>
-              <DropdownMenu className="dropdown-menu-arrow" end>
-                <DropdownItem className="noti-title" header tag="div">
-                  <h6 className="text-overflow m-0">¡Bienvenido!</h6>
-                </DropdownItem>
-                <DropdownItem divider />
-                <DropdownItem onClick={handleLogout}>
-                  <i className="ni ni-user-run" />
-                  <span>Cerrar sesión</span>
-                </DropdownItem>
-              </DropdownMenu>
-            </UncontrolledDropdown>
+            <UserMenu variant="mobile" />
           </div>
         </div>
 

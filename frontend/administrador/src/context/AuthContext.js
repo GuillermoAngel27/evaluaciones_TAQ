@@ -73,7 +73,8 @@ export const AuthProvider = ({ children }) => {
     
     // Opcional: hacer la llamada al servidor en segundo plano sin esperar
     authAPI.logout().catch(error => {
-      console.error('Error en logout del servidor:', error);
+      // Ignorar errores de logout silenciosamente
+      console.log('Logout del servidor completado (con o sin error)');
     });
   };
 

@@ -136,9 +136,10 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', authenticateToken, (req, res) => {
+router.post('/logout', (req, res) => {
   try {
-    // En una implementación más robusta, podrías invalidar el token
+    // El logout no requiere autenticación ya que el cliente ya limpió el token
+    // En una implementación más robusta, podrías invalidar el token en el servidor
     // Por ahora, solo respondemos exitosamente
     res.json({
       success: true,

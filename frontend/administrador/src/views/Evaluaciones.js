@@ -390,6 +390,12 @@ const Evaluaciones = () => {
     }
   };
 
+  const cerrarModalRespuestas = () => {
+    setModalRespuestas(false);
+    setSelectedEvaluacion(null);
+    setRespuestas([]);
+  };
+
 
   // Filtrado (solo búsqueda y tipo, las fechas se filtran en el backend)
   const filteredLocales = localesEvaluados.filter((local) => {
@@ -913,7 +919,7 @@ const Evaluaciones = () => {
               type="button" 
               className="btn-close text-white position-absolute" 
               aria-label="Close"
-              onClick={toggleModalRespuestas}
+              onClick={cerrarModalRespuestas}
               style={{
                 background: 'none',
                 border: 'none',
@@ -973,9 +979,28 @@ const Evaluaciones = () => {
                     </div>
                     <div className="col-md-6 text-md-right">
                       <div className="d-flex align-items-center justify-content-md-end">
-                        <span className="badge badge-primary badge-pill mr-2">
-                          {getTipoNombre(selectedEvaluacion.tipoLocal)}
-                        </span>
+                        <div 
+                          className="badge badge-pill px-3 py-2"
+                          style={{
+                            background: `linear-gradient(135deg, ${getTipoColor(selectedEvaluacion.tipoLocal) === 'success' ? '#28a745' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'info' ? '#17a2b8' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'warning' ? '#ffc107' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'secondary' ? '#6c757d' : '#007bff'} 0%, 
+                                                                    ${getTipoColor(selectedEvaluacion.tipoLocal) === 'success' ? '#20c997' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'info' ? '#0dcaf0' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'warning' ? '#fd7e14' : 
+                                                                    getTipoColor(selectedEvaluacion.tipoLocal) === 'secondary' ? '#495057' : '#0056b3'} 100%)`,
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            border: 'none'
+                          }}
+                        >
+                          {getTipoIcon(selectedEvaluacion.tipoLocal)} {getTipoNombre(selectedEvaluacion.tipoLocal)}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -987,9 +1012,25 @@ const Evaluaciones = () => {
                     <FaComments className="mr-2 text-info" />
                     <h5 className="mb-0">Comentario</h5>
                   </div>
-                  <div className="p-3 bg-light rounded border-left border-info" style={{borderLeftWidth: '4px'}}>
+                  <div 
+                    className={`p-4 rounded border-left ${selectedEvaluacion.comentario ? 'bg-primary bg-opacity-10 border-primary' : 'bg-light border-info'}`} 
+                    style={{
+                      borderLeftWidth: '4px',
+                      transition: 'all 0.3s ease',
+                      boxShadow: selectedEvaluacion.comentario ? '0 4px 12px rgba(255, 255, 255, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)'
+                    }}
+                  >
                     {selectedEvaluacion.comentario ? (
-                      <p className="mb-0 text-dark">{selectedEvaluacion.comentario}</p>
+                      <div>
+                        <p className="mb-0 fw-bold" style={{
+                          fontSize: '16px', 
+                          lineHeight: '1.7',
+                          color: '#ffffff',
+                          fontWeight: '600'
+                        }}>
+                          "{selectedEvaluacion.comentario}"
+                        </p>
+                      </div>
                     ) : (
                       <p className="mb-0 text-muted font-italic">Sin comentarios</p>
                     )}
@@ -1017,32 +1058,113 @@ const Evaluaciones = () => {
                     <div className="row">
                       {getPreguntasPorTipo(selectedEvaluacion?.tipoLocal || 'miscelaneas').map((pregunta, index) => {
                         const respuesta = respuestas.find(r => r.pregunta === String(index + 1));
+                        const puntuacion = respuesta ? parseInt(respuesta.puntuacion) : 0;
+                        
+                        // Determinar color basado en la puntuación
+                        const getPuntuacionColor = (puntos) => {
+                          if (puntos === 5) return { bg: 'success', text: 'white' };
+                          if (puntos === 4) return { bg: 'warning', text: 'white' };
+                          return { bg: 'danger', text: 'white' }; // 1-3 puntos
+                        };
+                        
+                        const colorInfo = getPuntuacionColor(puntuacion);
+                        
                         return (
-                          <Col key={index} xs="12" className="mb-3">
-                            <Card className="border-0 shadow-sm">
-                              <CardBody className="p-3">
-                                <div className="d-flex justify-content-between align-items-center">
+                          <Col key={index} xs="12" className="mb-4">
+                            <Card 
+                              className="border-0 shadow-sm" 
+                              style={{
+                                borderRadius: '16px',
+                                transition: 'all 0.3s ease',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                                border: '1px solid rgba(0,0,0,0.05)',
+                                overflow: 'hidden'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(90, 12, 98, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.05)';
+                              }}
+                            >
+                              <CardBody className="p-4">
+                                <div className="d-flex align-items-start">
+                                  {/* Número de pregunta con gradiente */}
+                                  <div 
+                                    className="rounded-circle d-flex align-items-center justify-content-center mr-3" 
+                                    style={{
+                                      width: '36px', 
+                                      height: '36px', 
+                                      minWidth: '36px',
+                                      background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
+                                      color: 'white',
+                                      fontSize: '14px',
+                                      fontWeight: 'bold',
+                                      boxShadow: '0 3px 8px rgba(90, 12, 98, 0.25)'
+                                    }}
+                                  >
+                                    {index + 1}
+                                  </div>
+                                  
                                   <div className="flex-grow-1">
-                                    <div className="d-flex align-items-start">
-                                      <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" 
-                                           style={{width: '32px', height: '32px', minWidth: '32px'}}>
-                                        <span className="font-weight-bold">{index + 1}</span>
-                                      </div>
-                                                                             <div className="flex-grow-1">
-                                         <h5 className="mb-2 text-dark">{pregunta}</h5>
+                                    {/* Pregunta */}
+                                    <h5 
+                                      className="mb-3 text-dark" 
+                                      style={{
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '1.4',
+                                        color: '#2c3e50'
+                                      }}
+                                    >
+                                      {pregunta}
+                                    </h5>
+                                    
+                                    {/* Puntuación */}
+                                    <div className="d-flex align-items-center">
+                                      {respuesta ? (
                                         <div className="d-flex align-items-center">
-                                          {respuesta ? (
-                                            <div className="d-flex align-items-center">
-                                              <div className="bg-success text-white rounded-pill px-3 py-1 mr-2">
-                                                <span className="font-weight-bold">{respuesta.puntuacion}</span>
-                                              </div>
-                                              <small className="text-muted">puntos</small>
+                                          <div 
+                                            className={`bg-${colorInfo.bg} text-${colorInfo.text} rounded-pill px-3 py-1 mr-3`}
+                                            style={{
+                                              fontSize: '14px',
+                                              fontWeight: 'bold',
+                                              boxShadow: `0 3px 8px rgba(var(--bs-${colorInfo.bg}-rgb), 0.25)`,
+                                              minWidth: '50px',
+                                              textAlign: 'center'
+                                            }}
+                                          >
+                                            {respuesta.puntuacion}
+                                          </div>
+                                          <div className="d-flex align-items-center">
+                                            <span className="text-muted font-weight-bold" style={{fontSize: '14px'}}>
+                                              puntos
+                                            </span>
+                                            {/* Estrellas de puntuación */}
+                                            <div className="ml-3 d-flex">
+                                              {[1, 2, 3, 4, 5].map((star) => (
+                                                <FaStar
+                                                  key={star}
+                                                  style={{
+                                                    color: star <= puntuacion ? '#FFD700' : '#e9ecef',
+                                                    fontSize: '14px',
+                                                    marginRight: '2px',
+                                                    filter: star <= puntuacion ? 'drop-shadow(0 1px 2px rgba(255, 215, 0, 0.3))' : 'none'
+                                                  }}
+                                                />
+                                              ))}
                                             </div>
-                                          ) : (
-                                            <span className="text-muted font-italic">Sin respuesta</span>
-                                          )}
+                                          </div>
                                         </div>
-                                      </div>
+                                      ) : (
+                                        <span className="text-muted font-italic" style={{fontSize: '14px'}}>
+                                          Sin respuesta
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -1057,12 +1179,7 @@ const Evaluaciones = () => {
               </>
             )}
           </ModalBody>
-          <ModalFooter className="border-0 bg-light">
-            <Button color="secondary" onClick={toggleModalRespuestas} className="px-4">
-              <FaTimes className="mr-1" />
-              Cerrar
-            </Button>
-          </ModalFooter>
+
         </Modal>
       </>
     );

@@ -34,6 +34,7 @@ import {
   Alert,
 } from "reactstrap";
 import { useAuth } from "../../context/AuthContext";
+import Swal from 'sweetalert2';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -63,7 +64,17 @@ const Login = () => {
     const result = await login(credentials);
     
     if (result.success) {
-      navigate('/admin/index');
+      // Mostrar SweetAlert de bienvenida y navegar cuando se cierre
+      Swal.fire({
+        icon: 'success',
+        title: '¡Evaluaciones TAQ!',
+        text: `Bienvenido ${credentials.username}`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      }).then(() => {
+        navigate('/a/inicio');
+      });
     }
     
     setLoading(false);
@@ -180,7 +191,7 @@ const Login = () => {
               href="#pablo"
               onClick={(e) => e.preventDefault()}
             >
-              <small>Forgot password?</small>
+              <small></small>
             </a>
           </Col>
           <Col className="text-right" xs="6">
@@ -189,7 +200,7 @@ const Login = () => {
               href="#pablo"
               onClick={(e) => e.preventDefault()}
             >
-              <small>Create new account</small>
+              <small></small>
             </a>
           </Col>
         </Row>

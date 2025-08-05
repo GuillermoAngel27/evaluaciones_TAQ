@@ -15,29 +15,16 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
 // reactstrap components
 import {
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
-  DropdownToggle,
   Navbar,
   Nav,
   Container,
-  Media,
 } from "reactstrap";
-import { useAuth } from "../../context/AuthContext";
+import UserMenu from "../UserMenu";
 
 const AdminNavbar = (props) => {
-  const { user, logout, loading } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    // Navegar inmediatamente sin esperar
-    navigate('/l/login', { replace: true });
-  };
   return (
     <>
       <Navbar 
@@ -61,53 +48,7 @@ const AdminNavbar = (props) => {
 
             {/* Lado derecho - Usuario solo en desktop/tablet */}
             <Nav className="align-items-center d-none d-lg-flex" navbar>
-              <UncontrolledDropdown nav>
-                <DropdownToggle className="pr-0" nav>
-                  <Media className="align-items-center">
-                    <span className="avatar avatar-sm rounded-circle">
-                      {loading ? (
-                        <div className="d-flex align-items-center justify-content-center h-100 w-100">
-                          <div className="spinner-border spinner-border-sm text-white" role="status">
-                            <span className="sr-only">Cargando...</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <img
-                          alt="..."
-                          src={require("../../assets/img/theme/team-4-800x800.jpg")}
-                        />
-                      )}
-                    </span>
-                    <Media className="ml-2 d-none d-md-block">
-                      <span className="mb-0 text-sm font-weight-bold text-white" style={{ fontSize: '0.9rem' }}>
-                        {loading ? 'Cargando...' : user ? user.username : 'Usuario'}
-                      </span>
-                    </Media>
-                  </Media>
-                </DropdownToggle>
-                <DropdownMenu className="dropdown-menu-arrow" end>
-                  <DropdownItem className="noti-title" header tag="div">
-                    <h6 className="text-overflow m-0">¡Bienvenido!</h6>
-                    {user && (
-                      <p className="text-muted text-sm mb-0">
-                        {user.username}
-                      </p>
-                    )}
-                  </DropdownItem>
-                  <DropdownItem divider />
-                  {user && (
-                    <DropdownItem disabled>
-                      <i className="ni ni-single-02" />
-                      <span>{user.rol}</span>
-                    </DropdownItem>
-                  )}
-                  <DropdownItem divider />
-                  <DropdownItem onClick={handleLogout}>
-                    <i className="ni ni-user-run" />
-                    <span>Cerrar sesión</span>
-                  </DropdownItem>
-                </DropdownMenu>
-              </UncontrolledDropdown>
+              <UserMenu variant="default" />
             </Nav>
           </div>
         </Container>
