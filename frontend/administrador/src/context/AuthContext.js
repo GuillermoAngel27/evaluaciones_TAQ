@@ -24,10 +24,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const response = await authAPI.verify();
-          console.log('Usuario verificado:', response.data.user);
           setUser(response.data.user);
         } catch (error) {
-          console.error('Error verificando autenticación:', error);
           localStorage.removeItem('authToken');
           setUser(null);
         }
@@ -52,7 +50,6 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login(credentials);
       const { token, user } = response.data;
       
-      console.log('Usuario logueado:', user);
       localStorage.setItem('authToken', token);
       setUser(user);
       
@@ -74,7 +71,6 @@ export const AuthProvider = ({ children }) => {
     // Opcional: hacer la llamada al servidor en segundo plano sin esperar
     authAPI.logout().catch(error => {
       // Ignorar errores de logout silenciosamente
-      console.log('Logout del servidor completado (con o sin error)');
     });
   };
 

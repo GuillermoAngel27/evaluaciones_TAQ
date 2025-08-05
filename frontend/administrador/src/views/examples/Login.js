@@ -175,11 +175,7 @@ const Login = () => {
             
             <div className="text-center text-muted mt-3">
               <small>
-                <strong>Credenciales disponibles:</strong><br />
-                <strong>Admin:</strong> admin / admin123<br />
-                <strong>Supervisor:</strong> supervisor1 / supervisor123<br />
-                <strong>Evaluador:</strong> evaluador1 / evaluador123<br />
-                <strong>Viewer:</strong> viewer1 / viewer123
+                
               </small>
             </div>
           </CardBody>

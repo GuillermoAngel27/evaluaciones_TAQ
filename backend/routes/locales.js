@@ -20,14 +20,11 @@ const normalizarTipoLocal = (tipo) => {
 
 // GET - Obtener todos los locales (ambos roles pueden ver)
 router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET / - Obteniendo todos los locales');
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales ORDER BY nombre';
   db.query(sql, (err, results) => {
     if (err) {
-      console.error('Error obteniendo locales:', err);
       return res.status(500).json({ error: err.message });
     }
-    console.log(`Se encontraron ${results.length} locales`);
     
     // Normalizar los tipos de local antes de enviar la respuesta
     const localesNormalizados = results.map(local => ({
@@ -51,12 +48,10 @@ function generarTokenPublico() {
 
 // POST - Crear un nuevo local (solo administradores)
 router.post('/', authenticateToken, requireAdmin, (req, res) => {
-  console.log('POST / - Creando nuevo local:', req.body);
   const { nombre, estatus, tipo_local } = req.body;
   
   // Validaciones
   if (!nombre || !estatus || !tipo_local) {
-    console.log('Error: Campos requeridos faltantes');
     return res.status(400).json({ error: 'Todos los campos son requeridos' });
   }
   
@@ -66,18 +61,14 @@ router.post('/', authenticateToken, requireAdmin, (req, res) => {
   const sql = 'INSERT INTO locales (nombre, estatus, tipo_local, token_publico) VALUES (?, ?, ?, ?)';
   db.query(sql, [nombre, estatus, tipo_local, tokenPublico], (err, result) => {
     if (err) {
-      console.error('Error creando local:', err);
       return res.status(500).json({ error: err.message });
     }
-    
-    console.log('Local creado con ID:', result.insertId);
     
     // Obtener el local creado
     const newLocalId = result.insertId;
     const selectSql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
     db.query(selectSql, [newLocalId], (err, results) => {
       if (err) {
-        console.error('Error obteniendo local creado:', err);
         return res.status(500).json({ error: err.message });
       }
       
@@ -94,21 +85,16 @@ router.post('/', authenticateToken, requireAdmin, (req, res) => {
 
 // POST - Generar tokens públicos para locales que no los tengan (solo administradores)
 router.post('/generar-tokens', authenticateToken, requireAdmin, (req, res) => {
-  console.log('POST /generar-tokens - Generando tokens públicos faltantes');
-  
   // Buscar locales sin token público
   const checkSql = 'SELECT id, nombre FROM locales WHERE token_publico IS NULL OR token_publico = ""';
   db.query(checkSql, (err, results) => {
     if (err) {
-      console.error('Error buscando locales sin token:', err);
       return res.status(500).json({ error: err.message });
     }
     
     if (results.length === 0) {
       return res.json({ message: 'Todos los locales ya tienen tokens públicos' });
     }
-    
-    console.log(`Generando tokens para ${results.length} locales`);
     
     // Generar tokens para cada local
     let completed = 0;
@@ -120,7 +106,7 @@ router.post('/generar-tokens', authenticateToken, requireAdmin, (req, res) => {
       
       db.query(updateSql, [tokenPublico, local.id], (err) => {
         if (err) {
-          console.error(`Error actualizando token para local ${local.id}:`, err);
+          // Error silencioso
         }
         
         completed++;
@@ -137,8 +123,6 @@ router.post('/generar-tokens', authenticateToken, requireAdmin, (req, res) => {
 
 // GET - Obtener promedios por pregunta por tipo de local
 router.get('/promedios-por-pregunta/:tipoLocal', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET /promedios-por-pregunta/:tipoLocal - Obteniendo promedios por pregunta');
-  
   const { tipoLocal } = req.params;
   const tipoNormalizado = normalizarTipoLocal(tipoLocal);
   
@@ -173,7 +157,6 @@ router.get('/promedios-por-pregunta/:tipoLocal', authenticateToken, requireRole(
   
   db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('Error obteniendo promedios por pregunta:', err);
       return res.status(500).json({ error: err.message });
     }
     
@@ -198,14 +181,12 @@ router.get('/promedios-por-pregunta/:tipoLocal', authenticateToken, requireRole(
       };
     });
     
-    console.log(`Se obtuvieron promedios para ${promediosCompletos.length} preguntas del tipo ${tipoNormalizado}`);
     res.json(promediosCompletos);
   });
 });
 
 // GET - Obtener insights de evaluación (reemplaza respuestas-por-pregunta)
 router.get('/insights-evaluacion', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET /insights-evaluacion - Obteniendo insights de evaluación');
   
   // 1. Obtener estado general del sistema
   const sqlEstadoGeneral = `
@@ -274,27 +255,23 @@ router.get('/insights-evaluacion', authenticateToken, requireRole(['administrado
   // Ejecutar todas las consultas
   db.query(sqlEstadoGeneral, (err, estadoGeneral) => {
     if (err) {
-      console.error('Error obteniendo estado general:', err);
       return res.status(500).json({ error: err.message });
     }
     
     db.query(sqlAreasProblema, (err, areasProblema) => {
       if (err) {
-        console.error('Error obteniendo áreas problema:', err);
         return res.status(500).json({ error: err.message });
       }
       
-      db.query(sqlMejoresPracticas, (err, mejoresPracticas) => {
-        if (err) {
-          console.error('Error obteniendo mejores prácticas:', err);
-          return res.status(500).json({ error: err.message });
-        }
+          db.query(sqlMejoresPracticas, (err, mejoresPracticas) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
         
-        db.query(sqlTendencias, (err, tendencias) => {
-          if (err) {
-            console.error('Error obteniendo tendencias:', err);
-            return res.status(500).json({ error: err.message });
-          }
+            db.query(sqlTendencias, (err, tendencias) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
           
           // Procesar y formatear los datos
           const { numeroATextoPregunta } = require('../config/preguntas.js');
@@ -336,7 +313,6 @@ router.get('/insights-evaluacion', authenticateToken, requireRole(['administrado
              }))
           };
           
-          console.log('Insights generados exitosamente');
           res.json(insights);
         });
       });
@@ -346,8 +322,6 @@ router.get('/insights-evaluacion', authenticateToken, requireRole(['administrado
 
 // GET - Obtener respuestas por pregunta específica (mantener para compatibilidad)
 router.get('/respuestas-por-pregunta', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET /respuestas-por-pregunta - Obteniendo respuestas por pregunta específica');
-  console.log('Query params:', req.query);
   
   const { pregunta, tipo_local, fechaDesde, fechaHasta } = req.query;
   
@@ -367,8 +341,6 @@ router.get('/respuestas-por-pregunta', authenticateToken, requireRole(['administ
       tipo_local: tipo_local
     });
   }
-  
-  console.log(`Pregunta "${pregunta}" convertida a número: ${numeroPregunta}`);
   
   let sql = `
     SELECT 
@@ -404,16 +376,10 @@ router.get('/respuestas-por-pregunta', authenticateToken, requireRole(['administ
   
   sql += ` ORDER BY e.fecha DESC`;
   
-  console.log('SQL:', sql);
-  console.log('Params:', params);
-  
   db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('Error obteniendo respuestas por pregunta:', err);
       return res.status(500).json({ error: err.message });
     }
-    
-    console.log(`Se encontraron ${results.length} respuestas para la pregunta: "${pregunta}" (número: ${numeroPregunta})`);
     
     // Formatear los resultados
     const respuestasFormateadas = results.map(respuesta => ({
@@ -437,15 +403,12 @@ router.get('/respuestas-por-pregunta', authenticateToken, requireRole(['administ
 // GET - Obtener un local específico (ambos roles pueden ver)
 router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
-  console.log(`GET /${id} - Obteniendo local específico`);
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
   db.query(sql, [id], (err, results) => {
     if (err) {
-      console.error('Error obteniendo local:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
-      console.log(`Local con ID ${id} no encontrado`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
     
@@ -455,7 +418,6 @@ router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), 
       tipo_local: normalizarTipoLocal(results[0].tipo_local)
     };
     
-    console.log(`Local encontrado:`, localNormalizado);
     res.json(localNormalizado);
   });
 });
@@ -463,26 +425,20 @@ router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), 
 // PUT - Actualizar un local (solo administradores)
 router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
-  console.log(`PUT /${id} - Actualizando local:`, req.body);
   const { nombre, estatus, tipo_local } = req.body;
   
   // Validaciones
   if (!nombre || !estatus || !tipo_local) {
-    console.log('Error: Campos requeridos faltantes para actualización');
     return res.status(400).json({ error: 'Todos los campos son requeridos' });
   }
   
   const sql = 'UPDATE locales SET nombre = ?, estatus = ?, tipo_local = ? WHERE id = ?';
   db.query(sql, [nombre, estatus, tipo_local, id], (err, result) => {
     if (err) {
-      console.error('Error actualizando local:', err);
       return res.status(500).json({ error: err.message });
     }
     
-    console.log(`Filas afectadas en actualización: ${result.affectedRows}`);
-    
     if (result.affectedRows === 0) {
-      console.log(`Local con ID ${id} no encontrado para actualización`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
     
@@ -490,7 +446,6 @@ router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
     const selectSql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE id = ?';
     db.query(selectSql, [id], (err, results) => {
       if (err) {
-        console.error('Error obteniendo local actualizado:', err);
         return res.status(500).json({ error: err.message });
       }
       
@@ -500,7 +455,6 @@ router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
         tipo_local: normalizarTipoLocal(results[0].tipo_local)
       };
       
-      console.log('Local actualizado:', localNormalizado);
       res.json(localNormalizado);
     });
   });
@@ -509,19 +463,14 @@ router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
 // DELETE - Eliminar un local (solo administradores)
 router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
-  console.log(`DELETE /${id} - Eliminando local`);
   
   const sql = 'DELETE FROM locales WHERE id = ?';
   db.query(sql, [id], (err, result) => {
     if (err) {
-      console.error('Error eliminando local:', err);
       return res.status(500).json({ error: err.message });
     }
     
-    console.log(`Filas afectadas en eliminación: ${result.affectedRows}`);
-    
     if (result.affectedRows === 0) {
-      console.log(`Local con ID ${id} no encontrado para eliminación`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
     
@@ -535,7 +484,6 @@ router.get('/token/:token_publico', authenticateToken, requireRole(['administrad
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE token_publico = ?';
   db.query(sql, [token_publico], (err, results) => {
     if (err) {
-      console.error('Error obteniendo local por token_publico:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
@@ -555,16 +503,13 @@ router.get('/token/:token_publico', authenticateToken, requireRole(['administrad
 // GET - Obtener un local por token_publico (RUTA PÚBLICA para evaluaciones)
 router.get('/public/token/:token_publico', (req, res) => {
   const { token_publico } = req.params;
-  console.log(`GET /public/token/${token_publico} - Obteniendo local público por token`);
   
   const sql = 'SELECT id, nombre, estatus, tipo_local, token_publico FROM locales WHERE token_publico = ?';
   db.query(sql, [token_publico], (err, results) => {
     if (err) {
-      console.error('Error obteniendo local público por token_publico:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
-      console.log(`Local con token ${token_publico} no encontrado`);
       return res.status(404).json({ error: 'Local no encontrado' });
     }
     
@@ -574,15 +519,12 @@ router.get('/public/token/:token_publico', (req, res) => {
       tipo_local: normalizarTipoLocal(results[0].tipo_local)
     };
     
-    console.log(`Local público encontrado:`, localNormalizado);
     res.json(localNormalizado);
   });
 });
 
 // GET - Obtener locales con evaluaciones y estadísticas (para vista de evaluaciones)
 router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET /evaluaciones/estadisticas - Obteniendo locales con estadísticas');
-  console.log('Query params:', req.query);
   
   const { fechaDesde, fechaHasta } = req.query;
   
@@ -628,21 +570,10 @@ router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['admini
     params = [fechaHasta];
   }
   
-  console.log('SQL:', sql);
-  console.log('Params:', params);
-  
   db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('Error obteniendo estadísticas de locales:', err);
       return res.status(500).json({ error: err.message });
     }
-    
-    console.log(`Se encontraron ${results.length} locales con estadísticas`);
-    console.log('Datos raw de la BD:', results.map(r => ({
-      id: r.id,
-      nombre: r.nombre,
-      ultima_evaluacion: r.ultima_evaluacion
-    })));
     
     // Formatear los resultados
     const localesFormateados = results.map(local => {
@@ -651,8 +582,6 @@ router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['admini
           local.ultima_evaluacion : 
           local.ultima_evaluacion.toISOString().replace('T', ' ').split('.')[0]
         ) : null;
-      console.log(`Local ${local.nombre}: ${local.ultima_evaluacion} -> ${ultimaEvaluacion}`);
-      
       return {
         id: local.id,
         nombre: local.nombre,
@@ -667,18 +596,12 @@ router.get('/evaluaciones/estadisticas', authenticateToken, requireRole(['admini
       };
     });
     
-    console.log('Datos formateados enviados:', localesFormateados.map(l => ({
-      nombre: l.nombre,
-      ultimaEvaluacion: l.ultimaEvaluacion
-    })));
-    
     res.json(localesFormateados);
   });
 });
 
 // GET - Debug: Ver todas las respuestas (solo para desarrollo)
 router.get('/debug/respuestas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
-  console.log('GET /debug/respuestas - Debug de respuestas');
   
   const sql = `
     SELECT 
@@ -696,11 +619,9 @@ router.get('/debug/respuestas', authenticateToken, requireRole(['administrador',
   
   db.query(sql, (err, results) => {
     if (err) {
-      console.error('Error en debug de respuestas:', err);
       return res.status(500).json({ error: err.message });
     }
     
-    console.log('Debug - Respuestas encontradas:', results);
     res.json({
       message: 'Debug de respuestas',
       total: results.length,
@@ -712,31 +633,22 @@ router.get('/debug/respuestas', authenticateToken, requireRole(['administrador',
 // GET - Obtener respuestas de una evaluación específica
 router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { evaluacionId } = req.params;
-  console.log(`GET /evaluacion/${evaluacionId}/respuestas - Obteniendo respuestas de la evaluación`);
   
   // Primero verificar que la evaluación existe
   const checkSql = 'SELECT id, local_id FROM evaluaciones WHERE id = ?';
   db.query(checkSql, [evaluacionId], (err, evalResults) => {
     if (err) {
-      console.error('Error verificando evaluación:', err);
       return res.status(500).json({ error: err.message });
     }
     
     if (evalResults.length === 0) {
-      console.log(`Evaluación con ID ${evaluacionId} no encontrada`);
       return res.status(404).json({ error: 'Evaluación no encontrada' });
     }
-    
-    console.log(`Evaluación encontrada:`, evalResults[0]);
     
     // Debug: Verificar si hay respuestas para esta evaluación
     const debugSql = 'SELECT COUNT(*) as total FROM respuestas WHERE evaluacion_id = ?';
     db.query(debugSql, [evaluacionId], (err, debugResults) => {
-      if (err) {
-        console.error('Error en debug:', err);
-      } else {
-        console.log(`Debug: Total de respuestas en BD para evaluación ${evaluacionId}:`, debugResults[0].total);
-      }
+      // Debug silencioso
       
       // Ahora obtener las respuestas
       const sql = `
@@ -754,17 +666,10 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
         ORDER BY r.pregunta
       `;
       
-      console.log('Ejecutando consulta SQL:', sql);
-      console.log('Parámetros:', [evaluacionId]);
-      
       db.query(sql, [evaluacionId], (err, results) => {
         if (err) {
-          console.error('Error obteniendo respuestas:', err);
           return res.status(500).json({ error: err.message });
         }
-        
-        console.log(`Se encontraron ${results.length} respuestas`);
-        console.log('Resultados raw:', results);
         
         // Formatear las respuestas
         const respuestasFormateadas = results.map(resp => ({
@@ -778,7 +683,6 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
           tipoLocal: normalizarTipoLocal(resp.tipo_local)
         }));
         
-        console.log('Respuestas formateadas:', respuestasFormateadas);
         res.json(respuestasFormateadas);
       });
     });
@@ -789,8 +693,6 @@ router.get('/evaluacion/:evaluacionId/respuestas', authenticateToken, requireRol
 router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['administrador', 'normal']), (req, res) => {
   const { id } = req.params;
   const { fechaDesde, fechaHasta } = req.query;
-  console.log(`GET /${id}/evaluaciones-detalladas - Obteniendo evaluaciones detalladas del local`);
-  console.log('Query params:', req.query);
   
   let sql = `
     SELECT 
@@ -829,16 +731,10 @@ router.get('/:id/evaluaciones-detalladas', authenticateToken, requireRole(['admi
     params.push(fechaHasta);
   }
   
-  console.log('SQL:', sql);
-  console.log('Params:', params);
-  
   db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('Error obteniendo evaluaciones detalladas:', err);
       return res.status(500).json({ error: err.message });
     }
-    
-    console.log(`Se encontraron ${results.length} evaluaciones detalladas`);
     
     // Función para determinar el turno específico basado en la hora
     const determinarTurnoEspecifico = (turno, fecha) => {

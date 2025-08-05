@@ -41,7 +41,6 @@ const Evaluaciones = () => {
   // Función de utilidad para formatear fechas
   const formatearFecha = (fechaString) => {
     try {
-      console.log('Formateando fecha original:', fechaString);
       
       // Si la fecha del backend está en UTC, necesitamos convertirla a hora local de México
       // Asumir que el backend envía en formato YYYY-MM-DD HH:mm:ss en UTC
@@ -49,23 +48,18 @@ const Evaluaciones = () => {
       
       // Crear fecha UTC
       const fechaUTC = new Date(fechaString + 'Z');
-      console.log('Fecha UTC interpretada:', fechaUTC.toISOString());
       
       // Obtener la diferencia de zona horaria del navegador
       const offsetNavegador = fechaUTC.getTimezoneOffset(); // en minutos
-      console.log('Offset del navegador (minutos):', offsetNavegador);
       
       // Offset para México (UTC-6 = +360 minutos)
       const offsetMexico = 360; // 6 horas * 60 minutos
-      console.log('Offset México (minutos):', offsetMexico);
       
       // Calcular la diferencia total
       const offsetTotal = offsetMexico - offsetNavegador;
-      console.log('Offset total (minutos):', offsetTotal);
       
       // Aplicar la corrección
       const fechaLocal = new Date(fechaUTC.getTime() + (offsetTotal * 60 * 1000));
-      console.log('Fecha local corregida:', fechaLocal);
       
       const day = fechaLocal.getDate().toString().padStart(2, '0');
       const month = fechaLocal.getMonth();
@@ -73,7 +67,6 @@ const Evaluaciones = () => {
       const hour = fechaLocal.getHours();
       const minute = fechaLocal.getMinutes();
       
-      console.log('Componentes finales:', { day, month, year, hour, minute });
       
       const monthNames = [
         'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -102,11 +95,9 @@ const Evaluaciones = () => {
       const formattedMinute = minute < 10 ? `0${minute}` : minute;
       
       const resultado = `${day}-${monthNames[month]}-${year} ${formattedHour}:${formattedMinute} ${ampm}`;
-      console.log('Fecha formateada final:', resultado);
       
       return resultado;
     } catch (error) {
-      console.error('Error formateando fecha:', error);
       return fechaString; // Retornar el string original si hay error
     }
   };
@@ -283,10 +274,8 @@ const Evaluaciones = () => {
     try {
       setLoadingTurnos(true);
       const response = await evaluacionesAPI.getTurnos();
-      console.log('Turnos cargados:', response.data);
       setTurnos(response.data);
     } catch (err) {
-      console.error('Error cargando turnos:', err);
       // Fallback con turnos básicos si hay error
       setTurnos([
         { id: 1, texto: 'Turno 1 (Mañana)' },
@@ -310,10 +299,8 @@ const Evaluaciones = () => {
       if (filterFechaHasta) params.append('fechaHasta', filterFechaHasta);
       
       const response = await localesAPI.getEstadisticas(params.toString());
-      console.log('Datos de locales evaluados:', response.data);
       setLocalesEvaluados(response.data);
     } catch (err) {
-      console.error('Error cargando locales evaluados:', err);
       setError('Error al cargar los datos de evaluaciones');
     } finally {
       setLoading(false);
@@ -337,7 +324,6 @@ const Evaluaciones = () => {
       setEvaluacionesDetalladas(response.data);
       setShowEvaluacionesDetalladas(true);
     } catch (err) {
-      console.error('Error cargando evaluaciones detalladas:', err);
       setError('Error al cargar las evaluaciones detalladas');
     } finally {
       setLoadingEvaluaciones(false);
@@ -345,7 +331,6 @@ const Evaluaciones = () => {
   };
 
   const cargarRespuestasEvaluacion = async (evaluacion) => {
-    console.log('Iniciando carga de respuestas para evaluación:', evaluacion);
     try {
       setLoadingRespuestas(true);
       // Asegurar que la evaluación tenga el tipo de local
@@ -354,12 +339,10 @@ const Evaluaciones = () => {
         tipoLocal: evaluacion.tipoLocal || selectedLocal?.tipo
       };
       setSelectedEvaluacion(evaluacionConTipo);
-      console.log('Llamando API para obtener respuestas de evaluación ID:', evaluacion.id);
       const response = await localesAPI.getRespuestasEvaluacion(evaluacion.id);
       setRespuestas(response.data);
       setModalRespuestas(true);
     } catch (err) {
-      console.error('Error cargando respuestas:', err);
       setError('Error al cargar las respuestas de la evaluación');
     } finally {
       setLoadingRespuestas(false);
@@ -405,15 +388,7 @@ const Evaluaciones = () => {
     return matchesSearch && matchesTipo;
   });
   
-  console.log(`Total locales del backend: ${localesEvaluados.length}`);
-  console.log(`Locales filtrados por búsqueda/tipo: ${filteredLocales.length}`);
-  console.log(`Filtros activos:`, {
-    searchTerm,
-    filterTipo,
-    filterFechaDesde,
-    filterFechaHasta
-  });
-
+ 
   // Paginación
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

@@ -28,7 +28,6 @@ router.post('/generar', (req, res) => {
   `;
   db.query(checkSql, [local_id, device_id], (err, existingTokens) => {
     if (err) {
-      console.error('Error verificando tokens existentes:', err);
       return res.status(500).json({ error: err.message });
     }
 
@@ -42,7 +41,6 @@ router.post('/generar', (req, res) => {
       const updateSql = `UPDATE tokens SET token = ?, usado = 0, fecha_generado = ?, fecha_expiracion = ?, fecha_usado = NULL WHERE id = ?`;
       db.query(updateSql, [nuevoToken, nuevaFechaGenerado, nuevaFechaExpiracion, existingToken.id], (err2) => {
         if (err2) {
-          console.error('Error actualizando token:', err2);
           return res.status(500).json({ error: err2.message });
         }
         return res.json({
@@ -65,7 +63,6 @@ router.post('/generar', (req, res) => {
     `;
     db.query(insertSql, [nuevoToken, local_id, device_id, nuevaFechaExpiracion], (err, result) => {
       if (err) {
-        console.error('Error insertando token:', err);
         return res.status(500).json({ error: err.message });
       }
       res.json({ 
@@ -96,7 +93,6 @@ router.post('/verificar-evaluacion', (req, res) => {
   `;
   db.query(sql, [local_id, device_id], (err, results) => {
     if (err) {
-      console.error('Error verificando evaluación:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
@@ -134,7 +130,6 @@ router.post('/usar', (req, res) => {
   const sql = 'SELECT * FROM tokens WHERE token = ? AND device_id = ?';
   db.query(sql, [token, device_id], (err, results) => {
     if (err) {
-      console.error('Error buscando token:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
@@ -151,7 +146,6 @@ router.post('/usar', (req, res) => {
     const updateSql = 'UPDATE tokens SET usado = 1, fecha_usado = NOW() WHERE token = ? AND device_id = ?';
     db.query(updateSql, [token, device_id], (err2, result) => {
       if (err2) {
-        console.error('Error marcando token como usado:', err2);
         return res.status(500).json({ error: err2.message });
       }
       res.json({ success: true, message: 'Token marcado como usado exitosamente' });

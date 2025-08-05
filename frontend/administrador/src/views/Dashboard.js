@@ -159,7 +159,6 @@ const Dashboard = () => {
       setEvaluacionesPorDia(evaluacionesDiaResponse.data);
       
     } catch (error) {
-      console.error('Error cargando datos del dashboard:', error);
       setError('Error al cargar los datos del dashboard. Por favor, intente nuevamente.');
     } finally {
       if (showLoading) {

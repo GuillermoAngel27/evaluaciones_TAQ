@@ -70,7 +70,6 @@ router.post('/login', async (req, res) => {
     const sql = 'SELECT * FROM usuarios WHERE username = ? AND activo = 1';
     db.query(sql, [username], async (err, results) => {
       if (err) {
-        console.error('Error en consulta de login:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
 
@@ -105,7 +104,7 @@ router.post('/login', async (req, res) => {
         const updateSql = 'UPDATE usuarios SET fecha_actualizacion = NOW() WHERE id = ?';
         db.query(updateSql, [user.id], (updateErr) => {
           if (updateErr) {
-            console.error('Error actualizando fecha de usuario:', updateErr);
+            // Error silencioso
           }
         });
 
@@ -124,13 +123,11 @@ router.post('/login', async (req, res) => {
         });
 
       } catch (bcryptError) {
-        console.error('Error comparando contraseñas:', bcryptError);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
     });
 
   } catch (error) {
-    console.error('Error en login:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -146,7 +143,6 @@ router.post('/logout', (req, res) => {
       message: 'Logout exitoso'
     });
   } catch (error) {
-    console.error('Error en logout:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -158,7 +154,6 @@ router.get('/verify', authenticateToken, (req, res) => {
     const sql = 'SELECT id, username, nombre, apellido, rol, activo FROM usuarios WHERE id = ? AND activo = 1';
     db.query(sql, [req.user.userId], (err, results) => {
       if (err) {
-        console.error('Error verificando usuario:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
 
@@ -179,7 +174,6 @@ router.get('/verify', authenticateToken, (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en verify:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -190,7 +184,6 @@ router.get('/profile', authenticateToken, (req, res) => {
     const sql = 'SELECT id, username, nombre, apellido, rol, fecha_creacion FROM usuarios WHERE id = ?';
     db.query(sql, [req.user.userId], (err, results) => {
       if (err) {
-        console.error('Error obteniendo perfil:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
 
@@ -204,7 +197,6 @@ router.get('/profile', authenticateToken, (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en profile:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -222,7 +214,6 @@ router.put('/password', authenticateToken, async (req, res) => {
     const sql = 'SELECT password FROM usuarios WHERE id = ?';
     db.query(sql, [req.user.userId], async (err, results) => {
       if (err) {
-        console.error('Error obteniendo contraseña actual:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
 
@@ -243,7 +234,6 @@ router.put('/password', authenticateToken, async (req, res) => {
       const updateSql = 'UPDATE usuarios SET password = ?, fecha_actualizacion = NOW() WHERE id = ?';
       db.query(updateSql, [hashedNewPassword, req.user.userId], (updateErr) => {
         if (updateErr) {
-          console.error('Error actualizando contraseña:', updateErr);
           return res.status(500).json({ error: 'Error interno del servidor' });
         }
 
@@ -255,7 +245,6 @@ router.put('/password', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en cambio de contraseña:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

@@ -23,11 +23,6 @@ app.use(express.json());
 
 // Middleware para logging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body);
-  }
   next();
 });
 
@@ -47,12 +42,10 @@ const createAdminUser = async () => {
     const checkSql = 'SELECT id FROM usuarios WHERE username = ?';
     db.query(checkSql, ['admin'], (err, results) => {
       if (err) {
-        console.error('❌ Error verificando usuario admin:', err.message);
         return;
       }
 
       if (results.length > 0) {
-        console.log('✅ Usuario admin ya existe, no se necesita crear');
         return;
       }
 
@@ -71,32 +64,21 @@ const createAdminUser = async () => {
         'administrador',
         1
       ], (insertErr, insertResults) => {
-        if (insertErr) {
-          console.error('❌ Error creando usuario admin:', insertErr.message);
-        } else {
-          console.log('✅ Usuario admin creado exitosamente');
-          console.log('   Username: admin');
-          console.log('   Password: admin2025');
-          console.log('   Rol: administrador');
-        }
+        // Usuario admin creado o error silencioso
       });
     });
   } catch (error) {
-    console.error('❌ Error en createAdminUser:', error.message);
+    // Error silencioso
   }
 };
 
 // Manejar errores de conexión
 db.connect((err) => {
   if (err) {
-    console.error('❌ Error de conexión a MySQL:', err.message);
-    console.log('\n💡 Verifica:');
-    console.log('   1. Que MySQL esté corriendo');
-    console.log('   2. Las credenciales en el archivo .env');
-    console.log('   3. Que la base de datos exista');
     process.exit(1);
   } else {
-    console.log('✅ Conectado a MySQL exitosamente');
+    // Conexión a la base de datos establecida exitosamente
+    console.log('✅ Conexión a la base de datos establecida');
     // Crear usuario admin después de conectar exitosamente
     createAdminUser();
   }
@@ -137,7 +119,6 @@ app.get('/health', (req, res) => {
 
 // Ruta de prueba para locales
 app.get('/test-locales', (req, res) => {
-  console.log('Test endpoint para locales llamado');
   res.json({ 
     message: 'Endpoint de prueba para locales funcionando',
     timestamp: new Date().toISOString(),
@@ -160,7 +141,6 @@ app.use('/api/tokens', tokensRoutes);
 
 // Middleware para manejar errores
 app.use((err, req, res, next) => {
-  console.error('Error en el servidor:', err);
   res.status(500).json({ 
     error: 'Error interno del servidor',
     message: err.message 
@@ -178,26 +158,18 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend iniciado en puerto ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`🔍 Health check: http://localhost:${PORT}/health`);
-  console.log(`📋 API endpoints:`);
-  console.log(`   - Auth: http://localhost:${PORT}/api/auth`);
-  console.log(`   - Usuarios: http://localhost:${PORT}/api/usuarios`);
-  console.log(`   - Locales: http://localhost:${PORT}/api/locales`);
-  console.log(`   - Evaluaciones: http://localhost:${PORT}/api/evaluaciones`);
-  console.log(`   - Tokens: http://localhost:${PORT}/api/tokens`);
+  // Conexión del servidor establecida exitosamente
+  console.log(`🚀 Servidor iniciado en el puerto ${PORT}`);
+  console.log(`📡 API disponible en: http://localhost:${PORT}`);
 });
 
 // Manejar cierre graceful
 process.on('SIGINT', () => {
-  console.log('\n🛑 Cerrando servidor...');
   db.end();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 Cerrando servidor...');
   db.end();
   process.exit(0);
 }); 

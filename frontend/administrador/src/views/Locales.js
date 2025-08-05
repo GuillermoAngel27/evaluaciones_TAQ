@@ -382,7 +382,6 @@ const Locales = () => {
       const response = await localesAPI.getAll();
       setLocales(response.data);
     } catch (err) {
-      console.error('Error cargando locales:', err);
       Swal.fire({
         icon: 'error',
         title: 'Error al cargar los locales',
@@ -478,7 +477,6 @@ const Locales = () => {
         });
         loadLocales(); // Recargar datos
       } catch (err) {
-        console.error('Error eliminando local:', err);
         Swal.fire({
           icon: 'error',
           title: 'Error al eliminar el local',
@@ -529,14 +527,10 @@ const Locales = () => {
     setSubmitting(true);
     
     try {
-      console.log('Enviando datos:', formData);
-      console.log('Modal mode:', modalMode);
-      console.log('Selected local:', selectedLocal);
+
       
       if (modalMode === "create") {
-        console.log('Creando nuevo local...');
         const response = await localesAPI.create(formData);
-        console.log('Respuesta de creación:', response);
         Swal.fire({
           icon: 'success',
           title: 'Local creado exitosamente',
@@ -546,9 +540,7 @@ const Locales = () => {
           showConfirmButton: false
         });
       } else if (modalMode === "edit") {
-        console.log('Actualizando local con ID:', selectedLocal.id);
         const response = await localesAPI.update(selectedLocal.id, formData);
-        console.log('Respuesta de actualización:', response);
         Swal.fire({
           icon: 'success',
           title: 'Local actualizado exitosamente',
@@ -562,10 +554,6 @@ const Locales = () => {
       loadLocales(); // Recargar datos
       toggleModal();
     } catch (err) {
-      console.error('Error guardando local:', err);
-      console.error('Error response:', err.response);
-      console.error('Error status:', err.response?.status);
-      console.error('Error data:', err.response?.data);
       Swal.fire({
         icon: 'error',
         title: 'Error al guardar el local',
@@ -618,7 +606,6 @@ const Locales = () => {
     try {
       if (type === 'individual' && selectedLocalForQr) {
         // Generar QR para un local específico
-        console.log('Generando QR para:', selectedLocalForQr.nombre);
         
         // Mostrar mensaje de carga
         Swal.fire({
@@ -654,7 +641,6 @@ const Locales = () => {
       } else if (type === 'all') {
         // Generar QR para todos los locales activos
         const activeLocales = locales.filter(local => local.estatus === 'Activo');
-        console.log('Generando QR para todos los locales activos:', activeLocales.length);
         
         // Mostrar mensaje de carga
         Swal.fire({
@@ -690,7 +676,6 @@ const Locales = () => {
         toggleQrModal();
       }
     } catch (error) {
-      console.error('Error generando PDF:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error al generar el PDF',

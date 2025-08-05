@@ -19,14 +19,12 @@ function obtenerTurnoActual() {
     
     db.query(sql, [horaString], (err, results) => {
       if (err) {
-        console.error('Error obteniendo turno actual:', err);
         reject(err);
         return;
       }
       
       if (results.length === 0) {
         // Si no se encuentra un turno, usar turno por defecto
-        console.warn('No se encontró turno para la hora:', horaString, '- Usando Turno 1 por defecto');
         resolve(1);
         return;
       }
@@ -61,7 +59,6 @@ function obtenerTodosLosTurnos() {
     
     db.query(sql, (err, results) => {
       if (err) {
-        console.error('Error obteniendo turnos:', err);
         reject(err);
         return;
       }

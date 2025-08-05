@@ -40,10 +40,6 @@ const Admin = (props) => {
   const { user } = useAuth();
 
   React.useEffect(() => {
-    // Debug: mostrar información de la ruta actual
-    console.log('Current path:', location.pathname);
-    console.log('Current location:', location);
-    
     // Actualizar el título del navbar cuando cambie la ubicación
     setBrandText(getBrandText(location.pathname));
     

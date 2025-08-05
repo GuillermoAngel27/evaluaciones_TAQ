@@ -32,7 +32,6 @@ export const generateLocalQRPDF = async (localName, tokenPublico) => {
     return fileName;
 
   } catch (error) {
-    console.error('Error generando PDF:', error);
     throw error;
   }
 };
@@ -53,7 +52,6 @@ const loadBackgroundImage = () => {
     };
     img.onerror = () => {
       // Si no se puede cargar la imagen, usar un fondo sólido
-      console.warn('No se pudo cargar la imagen de fondo, usando fondo sólido');
       resolve(null);
     };
     // Ruta de la imagen de fondo - guarda tu imagen en public/images/background.png
@@ -154,7 +152,6 @@ export const generateBulkQRPDF = async (locales) => {
     
     return fileName;
   } catch (error) {
-    console.error('Error generando PDF masivo:', error);
     throw error;
   }
 }; 

@@ -33,10 +33,7 @@ function App() {
   const token = getTokenFromPathname();
   const isWelcome = isWelcomePage();
 
-  // Debug logs
-  console.log('App - pathname:', window.location.pathname);
-  console.log('App - token:', token);
-  console.log('App - isWelcome:', isWelcome);
+
 
   // Si estamos en la página de bienvenida
   if (isWelcome) {

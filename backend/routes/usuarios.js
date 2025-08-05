@@ -11,7 +11,6 @@ router.get('/', authenticateToken, requireAdmin, (req, res) => {
     
     db.query(sql, (err, results) => {
       if (err) {
-        console.error('Error obteniendo usuarios:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -21,7 +20,6 @@ router.get('/', authenticateToken, requireAdmin, (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en GET /usuarios:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -37,7 +35,6 @@ router.get('/:id', authenticateToken, requireAdmin, (req, res) => {
     
     db.query(sql, [id], (err, results) => {
       if (err) {
-        console.error('Error obteniendo usuario:', err);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -51,7 +48,6 @@ router.get('/:id', authenticateToken, requireAdmin, (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en GET /usuarios/:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -74,7 +70,6 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     const checkSql = 'SELECT id FROM usuarios WHERE username = ?';
     db.query(checkSql, [username], async (checkErr, checkResults) => {
       if (checkErr) {
-        console.error('Error verificando username:', checkErr);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -90,7 +85,6 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         const insertSql = 'INSERT INTO usuarios (username, password, nombre, apellido, rol) VALUES (?, ?, ?, ?, ?)';
         db.query(insertSql, [username, hashedPassword, nombre, apellido, rol], (insertErr, insertResult) => {
           if (insertErr) {
-            console.error('Error creando usuario:', insertErr);
             return res.status(500).json({ error: 'Error interno del servidor' });
           }
           
@@ -107,12 +101,10 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
           });
         });
       } catch (hashError) {
-        console.error('Error hasheando contraseña:', hashError);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
     });
   } catch (error) {
-    console.error('Error en POST /usuarios:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -136,7 +128,6 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const checkSql = 'SELECT id FROM usuarios WHERE id = ?';
     db.query(checkSql, [id], (checkErr, checkResults) => {
       if (checkErr) {
-        console.error('Error verificando usuario:', checkErr);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -146,11 +137,10 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       
       // Verificar si el username ya existe en otro usuario
       const usernameCheckSql = 'SELECT id FROM usuarios WHERE username = ? AND id != ?';
-      db.query(usernameCheckSql, [username, id], (usernameErr, usernameResults) => {
-        if (usernameErr) {
-          console.error('Error verificando username:', usernameErr);
-          return res.status(500).json({ error: 'Error interno del servidor' });
-        }
+              db.query(usernameCheckSql, [username, id], (usernameErr, usernameResults) => {
+          if (usernameErr) {
+            return res.status(500).json({ error: 'Error interno del servidor' });
+          }
         
         if (usernameResults.length > 0) {
           return res.status(400).json({ error: 'El username ya existe' });
@@ -160,7 +150,6 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         const updateSql = 'UPDATE usuarios SET username = ?, nombre = ?, apellido = ?, rol = ?, activo = ?, fecha_actualizacion = NOW() WHERE id = ?';
         db.query(updateSql, [username, nombre, apellido, rol, activo, id], (updateErr, updateResult) => {
           if (updateErr) {
-            console.error('Error actualizando usuario:', updateErr);
             return res.status(500).json({ error: 'Error interno del servidor' });
           }
           
@@ -180,7 +169,6 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en PUT /usuarios/:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -199,7 +187,6 @@ router.put('/:id/password', authenticateToken, requireAdmin, async (req, res) =>
     const checkSql = 'SELECT id FROM usuarios WHERE id = ?';
     db.query(checkSql, [id], async (checkErr, checkResults) => {
       if (checkErr) {
-        console.error('Error verificando usuario:', checkErr);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -215,7 +202,6 @@ router.put('/:id/password', authenticateToken, requireAdmin, async (req, res) =>
         const updateSql = 'UPDATE usuarios SET password = ?, fecha_actualizacion = NOW() WHERE id = ?';
         db.query(updateSql, [hashedPassword, id], (updateErr, updateResult) => {
           if (updateErr) {
-            console.error('Error actualizando contraseña:', updateErr);
             return res.status(500).json({ error: 'Error interno del servidor' });
           }
           
@@ -225,12 +211,10 @@ router.put('/:id/password', authenticateToken, requireAdmin, async (req, res) =>
           });
         });
       } catch (hashError) {
-        console.error('Error hasheando contraseña:', hashError);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
     });
   } catch (error) {
-    console.error('Error en PUT /usuarios/:id/password:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -244,7 +228,6 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
     const checkSql = 'SELECT id, username FROM usuarios WHERE id = ?';
     db.query(checkSql, [id], (checkErr, checkResults) => {
       if (checkErr) {
-        console.error('Error verificando usuario:', checkErr);
         return res.status(500).json({ error: 'Error interno del servidor' });
       }
       
@@ -258,11 +241,9 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
       const deleteSql = 'DELETE FROM usuarios WHERE id = ?';
       db.query(deleteSql, [id], (deleteErr, deleteResult) => {
         if (deleteErr) {
-          console.error('Error eliminando usuario:', deleteErr);
           return res.status(500).json({ error: 'Error interno del servidor' });
         }
         
-        console.log(`Usuario ${usuario.username} (ID: ${id}) eliminado físicamente de la base de datos`);
         
         res.json({
           success: true,
@@ -275,7 +256,6 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en DELETE /usuarios/:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

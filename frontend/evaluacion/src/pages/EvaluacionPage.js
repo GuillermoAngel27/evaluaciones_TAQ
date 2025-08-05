@@ -25,9 +25,7 @@ function guardarTokenLocalStorage(localId, tokenInfo) {
 export default function EvaluacionPage({ token }) {
   const tokenPublico = token;
   
-  // Debug logs
-  console.log('EvaluacionPage - token recibido:', token);
-  console.log('EvaluacionPage - tokenPublico:', tokenPublico);
+
   
   const [local, setLocal] = useState(null);
   const [preguntas, setPreguntas] = useState([]);
@@ -119,7 +117,6 @@ export default function EvaluacionPage({ token }) {
         setTurnoActual(data.turno);
       }
     } catch (error) {
-      console.error('Error obteniendo turno actual:', error);
       // Fallback en caso de error
       setTurnoActual('Turno 1');
     }
@@ -129,19 +126,15 @@ export default function EvaluacionPage({ token }) {
   useEffect(() => {
     if (!tokenPublico) return;
     
-    console.log('EvaluacionPage - Consultando local con token:', tokenPublico);
-    
     // Obtener turno actual
     obtenerTurnoActual();
     
     // Cargar información del local por token_publico (ruta pública)
     fetch(`http://localhost:4000/api/locales/public/token/${tokenPublico}`)
       .then(res => {
-        console.log('EvaluacionPage - Respuesta del servidor:', res.status, res.statusText);
         if (!res.ok) {
           if (res.status === 404) {
             // Token inválido - local no existe
-            console.log('EvaluacionPage - Local no encontrado (404)');
             setLocal(null);
             setLocalCargado(true);
             return;
@@ -184,7 +177,6 @@ export default function EvaluacionPage({ token }) {
         setLocalCargado(true);
       })
       .catch(err => {
-        console.error('Error cargando local:', err);
         setError("Error al cargar información del local");
         setLocal(null);
         setLocalCargado(true);

@@ -228,10 +228,8 @@ const Estadisticas = () => {
       setErrorLocales(null);
       
       const response = await localesAPI.getEstadisticas();
-      console.log('Datos de locales cargados:', response.data);
       setLocalesData(response.data);
     } catch (error) {
-      console.error('Error cargando locales:', error);
       setErrorLocales('Error al cargar los datos de locales. Por favor, intente nuevamente.');
     } finally {
       setLoadingLocales(false);
@@ -245,10 +243,8 @@ const Estadisticas = () => {
       setErrorInsights(null);
       
       const response = await localesAPI.getInsightsEvaluacion();
-      console.log('Insights cargados:', response.data);
       setInsightsData(response.data);
     } catch (error) {
-      console.error('Error cargando insights:', error);
       setErrorInsights('Error al cargar los insights. Por favor, intente nuevamente.');
     } finally {
       setLoadingInsights(false);
@@ -261,10 +257,8 @@ const Estadisticas = () => {
       setLoadingGrafica(true);
       
       const response = await localesAPI.getPromediosPorPregunta(tipoLocal);
-      console.log('Datos de gráfica cargados:', response.data);
       setDatosGrafica(response.data);
     } catch (error) {
-      console.error('Error cargando datos de gráfica:', error);
       setDatosGrafica(null);
     } finally {
       setLoadingGrafica(false);

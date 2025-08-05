@@ -385,7 +385,6 @@ const Usuarios = () => {
       setShowPassword(false); // Resetear visibilidad de contraseña
       setModalOpen(true);
     } catch (err) {
-      console.error('Error obteniendo información del usuario:', err);
       Swal.fire({
         icon: 'error',
         title: 'Error al cargar información del usuario',
@@ -626,8 +625,6 @@ const Usuarios = () => {
         }
         
       } catch (err) {
-        console.error('Error eliminando usuario:', err);
-        
         let errorMessage = "Error al eliminar usuario";
         if (err.response?.status === 403) {
           errorMessage = "❌ No tienes permisos para eliminar este usuario";

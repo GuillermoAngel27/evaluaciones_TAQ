@@ -35,7 +35,6 @@ router.get('/', authenticateToken, requireRole(['administrador', 'normal']), (re
   
   db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('Error obteniendo evaluaciones:', err);
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
@@ -49,7 +48,6 @@ router.get('/turno-actual', (req, res) => {
       res.json({ turno });
     })
     .catch(err => {
-      console.error('Error obteniendo turno actual:', err);
       res.status(500).json({ error: 'Error al obtener el turno actual' });
     });
 });
@@ -72,7 +70,6 @@ router.get('/turnos', authenticateToken, requireRole(['administrador', 'normal']
       res.json(turnosFormateados);
     })
     .catch(err => {
-      console.error('Error obteniendo turnos:', err);
       res.status(500).json({ error: 'Error al obtener los turnos' });
     });
 });
@@ -82,20 +79,16 @@ router.get('/preguntas/:tipo', authenticateToken, requireRole(['administrador', 
   const { tipo } = req.params;
   
   try {
-    console.log('Tipo de local recibido:', tipo);
     
     // Usar la configuración de preguntas del archivo config
     const { obtenerPreguntas, normalizarTipoLocal } = require('../config/preguntas');
     
     const tipoNormalizado = normalizarTipoLocal(tipo);
-    console.log('Tipo normalizado:', tipoNormalizado);
     
     const preguntas = obtenerPreguntas(tipo);
-    console.log('Preguntas obtenidas:', preguntas);
     
     // Asegurar que la respuesta tenga el formato correcto
     if (!Array.isArray(preguntas) || preguntas.length === 0) {
-      console.log('No se encontraron preguntas, usando fallback');
       // Fallback básico
       const preguntasFallback = [
         { pregunta_numero: 1, pregunta_texto: '¿El personal fue amable?' },
@@ -108,7 +101,6 @@ router.get('/preguntas/:tipo', authenticateToken, requireRole(['administrador', 
     
     res.json(preguntas);
   } catch (error) {
-    console.error('Error obteniendo preguntas:', error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -119,7 +111,6 @@ router.get('/:id', authenticateToken, requireRole(['administrador', 'normal']), 
   const sql = 'SELECT * FROM evaluaciones WHERE id = ?';
   db.query(sql, [id], (err, results) => {
     if (err) {
-      console.error('Error obteniendo evaluación:', err);
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
@@ -135,7 +126,6 @@ router.get('/:id/respuestas', authenticateToken, requireRole(['administrador', '
   const sql = 'SELECT * FROM respuestas WHERE evaluacion_id = ? ORDER BY pregunta';
   db.query(sql, [id], (err, results) => {
     if (err) {
-      console.error('Error obteniendo respuestas:', err);
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
@@ -153,13 +143,11 @@ router.post('/', async (req, res) => {
   try {
     // Obtener el turno actual
     const turnoActual = await obtenerTurnoActual();
-    console.log('Turno actual:', turnoActual);
     
     // Verificar que el token existe y no ha sido usado
     const tokenSql = 'SELECT * FROM tokens WHERE token = ? AND device_id = ? AND usado = 0';
     db.query(tokenSql, [token, device_id], (err, tokenResults) => {
       if (err) {
-        console.error('Error verificando token:', err);
         return res.status(500).json({ error: err.message });
       }
       
@@ -177,7 +165,6 @@ router.post('/', async (req, res) => {
       const evalSql = 'INSERT INTO evaluaciones (local_id, puntuacion, comentario, fecha, turno) VALUES (?, ?, ?, NOW(), ?)';
       db.query(evalSql, [local_id, puntuacion, comentario || null, turnoActual], (err, evalResult) => {
         if (err) {
-          console.error('Error creando evaluación:', err);
           return res.status(500).json({ error: err.message });
         }
         
@@ -193,7 +180,6 @@ router.post('/', async (req, res) => {
         const respSql = 'INSERT INTO respuestas (evaluacion_id, pregunta, puntuacion) VALUES ?';
         db.query(respSql, [respuestasValues], (err, respResult) => {
           if (err) {
-            console.error('Error insertando respuestas:', err);
             return res.status(500).json({ error: err.message });
           }
           
@@ -201,7 +187,7 @@ router.post('/', async (req, res) => {
           const updateTokenSql = 'UPDATE tokens SET usado = 1, fecha_usado = NOW() WHERE token = ? AND device_id = ?';
           db.query(updateTokenSql, [token, device_id], (err) => {
             if (err) {
-              console.error('Error marcando token como usado:', err);
+              // Error silencioso
             }
             
                   res.status(201).json({
@@ -218,7 +204,6 @@ router.post('/', async (req, res) => {
       });
     });
   } catch (error) {
-    console.error('Error en la validación de turno:', error);
     return res.status(500).json({ error: 'Error al validar el turno actual' });
   }
 });
@@ -231,7 +216,6 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   const deleteRespuestasSql = 'DELETE FROM respuestas WHERE evaluacion_id = ?';
   db.query(deleteRespuestasSql, [id], (err) => {
     if (err) {
-      console.error('Error eliminando respuestas:', err);
       return res.status(500).json({ error: err.message });
     }
     
@@ -239,7 +223,6 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
     const deleteEvalSql = 'DELETE FROM evaluaciones WHERE id = ?';
     db.query(deleteEvalSql, [id], (err, result) => {
       if (err) {
-        console.error('Error eliminando evaluación:', err);
         return res.status(500).json({ error: err.message });
       }
       if (result.affectedRows === 0) {
@@ -268,7 +251,6 @@ router.get('/dashboard/stats', authenticateToken, requireRole(['administrador', 
   
   db.query(statsSql, (err, results) => {
     if (err) {
-      console.error('Error obteniendo estadísticas del dashboard:', err);
       return res.status(500).json({ error: err.message });
     }
     
@@ -306,7 +288,6 @@ router.get('/dashboard/top-locales', authenticateToken, requireRole(['administra
   
   db.query(topSql, [limit], (err, results) => {
     if (err) {
-      console.error('Error obteniendo top locales:', err);
       return res.status(500).json({ error: err.message });
     }
     
@@ -343,7 +324,6 @@ router.get('/dashboard/ultimas', authenticateToken, requireRole(['administrador'
   
   db.query(ultimasSql, [limit], (err, results) => {
     if (err) {
-      console.error('Error obteniendo últimas evaluaciones:', err);
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
@@ -371,7 +351,6 @@ router.get('/dashboard/comentarios', authenticateToken, requireRole(['administra
   
   db.query(comentariosSql, [limit], (err, results) => {
     if (err) {
-      console.error('Error obteniendo comentarios recientes:', err);
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
@@ -394,7 +373,6 @@ router.get('/dashboard/calificaciones-por-tipo', authenticateToken, requireRole(
   
   db.query(calificacionesSql, (err, results) => {
     if (err) {
-      console.error('Error obteniendo calificaciones por tipo:', err);
       return res.status(500).json({ error: err.message });
     }
     
@@ -444,7 +422,6 @@ router.get('/dashboard/por-dia', authenticateToken, requireRole(['administrador'
   
   db.query(porDiaSql, [dias], (err, results) => {
     if (err) {
-      console.error('Error obteniendo evaluaciones por día:', err);
       return res.status(500).json({ error: err.message });
     }
     
