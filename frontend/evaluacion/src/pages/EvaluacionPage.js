@@ -41,7 +41,6 @@ export default function EvaluacionPage({ token }) {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [localCargado, setLocalCargado] = useState(false); // Para distinguir entre carga y no encontrado
   const [localInactivo, setLocalInactivo] = useState(false); // Para controlar si el local está inactivo
-  const [tipoLocalFiltro, setTipoLocalFiltro] = useState("");
   const [turnoActual, setTurnoActual] = useState(null); // Para mostrar el turno actual
 
   // Función para cargar preguntas desde el backend según el tipo de local
@@ -252,7 +251,8 @@ export default function EvaluacionPage({ token }) {
           device_id: deviceId,
           respuestas: respuestas.map(Number),
           preguntas,
-          comentario
+          comentario,
+          turno: turnoActual || 'Turno 1' // Agregar el turno actual
         })
       });
       

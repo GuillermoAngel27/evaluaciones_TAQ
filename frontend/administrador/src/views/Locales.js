@@ -43,6 +43,7 @@ import {
   FaEnvelope,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaChartBar,
 } from "react-icons/fa";
 import { localesAPI } from "../utils/api";
 import { generateLocalQRPDF, generateBulkQRPDF } from "../utils/pdfGenerator";
@@ -249,6 +250,88 @@ const Locales = () => {
         border-color: #6a2f55 !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 12px rgba(126, 56, 102, 0.3) !important;
+      }
+
+      /* Estilos para el modal de vista mejorado */
+      .info-item {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
+
+      .info-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #5A0C62;
+      }
+
+      .info-label {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .info-value {
+        color: #495057;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        height: 100%;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-color: #5A0C62;
+      }
+
+      .stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        display: block;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #5A0C62;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .evaluation-access-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
+
+      .evaluation-access-card:hover {
+        border-color: #5A0C62;
+        box-shadow: 0 6px 20px rgba(90, 12, 98, 0.1);
       }
     `;
     document.head.appendChild(style);
@@ -688,6 +771,28 @@ const Locales = () => {
     }
   };
 
+  // Función para generar URL de evaluación
+  const generateEvaluationUrl = (local) => {
+    return `http://localhost:3001/${local.token_publico || 'default-token'}`;
+  };
+
+  // Función para abrir página de evaluación
+  const handleOpenEvaluation = (local) => {
+    const evaluationUrl = generateEvaluationUrl(local);
+    window.open(evaluationUrl, '_blank');
+  };
+
+  // Función para formatear fecha
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
 
 
   // Mostrar loading
@@ -968,7 +1073,21 @@ const Locales = () => {
                             </td>
                             <td>
                               <div className="d-flex gap-1">
-                                {canEditLocales ? (
+                                {/* Botón Ver - Siempre visible */}
+                                <Button
+                                  className="btn-action-view"
+                                  size="sm"
+                                  onClick={() => handleView(local)}
+                                  id={`view-${local.id}`}
+                                >
+                                  <FaEye />
+                                </Button>
+                                <UncontrolledTooltip target={`view-${local.id}`}>
+                                  Ver
+                                </UncontrolledTooltip>
+
+                                {/* Botón Editar - Solo si tiene permisos */}
+                                {canEditLocales && (
                                   <>
                                     <Button
                                       className="btn-action-edit"
@@ -982,23 +1101,7 @@ const Locales = () => {
                                       Editar
                                     </UncontrolledTooltip>
                                   </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      className="btn-action-view"
-                                      size="sm"
-                                      onClick={() => handleView(local)}
-                                      id={`view-${local.id}`}
-                                    >
-                                      <FaEye />
-                                    </Button>
-                                    <UncontrolledTooltip target={`view-${local.id}`}>
-                                      Ver
-                                    </UncontrolledTooltip>
-                                  </>
                                 )}
-                                
-
                               </div>
                             </td>
                           </tr>
@@ -1194,140 +1297,259 @@ const Locales = () => {
         </ModalHeader>
         <Form onSubmit={handleSubmit}>
           <ModalBody>
-            <Row>
-              <Col md="12">
-                <FormGroup>
-                  <Label for="nombre">Nombre del Local *</Label>
-                  <Input
-                    type="text"
-                    name="nombre"
-                    id="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    disabled={modalMode === "view"}
-                    required
-                    invalid={nombreError}
-                    style={{
-                      borderColor: nombreError ? '#dc3545' : '#e9ecef',
-                      boxShadow: nombreError ? '0 0 0 0.2rem rgba(220, 53, 69, 0.25)' : '0 2px 8px rgba(0,0,0,0.08)',
-                      transition: 'all 0.3s ease'
-                    }}
-                  />
-                  {nombreError && (
-                    <div className="invalid-feedback d-block">
-                      El nombre del local es obligatorio y debe tener al menos 3 caracteres.
+            {modalMode === "view" ? (
+              // Vista de información completa para modo "view"
+              <>
+                {/* Información del Local */}
+                <div className="mb-4">
+                  <h5 className="text-primary mb-3">
+                    <FaStore className="mr-2" />
+                    Información del Local
+                  </h5>
+                  
+                  <Row>
+                    <Col md="12" className="mb-3">
+                      <div className="info-item">
+                        <div className="info-label">
+                          <strong>🏪 Nombre del Local:</strong>
+                        </div>
+                        <div className="info-value">
+                          {selectedLocal?.nombre}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                  
+                  <Row>
+                    <Col md="6" className="mb-3">
+                      <div className="info-item">
+                        <div className="info-label">
+                          <strong>🍽️ Tipo de Local:</strong>
+                        </div>
+                        <div className="info-value">
+                          <Badge
+                            className={`${
+                              selectedLocal?.tipo_local === 'alimentos' ? 'badge-tipo-alimentos' :
+                              selectedLocal?.tipo_local === 'miscelaneas' ? 'badge-tipo-miscelaneas' :
+                              selectedLocal?.tipo_local === 'taxis' ? 'badge-tipo-taxis' :
+                              selectedLocal?.tipo_local === 'estacionamiento' ? 'badge-tipo-estacionamiento' : ''
+                            }`}
+                          >
+                            {getTipoDisplay(selectedLocal?.tipo_local)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md="6" className="mb-3">
+                      <div className="info-item">
+                        <div className="info-label">
+                          <strong>🟢 Estado:</strong>
+                        </div>
+                        <div className="info-value">
+                          <Badge 
+                            color={selectedLocal?.estatus === 'Activo' ? "success" : "secondary"}
+                            style={{ fontSize: '12px', padding: '6px 10px' }}
+                          >
+                            {selectedLocal?.estatus}
+                          </Badge>
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                  
+
+                </div>
+
+
+
+                {/* Acceso a Evaluación */}
+                <div className="mb-4">
+                  <h5 className="text-info mb-3">
+                    <FaQrcode className="mr-2" />
+                    Acceso a Evaluación
+                  </h5>
+                  
+                  <div className="evaluation-access-card">
+                    <div className="text-center mb-3">
+                      <p className="text-muted mb-2">
+                        Haz clic en el botón para abrir la página de evaluación de este local
+                      </p>
                     </div>
-                  )}
-                </FormGroup>
-              </Col>
-            </Row>
-            <Row>
-                             <Col md="6">
-                 <FormGroup>
-                   <Label for="tipo_local" style={{ 
-                     display: 'block',
-                     marginBottom: '8px',
-                     fontSize: '14px',
-                     fontWeight: '600',
-                     color: '#495057',
-                     lineHeight: '1.2'
-                   }}>
-                     Tipo de Local *
-                   </Label>
-                   <Input
-                     type="select"
-                     name="tipo_local"
-                     id="tipo_local"
-                     value={formData.tipo_local}
-                     onChange={handleInputChange}
-                     disabled={modalMode === "view"}
-                     required
-                     style={{
-                       width: '100%',
-                       marginTop: '0',
-                       background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                       border: '2px solid #e9ecef',
-                       borderRadius: '12px',
-                       padding: '12px 16px',
-                       fontSize: '14px',
-                       fontWeight: '500',
-                       color: '#495057',
-                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                       transition: 'all 0.3s ease',
-                       cursor: 'pointer'
-                     }}
-                   >
-                    {tiposLocales.map((tipo) => (
-                      <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
-                        {tipo === 'miscelaneas' ? '🛒 ' : 
-                         tipo === 'alimentos' ? '🍽️ ' : 
-                         tipo === 'taxis' ? '🚕 ' : 
-                         tipo === 'estacionamiento' ? '🅿️ ' : '🏢 '}{getTipoDisplay(tipo)}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </Col>
-                             <Col md="6">
-                 <FormGroup>
-                   <Label for="estatus" style={{ 
-                     display: 'block',
-                     marginBottom: '8px',
-                     fontSize: '14px',
-                     fontWeight: '600',
-                     color: '#495057',
-                     lineHeight: '1.2'
-                   }}>
-                     Estado *
-                   </Label>
-                   <Input
-                     type="select"
-                     name="estatus"
-                     id="estatus"
-                     value={formData.estatus}
-                     onChange={handleInputChange}
-                     disabled={modalMode === "view"}
-                     required
-                     style={{
-                       width: '100%',
-                       marginTop: '0',
-                       background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                       border: '2px solid #e9ecef',
-                       borderRadius: '12px',
-                       padding: '12px 16px',
-                       fontSize: '14px',
-                       fontWeight: '500',
-                       color: '#495057',
-                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                       transition: 'all 0.3s ease',
-                       cursor: 'pointer'
-                     }}
-                   >
-                    {estadosLocales.map((estado) => (
-                      <option key={estado} value={estado} style={{ fontWeight: '500' }}>
-                        {estado === 'Activo' ? '🟢 ' : '🔴 '}{estado}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </Col>
-            </Row>
+                    
+                    <div className="text-center">
+                      <Button
+                        color="primary"
+                        size="lg"
+                        onClick={() => handleOpenEvaluation(selectedLocal)}
+                        style={{
+                          background: 'linear-gradient(135deg, #5A0C62 0%, #DC017F 100%)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '15px 30px',
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          boxShadow: '0 4px 15px rgba(90, 12, 98, 0.3)',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 6px 20px rgba(90, 12, 98, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 4px 15px rgba(90, 12, 98, 0.3)';
+                        }}
+                      >
+                        📝 Abrir Página de Evaluación
+                      </Button>
+                    </div>
+                    
+                    <div className="text-center mt-3">
+                      <small className="text-muted">
+                        La página se abrirá en una nueva pestaña
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Formulario normal para crear/editar
+              <>
+                <Row>
+                  <Col md="12">
+                    <FormGroup>
+                      <Label for="nombre">Nombre del Local *</Label>
+                      <Input
+                        type="text"
+                        name="nombre"
+                        id="nombre"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        required
+                        invalid={nombreError}
+                        style={{
+                          borderColor: nombreError ? '#dc3545' : '#e9ecef',
+                          boxShadow: nombreError ? '0 0 0 0.2rem rgba(220, 53, 69, 0.25)' : '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease'
+                        }}
+                      />
+                      {nombreError && (
+                        <div className="invalid-feedback d-block">
+                          El nombre del local es obligatorio y debe tener al menos 3 caracteres.
+                        </div>
+                      )}
+                    </FormGroup>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <Label for="tipo_local" style={{ 
+                        display: 'block',
+                        marginBottom: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#495057',
+                        lineHeight: '1.2'
+                      }}>
+                        Tipo de Local *
+                      </Label>
+                      <Input
+                        type="select"
+                        name="tipo_local"
+                        id="tipo_local"
+                        value={formData.tipo_local}
+                        onChange={handleInputChange}
+                        required
+                        style={{
+                          width: '100%',
+                          marginTop: '0',
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {tiposLocales.map((tipo) => (
+                          <option key={tipo} value={tipo} style={{ fontWeight: '500' }}>
+                            {tipo === 'miscelaneas' ? '🛒 ' : 
+                             tipo === 'alimentos' ? '🍽️ ' : 
+                             tipo === 'taxis' ? '🚕 ' : 
+                             tipo === 'estacionamiento' ? '🅿️ ' : '🏢 '}{getTipoDisplay(tipo)}
+                          </option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+                  </Col>
+                  <Col md="6">
+                    <FormGroup>
+                      <Label for="estatus" style={{ 
+                        display: 'block',
+                        marginBottom: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#495057',
+                        lineHeight: '1.2'
+                      }}>
+                        Estado *
+                      </Label>
+                      <Input
+                        type="select"
+                        name="estatus"
+                        id="estatus"
+                        value={formData.estatus}
+                        onChange={handleInputChange}
+                        required
+                        style={{
+                          width: '100%',
+                          marginTop: '0',
+                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                          border: '2px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#495057',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {estadosLocales.map((estado) => (
+                          <option key={estado} value={estado} style={{ fontWeight: '500' }}>
+                            {estado === 'Activo' ? '🟢 ' : '🔴 '}{estado}
+                          </option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button color="secondary" onClick={toggleModal} disabled={submitting}>
-              Cancelar
-            </Button>
             {modalMode !== "view" && (
-              <Button color="primary" type="submit" disabled={submitting}>
-                {submitting ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    {modalMode === "create" ? "Creando..." : "Guardando..."}
-                  </>
-                ) : (
-                  modalMode === "create" ? "Crear" : "Guardar"
-                )}
-              </Button>
+              <>
+                <Button color="secondary" onClick={toggleModal} disabled={submitting}>
+                  Cancelar
+                </Button>
+                <Button color="primary" type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      {modalMode === "create" ? "Creando..." : "Guardando..."}
+                    </>
+                  ) : (
+                    modalMode === "create" ? "Crear" : "Guardar"
+                  )}
+                </Button>
+              </>
             )}
           </ModalFooter>
         </Form>

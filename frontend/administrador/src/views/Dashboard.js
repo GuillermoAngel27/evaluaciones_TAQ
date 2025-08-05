@@ -311,7 +311,8 @@ const Dashboard = () => {
     },
     scales: {
       y: {
-        beginAtZero: true,
+        beginAtZero: false,
+        min: 1,
         max: 5,
         grid: {
           color: "rgba(0,0,0,0.05)",
@@ -319,7 +320,8 @@ const Dashboard = () => {
         ticks: {
           callback: function(value) {
             return Math.round(value);
-          }
+          },
+          stepSize: 1
         }
       },
       x: {

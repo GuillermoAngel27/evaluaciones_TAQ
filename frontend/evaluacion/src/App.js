@@ -8,7 +8,7 @@ function getTokenFromPathname() {
   // Patrón: /evaluar/TOKEN o /TOKEN
   const patterns = [
     /^\/evaluar\/(.+)$/,  // /evaluar/TOKEN
-    /^\/([^\/]+)$/        // /TOKEN (pero no /evaluar)
+    /^\/([^/]+)$/        // /TOKEN (pero no /evaluar)
   ];
   
   for (const pattern of patterns) {
