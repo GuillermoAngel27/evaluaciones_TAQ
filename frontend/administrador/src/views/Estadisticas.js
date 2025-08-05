@@ -104,6 +104,81 @@ const Estadisticas = () => {
         font-size: 10px !important;
         font-weight: 500 !important;
       }
+
+      /* Estilos modernos para el contador de locales */
+      .contador-locales {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 18px !important;
+        border-radius: 20px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        min-width: 120px !important;
+        text-align: center !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+      }
+
+      .contador-locales::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: -100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+        transition: left 0.5s !important;
+      }
+
+      .contador-locales:hover {
+        transform: translateY(-3px) scale(1.05) !important;
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4) !important;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+      }
+
+      .contador-locales:hover::before {
+        left: 100% !important;
+      }
+
+      .contador-locales .numero {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        margin-right: 8px !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+      }
+
+      .contador-locales .texto {
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        opacity: 0.9 !important;
+      }
+
+      /* Animación de pulso para el contador */
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        50% {
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        100% {
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+      }
+
+      .contador-locales {
+        animation: pulse 2s infinite !important;
+      }
+
+      .contador-locales:hover {
+        animation: none !important;
+      }
     `;
     document.head.appendChild(style);
     
@@ -554,20 +629,10 @@ const Estadisticas = () => {
                   <Col xs="12" sm="6" md="6" lg="3" xl="3">
                     <FormGroup>
                       <div className="d-flex justify-content-center justify-content-sm-end">
-                        <Badge 
-                          color="info" 
-                          className="px-3 py-2"
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
-                            border: 'none',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}
-                        >
-                          {filteredLocales.length} locales
-                        </Badge>
+                        <div className="contador-locales">
+                          <span className="numero">{filteredLocales.length}</span>
+                          <span className="texto">Locales</span>
+                        </div>
                       </div>
                     </FormGroup>
                   </Col>
