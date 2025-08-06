@@ -52,3 +52,23 @@ CREATE TABLE IF NOT EXISTS turnos (
   hra_fin VARCHAR(8) NOT NULL,
   PRIMARY KEY (turno, hra_ini)
 ); 
+
+-- Crear tabla de blacklist de tokens
+CREATE TABLE IF NOT EXISTS token_blacklist (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  user_id INT(11) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  reason ENUM('logout', 'security', 'expired') DEFAULT 'logout',
+  
+  -- Clave foránea para integridad referencial
+  FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- Insertar los turnos según los rangos especificados
+INSERT INTO turnos (turno, hra_ini, hra_fin) VALUES
+(1, '05:30:01', '13:30:00'),
+(2, '13:30:01', '21:00:00'),
+(3, '00:00:00', '05:30:00'),
+(4, '21:00:01', '23:59:59');
