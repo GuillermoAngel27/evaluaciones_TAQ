@@ -45,7 +45,7 @@ export default function EvaluacionPage({ token }) {
   const cargarPreguntas = async (tipoLocal) => {
     
     try {
-      const url = `http://localhost:4000/api/evaluaciones/preguntas/${encodeURIComponent(tipoLocal)}`;
+      const url = `${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/evaluaciones/preguntas/${encodeURIComponent(tipoLocal)}`;
       
       const response = await fetch(url);
       
@@ -111,7 +111,7 @@ export default function EvaluacionPage({ token }) {
   // Función para obtener el turno actual
   const obtenerTurnoActual = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/evaluaciones/turno-actual');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/evaluaciones/turno-actual`);
       if (response.ok) {
         const data = await response.json();
         setTurnoActual(data.turno);
@@ -130,7 +130,7 @@ export default function EvaluacionPage({ token }) {
     obtenerTurnoActual();
     
     // Cargar información del local por token_publico (ruta pública)
-    fetch(`http://localhost:4000/api/locales/public/token/${tokenPublico}`)
+          fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/locales/public/token/${tokenPublico}`)
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
@@ -187,7 +187,7 @@ export default function EvaluacionPage({ token }) {
   useEffect(() => {
     if (!local || !local.id || localInactivo || !localCargado) return;
     
-    fetch("http://localhost:4000/api/tokens/verificar-evaluacion", {
+          fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/tokens/verificar-evaluacion`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ local_id: parseInt(local.id), device_id: deviceId })
@@ -224,7 +224,7 @@ export default function EvaluacionPage({ token }) {
         tokenParaUsar = tokenInfo.token;
       } else {
         // Generar token si no existe
-        const response = await fetch("http://localhost:4000/api/tokens/generar", {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/tokens/generar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ local_id: parseInt(local.id), device_id: deviceId })
@@ -235,7 +235,7 @@ export default function EvaluacionPage({ token }) {
         guardarTokenLocalStorage(local.id, { token: data.token, local_id: data.local_id, usado: false });
       }
       
-      const response = await fetch("http://localhost:4000/api/evaluaciones/", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/evaluaciones/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -253,7 +253,7 @@ export default function EvaluacionPage({ token }) {
         throw new Error(errorData.error || 'Error al enviar evaluación');
       }
       
-      await fetch("http://localhost:4000/api/tokens/usar", {
+              await fetch(`${process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api'}/tokens/usar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: tokenParaUsar, device_id: deviceId })

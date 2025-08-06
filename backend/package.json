@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node start_backend.js",
     "dev": "node start_backend.js",
+    "production": "NODE_ENV=production node start_backend.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test-admin": "node test_admin_user.js"
   },
