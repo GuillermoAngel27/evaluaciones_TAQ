@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { authAPI } from '../utils/api';
 
 const AuthContext = createContext();
@@ -16,62 +16,86 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const verificationTimeoutRef = useRef(null);
+  const lastVerificationRef = useRef(0);
 
   // Verificar si el usuario está autenticado al cargar la aplicación
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        try {
-          const response = await authAPI.verify();
-          setUser(response.data.user);
-        } catch (error) {
-          localStorage.removeItem('authToken');
-          setUser(null);
+      try {
+        // Evitar verificaciones múltiples en un corto período
+        const now = Date.now();
+        if (now - lastVerificationRef.current < 2000) {
+          // Si la última verificación fue hace menos de 2 segundos, esperar
+          if (verificationTimeoutRef.current) {
+            clearTimeout(verificationTimeoutRef.current);
+          }
+          verificationTimeoutRef.current = setTimeout(checkAuth, 2000);
+          return;
         }
-      } else {
+        
+        lastVerificationRef.current = now;
+        
+        // Verificar autenticación usando cookies (se envían automáticamente)
+        const response = await authAPI.verify();
+        setUser(response.data.user);
+      } catch (error) {
+        // Si hay error, el usuario no está autenticado
         setUser(null);
+      } finally {
+        // Marcar como inicializado después de verificar
+        setLoading(false);
+        setInitialized(true);
       }
-      // Marcar como inicializado después de verificar
-      setLoading(false);
-      setInitialized(true);
     };
 
     // Ejecutar verificación inmediatamente
     checkAuth();
+
+    // Cleanup function
+    return () => {
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Función de login
   const login = async (credentials) => {
     try {
       setError(null);
+      setLoading(true);
       
       // Usar la API real de autenticación
       const response = await authAPI.login(credentials);
-      const { token, user } = response.data;
+      const { user } = response.data; // El token se maneja automáticamente en cookies
       
-      localStorage.setItem('authToken', token);
       setUser(user);
+      setLoading(false);
       
       return { success: true };
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Error al iniciar sesión';
       setError(errorMessage);
+      setLoading(false);
       return { success: false, error: errorMessage };
     }
   };
 
   // Función de logout
-  const logout = () => {
-    // Limpiar inmediatamente sin esperar respuesta del servidor
-    localStorage.removeItem('authToken');
-    setUser(null);
-    setError(null);
-    
-    // Opcional: hacer la llamada al servidor en segundo plano sin esperar
-    authAPI.logout().catch(error => {
+  const logout = async () => {
+    try {
+      setLoading(true);
+      // Hacer logout en el servidor (esto también limpia la cookie)
+      await authAPI.logout();
+    } catch (error) {
       // Ignorar errores de logout silenciosamente
-    });
+    } finally {
+      // Limpiar estado local
+      setUser(null);
+      setError(null);
+      setLoading(false);
+    }
   };
 
   // Función para cambiar contraseña

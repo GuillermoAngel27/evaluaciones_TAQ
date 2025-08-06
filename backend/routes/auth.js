@@ -2,24 +2,117 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const passwordComplexity = require('joi-password-complexity');
 const db = require('../db');
+const { 
+  logFailedLogin, 
+  logSuccessfulLogin, 
+  logPasswordChange, 
+  logFailedPasswordChange,
+  logRateLimitExceeded,
+  logTokenBlacklisted,
+  logInvalidTokenAccess,
+  logCookieSecurityEvent,
+  logLogout,
+  logSessionExpired
+} = require('../utils/securityLogger');
+const { 
+  isTokenBlacklisted, 
+  blacklistToken, 
+  invalidateAllUserTokens, 
+  getBlacklistStats 
+} = require('../utils/tokenBlacklist');
+const { setAuthCookie, clearAuthCookie } = require('../config/cookies');
+
+// Configuración de rate limiting para endpoints de autenticación
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 6, // máximo 6 intentos
+  message: { 
+    error: 'Demasiados intentos de login. Intente nuevamente en 15 minutos.',
+    retryAfter: '15 minutos'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logRateLimitExceeded('/auth/login', req.ip, req.get('User-Agent'));
+    res.status(429).json({
+      error: 'Demasiados intentos de login. Intente nuevamente en 15 minutos.',
+      retryAfter: '15 minutos'
+    });
+  }
+});
+
+// Configuración de rate limiting para cambio de contraseña
+const passwordChangeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 3, // máximo 3 intentos
+  message: { 
+    error: 'Demasiados intentos de cambio de contraseña. Intente nuevamente en 1 hora.',
+    retryAfter: '1 hora'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logRateLimitExceeded('/auth/password', req.ip, req.get('User-Agent'));
+    res.status(429).json({
+      error: 'Demasiados intentos de cambio de contraseña. Intente nuevamente en 1 hora.',
+      retryAfter: '1 hora'
+    });
+  }
+});
+
+// Configuración de validación de complejidad de contraseñas
+const passwordSchema = passwordComplexity({
+  min: 8,
+  max: 30,
+  lowerCase: 1,
+  upperCase: 1,
+  numeric: 1,
+  symbol: 1,
+  requirementCount: 4
+});
 
 // Middleware para verificar token JWT
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+const authenticateToken = async (req, res, next) => {
+  // Obtener token de cookie en lugar de header
+  const token = req.cookies.authToken;
 
   if (!token) {
+    logInvalidTokenAccess(req.ip, req.get('User-Agent'), 'missing');
     return res.status(401).json({ error: 'Token de acceso requerido' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key', (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Token inválido o expirado' });
+  try {
+    // Verificar si token está en blacklist (con manejo de errores)
+    let isBlacklisted = false;
+    try {
+      isBlacklisted = await isTokenBlacklisted(token);
+    } catch (blacklistError) {
+      // Si hay error al verificar blacklist, continuar sin verificar
+      console.warn('Error verificando blacklist:', blacklistError.message);
+      isBlacklisted = false;
     }
-    req.user = user;
-    next();
-  });
+    
+    if (isBlacklisted) {
+      logInvalidTokenAccess(req.ip, req.get('User-Agent'), 'blacklisted');
+      return res.status(401).json({ error: 'Token invalidado' });
+    }
+
+    // Verificar JWT
+    jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key', (err, user) => {
+      if (err) {
+        logInvalidTokenAccess(req.ip, req.get('User-Agent'), 'expired');
+        return res.status(403).json({ error: 'Token inválido o expirado' });
+      }
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    console.error('Error en autenticación:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
 };
 
 // Middleware para verificar roles específicos
@@ -57,8 +150,71 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
+// GET /api/auth/test-cookies (para debugging)
+router.get('/test-cookies', (req, res) => {
+  const cookies = req.cookies;
+  const headers = req.headers;
+  
+  res.json({
+    cookies: cookies,
+    hasAuthToken: !!cookies.authToken,
+    userAgent: headers['user-agent'],
+    origin: headers.origin,
+    referer: headers.referer,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// GET /api/auth/test-auth (para debugging)
+router.get('/test-auth', (req, res) => {
+  const token = req.cookies.authToken;
+  
+  if (!token) {
+    return res.json({
+      authenticated: false,
+      reason: 'no_token',
+      cookies: req.cookies
+    });
+  }
+
+  try {
+    // Verificar JWT sin verificar blacklist
+    jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key', (err, user) => {
+      if (err) {
+        return res.json({
+          authenticated: false,
+          reason: 'invalid_token',
+          error: err.message,
+          cookies: req.cookies
+        });
+      }
+      
+      res.json({
+        authenticated: true,
+        user: {
+          userId: user.userId,
+          username: user.username,
+          rol: user.rol
+        },
+        token_info: {
+          has_token: !!token,
+          token_length: token.length
+        },
+        cookies: req.cookies
+      });
+    });
+  } catch (error) {
+    res.json({
+      authenticated: false,
+      reason: 'verification_error',
+      error: error.message,
+      cookies: req.cookies
+    });
+  }
+});
+
+// POST /api/auth/test-login (para debugging)
+router.post('/test-login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -100,6 +256,84 @@ router.post('/login', async (req, res) => {
           { expiresIn: '24h' }
         );
 
+        // Configurar cookie segura
+        setAuthCookie(res, token);
+
+        // Log de login exitoso
+        logSuccessfulLogin(username, req.ip, req.get('User-Agent'));
+
+        // Respuesta exitosa (sin token en JSON)
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            nombre: user.nombre,
+            apellido: user.apellido,
+            rol: user.rol
+          },
+          message: 'Login exitoso (test)',
+          cookieSet: true
+        });
+
+      } catch (bcryptError) {
+        return res.status(500).json({ error: 'Error interno del servidor' });
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/auth/login
+router.post('/login', loginLimiter, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username y password son requeridos' });
+    }
+
+    // Buscar usuario en la base de datos
+    const sql = 'SELECT * FROM usuarios WHERE username = ? AND activo = 1';
+    db.query(sql, [username], async (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error interno del servidor' });
+      }
+
+      if (results.length === 0) {
+        logFailedLogin(username, req.ip, req.get('User-Agent'));
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      }
+
+      const user = results[0];
+
+      // Verificar contraseña
+      try {
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        
+        if (!isValidPassword) {
+          logFailedLogin(username, req.ip, req.get('User-Agent'));
+          return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign(
+          {
+            userId: user.id,
+            username: user.username,
+            rol: user.rol,
+            nombre: user.nombre,
+            apellido: user.apellido
+          },
+          process.env.JWT_SECRET || 'dev-secret-key',
+          { expiresIn: '24h' }
+        );
+
+        // Configurar cookie segura
+        setAuthCookie(res, token);
+
         // Actualizar fecha de última actualización
         const updateSql = 'UPDATE usuarios SET fecha_actualizacion = NOW() WHERE id = ?';
         db.query(updateSql, [user.id], (updateErr) => {
@@ -108,10 +342,20 @@ router.post('/login', async (req, res) => {
           }
         });
 
-        // Respuesta exitosa
+        // Log de login exitoso
+        logSuccessfulLogin(username, req.ip, req.get('User-Agent'));
+
+        // Log de cookie creada
+        logCookieSecurityEvent('cookie_created', {
+          userId: user.id,
+          username: user.username,
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        });
+
+        // Respuesta exitosa (sin token en JSON)
         res.json({
           success: true,
-          token,
           user: {
             id: user.id,
             username: user.username,
@@ -133,16 +377,43 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', (req, res) => {
+router.post('/logout', authenticateToken, async (req, res) => {
   try {
-    // El logout no requiere autenticación ya que el cliente ya limpió el token
-    // En una implementación más robusta, podrías invalidar el token en el servidor
-    // Por ahora, solo respondemos exitosamente
+    const token = req.cookies.authToken;
+    
+    if (token) {
+      try {
+        // Agregar token a blacklist
+        await blacklistToken(token, req.user.userId, 'logout');
+        
+        // Log del evento de blacklist
+        logTokenBlacklisted(req.user.userId, req.user.username, req.ip, req.get('User-Agent'), 'logout');
+      } catch (blacklistError) {
+        // Si hay error al agregar a blacklist, continuar con el logout
+        console.warn('Error agregando token a blacklist:', blacklistError.message);
+      }
+    }
+    
+    // Eliminar cookie
+    clearAuthCookie(res);
+    
+    // Log del logout
+    logLogout(req.user.userId, req.user.username, req.ip, req.get('User-Agent'));
+    
+    // Log de cookie eliminada
+    logCookieSecurityEvent('cookie_cleared', {
+      userId: req.user.userId,
+      username: req.user.username,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    
     res.json({
       success: true,
       message: 'Logout exitoso'
     });
   } catch (error) {
+    console.error('Error en logout:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -202,12 +473,30 @@ router.get('/profile', authenticateToken, (req, res) => {
 });
 
 // PUT /api/auth/password
-router.put('/password', authenticateToken, async (req, res) => {
+router.put('/password', authenticateToken, passwordChangeLimiter, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Contraseña actual y nueva contraseña son requeridas' });
+    }
+
+    // Validar complejidad de la nueva contraseña
+    try {
+      await passwordSchema.validateAsync(newPassword);
+    } catch (validationError) {
+      return res.status(400).json({ 
+        error: 'La nueva contraseña no cumple los requisitos de seguridad',
+        requirements: {
+          minLength: 8,
+          maxLength: 30,
+          requireLowercase: true,
+          requireUppercase: true,
+          requireNumbers: true,
+          requireSymbols: true
+        },
+        details: validationError.message
+      });
     }
 
     // Verificar contraseña actual
@@ -224,6 +513,7 @@ router.put('/password', authenticateToken, async (req, res) => {
       const isValidCurrentPassword = await bcrypt.compare(currentPassword, results[0].password);
       
       if (!isValidCurrentPassword) {
+        logFailedPasswordChange(req.user.userId, req.ip, req.get('User-Agent'), 'current_password_incorrect');
         return res.status(400).json({ error: 'Contraseña actual incorrecta' });
       }
 
@@ -237,6 +527,9 @@ router.put('/password', authenticateToken, async (req, res) => {
           return res.status(500).json({ error: 'Error interno del servidor' });
         }
 
+        // Log de cambio de contraseña exitoso
+        logPasswordChange(req.user.userId, req.ip, req.get('User-Agent'));
+
         res.json({
           success: true,
           message: 'Contraseña actualizada exitosamente'
@@ -245,6 +538,47 @@ router.put('/password', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/auth/invalidate-all-tokens (solo administradores)
+router.post('/invalidate-all-tokens', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { userId, reason = 'security' } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId es requerido' });
+    }
+    
+    // Invalidar todos los tokens del usuario
+    await invalidateAllUserTokens(userId, reason);
+    
+    // Log del evento
+    logTokenBlacklisted(userId, 'admin_action', req.ip, req.get('User-Agent'), reason);
+    
+    res.json({
+      success: true,
+      message: `Todos los tokens del usuario ${userId} han sido invalidados`,
+      reason: reason
+    });
+  } catch (error) {
+    console.error('Error invalidando tokens:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/auth/blacklist-stats (solo administradores)
+router.get('/blacklist-stats', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const stats = await getBlacklistStats();
+    
+    res.json({
+      success: true,
+      stats: stats
+    });
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

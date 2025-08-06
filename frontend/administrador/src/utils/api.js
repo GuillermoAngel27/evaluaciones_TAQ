@@ -4,18 +4,16 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:4000/api',
   timeout: 10000,
+  withCredentials: true, // Importante: envía cookies automáticamente
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor para agregar token de autenticación
+// Interceptor para agregar token de autenticación (ya no necesario con cookies)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Las cookies se envían automáticamente con withCredentials: true
     return config;
   },
   (error) => {
@@ -29,10 +27,18 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Solo redirigir si no estamos en la página de login y es un error 401
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('authToken');
-      window.location.href = '/auth/login';
+      const currentPath = window.location.pathname;
+      const isLoginPage = currentPath.includes('/l/login') || currentPath.includes('/login');
+      
+      // No redirigir si ya estamos en la página de login
+      if (!isLoginPage) {
+        // Usar setTimeout para evitar redirecciones múltiples
+        setTimeout(() => {
+          window.location.href = '/l/login';
+        }, 100);
+      }
     }
     return Promise.reject(error);
   }
