@@ -14,7 +14,10 @@
     "start:dev": "concurrently \"npm run start:backend\" \"npm run start:admin\" \"npm run start:evaluacion\"",
     "build:admin": "cd frontend/administrador && npm run build",
     "build:evaluacion": "cd frontend/evaluacion && npm run build",
-    "build:all": "npm run build:admin && npm run build:evaluacion"
+    "build:all": "npm run build:admin && npm run build:evaluacion",
+    "verify": "node verificar-instalacion.js",
+    "prepare:production": "bash install-production.sh",
+    "prepare:production:win": "install-production.bat"
   },
   "keywords": [
     "evaluaciones",
