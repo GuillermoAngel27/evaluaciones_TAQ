@@ -11,6 +11,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Permitir archivos de ejemplo de configuración
+!env.ejemplo
+!.htaccess
+
 # Build outputs
 build/
 dist/
