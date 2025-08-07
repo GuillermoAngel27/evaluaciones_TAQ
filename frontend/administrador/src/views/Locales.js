@@ -758,7 +758,7 @@ const Locales = () => {
 
   // Función para generar URL de evaluación
   const generateEvaluationUrl = (local) => {
-    return `http://localhost:3001/${local.token_publico || 'default-token'}`;
+    return `https://evaluacion.taqro.com.mx/${local.token_publico || 'default-token'}`;
   };
 
   // Función para abrir página de evaluación

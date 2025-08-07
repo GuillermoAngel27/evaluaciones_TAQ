@@ -100,12 +100,12 @@ PORT=3000
 NODE_ENV=production
 
 # Configuración de CORS (URLs de producción)
-CORS_ORIGIN=https://api.tudominio.com,https://admin.tudominio.com,https://evaluacion.tudominio.com
+CORS_ORIGIN=https://api.taqro.com.mx,https://admine.taqro.com.mx,https://evaluacion.taqro.com.mx
 
 # Configuración de cookies para producción
 COOKIE_SECURE=true
 COOKIE_SAMESITE=lax
-COOKIE_DOMAIN=.tudominio.com
+COOKIE_DOMAIN=.taqro.com.mx
 COOKIE_HTTPONLY=true
 COOKIE_MAX_AGE=86400000
 
@@ -130,9 +130,9 @@ cat > dist/README_CPANEL.md << EOF
 3. **Configurar** el archivo \`api/.env\` con tus credenciales
 4. **Crear aplicación Node.js** apuntando a \`api/start_backend.js\`
 5. **Crear subdominios**:
-   - api.tudominio.com → public_html/api
-   - admin.tudominio.com → public_html/admin
-   - evaluacion.tudominio.com → public_html/evaluacion
+   - api.taqro.com.mx → public_html/api
+   - admine.taqro.com.mx → public_html/admin
+   - evaluacion.taqro.com.mx → public_html/evaluacion
 6. **Instalar SSL** para cada subdominio
 7. **Reiniciar** la aplicación Node.js
 
@@ -143,9 +143,9 @@ cat > dist/README_CPANEL.md << EOF
 ⚠️ **IMPORTANTE**: Cambia las credenciales después del primer login.
 
 ## 📞 URLs finales:
-- API: https://api.tudominio.com
-- Admin: https://admin.tudominio.com
-- Evaluación: https://evaluacion.tudominio.com
+- API: https://api.taqro.com.mx
+- Admin: https://admine.taqro.com.mx
+- Evaluación: https://evaluacion.taqro.com.mx
 EOF
 
 echo ""

@@ -10,7 +10,7 @@ export const generateLocalQRPDF = async (localName, tokenPublico) => {
     const pageHeight = pdf.internal.pageSize.getHeight();
 
     // URL para la evaluación - formato corto
-    const evaluationUrl = `http://localhost:3001/${tokenPublico}`;
+    const evaluationUrl = `https://evaluacion.taqro.com.mx/${tokenPublico}`;
     
     // Generar QR code como data URL
     const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {
@@ -105,7 +105,7 @@ export const generateBulkQRPDF = async (locales) => {
 
     for (let i = 0; i < locales.length; i++) {
       const local = locales[i];
-      const evaluationUrl = `http://localhost:3001/${local.token_publico}`;
+      const evaluationUrl = `https://evaluacion.taqro.com.mx/${local.token_publico}`;
       
       // Generar QR para cada local
       const qrDataUrl = await QRCode.toDataURL(evaluationUrl, {

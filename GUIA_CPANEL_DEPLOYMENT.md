@@ -6,9 +6,9 @@
 - **Node.js** habilitado (versión 16 o superior)
 - **MySQL** habilitado
 - **Subdominios** configurados:
-  - `api.tudominio.com` (para el backend)
-  - `admin.tudominio.com` (para el panel de administración)
-  - `evaluacion.tudominio.com` (para las evaluaciones)
+  - `api.taqro.com.mx` (para el backend)
+  - `admine.taqro.com.mx` (para el panel de administración)
+  - `evaluacion.taqro.com.mx` (para las evaluaciones)
 
 ## 🔧 Paso 1: Preparar el Proyecto Localmente
 
@@ -60,12 +60,12 @@ PORT=3000
 NODE_ENV=production
 
 # Configuración de CORS (URLs de producción)
-CORS_ORIGIN=https://api.tudominio.com,https://admin.tudominio.com,https://evaluacion.tudominio.com
+CORS_ORIGIN=https://api.taqro.com.mx,https://admine.taqro.com.mx,https://evaluacion.taqro.com.mx
 
 # Configuración de cookies para producción
 COOKIE_SECURE=true
 COOKIE_SAMESITE=lax
-COOKIE_DOMAIN=.tudominio.com
+COOKIE_DOMAIN=.taqro.com.mx
 COOKIE_HTTPONLY=true
 COOKIE_MAX_AGE=86400000
 
@@ -78,7 +78,7 @@ En `frontend/administrador/src/config/` crea `config.js`:
 
 ```javascript
 const config = {
-  API_URL: 'https://api.tudominio.com',
+  API_URL: 'https://api.taqro.com.mx/api',
   APP_NAME: 'Sistema de Evaluaciones TAQ'
 };
 
@@ -90,7 +90,7 @@ En `frontend/evaluacion/src/config/` crea `config.js`:
 
 ```javascript
 const config = {
-  API_URL: 'https://api.tudominio.com',
+  API_URL: 'https://api.taqro.com.mx/api',
   APP_NAME: 'Evaluación TAQ'
 };
 
@@ -125,7 +125,7 @@ public_html/
    - **Node.js version**: 16.x o superior
    - **Application mode**: Production
    - **Application root**: `/home/tuusuario/public_html/api`
-   - **Application URL**: `https://api.tudominio.com`
+   - **Application URL**: `https://api.taqro.com.mx`
    - **Application startup file**: `start_backend.js`
    - **Passenger port**: 3000
 
@@ -142,13 +142,13 @@ npm install --production
 ### 6.1 Crear subdominios
 1. Ve a **Subdomains** en cPanel
 2. Crea los siguientes subdominios:
-   - `api.tudominio.com` → `public_html/api`
-   - `admin.tudominio.com` → `public_html/admin`
-   - `evaluacion.tudominio.com` → `public_html/evaluacion`
+   - `api.taqro.com.mx` → `public_html/api`
+   - `admine.taqro.com.mx` → `public_html/admin`
+   - `evaluacion.taqro.com.mx` → `public_html/evaluacion`
 
 ### 6.2 Configurar .htaccess para React Router
 
-**Para admin.tudominio.com** (crear `public_html/admin/.htaccess`):
+**Para admine.taqro.com.mx** (crear `public_html/admin/.htaccess`):
 ```apache
 Options -MultiViews
 RewriteEngine On
@@ -156,7 +156,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.html [QSA,L]
 ```
 
-**Para evaluacion.tudominio.com** (crear `public_html/evaluacion/.htaccess`):
+**Para evaluacion.taqro.com.mx** (crear `public_html/evaluacion/.htaccess`):
 ```apache
 Options -MultiViews
 RewriteEngine On
@@ -168,9 +168,9 @@ RewriteRule ^ index.html [QSA,L]
 
 1. Ve a **SSL/TLS** en cPanel
 2. Instala certificados SSL para cada subdominio:
-   - `api.tudominio.com`
-   - `admin.tudominio.com`
-   - `evaluacion.tudominio.com`
+   - `api.taqro.com.mx`
+   - `admine.taqro.com.mx`
+   - `evaluacion.taqro.com.mx`
 
 ## 🚀 Paso 8: Iniciar la Aplicación
 
@@ -180,9 +180,9 @@ RewriteRule ^ index.html [QSA,L]
 3. Haz clic en **Restart**
 
 ### 8.2 Verificar que todo funcione
-1. **API**: `https://api.tudominio.com/health`
-2. **Admin**: `https://admin.tudominio.com`
-3. **Evaluación**: `https://evaluacion.tudominio.com`
+1. **API**: `https://api.taqro.com.mx/health`
+2. **Admin**: `https://admine.taqro.com.mx`
+3. **Evaluación**: `https://evaluacion.taqro.com.mx`
 
 ## 🔧 Paso 9: Configuraciones Adicionales
 

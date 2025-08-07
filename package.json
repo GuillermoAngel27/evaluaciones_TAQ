@@ -17,7 +17,8 @@
     "build:all": "npm run build:admin && npm run build:evaluacion",
     "verify": "node verificar-instalacion.js",
     "prepare:production": "bash install-production.sh",
-    "prepare:production:win": "install-production.bat"
+    "prepare:production:win": "install-production.bat",
+    "prepare:manual": "bash instalacion-manual.sh"
   },
   "keywords": [
     "evaluaciones",

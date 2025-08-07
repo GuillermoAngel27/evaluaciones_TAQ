@@ -37,9 +37,9 @@ npm run prepare:production:win  # Windows
 - Crear archivo `.env` en `public_html/api/` con tus credenciales
 - Crear aplicación Node.js apuntando a `start_backend.js`
 - Crear subdominios:
-  - `api.tudominio.com`
-  - `admin.tudominio.com`
-  - `evaluacion.tudominio.com`
+  - `api.taqro.com.mx`
+  - `admine.taqro.com.mx`
+  - `evaluacion.taqro.com.mx`
 - Instalar SSL para cada subdominio
 
 #### 2.4 Iniciar
@@ -51,9 +51,9 @@ npm run prepare:production:win  # Windows
 - **Contraseña**: `admin2025`
 
 ## 📞 URLs Finales
-- **API**: `https://api.tudominio.com`
-- **Admin**: `https://admin.tudominio.com`
-- **Evaluación**: `https://evaluacion.tudominio.com`
+- **API**: `https://api.taqro.com.mx`
+- **Admin**: `https://admine.taqro.com.mx`
+- **Evaluación**: `https://evaluacion.taqro.com.mx`
 
 ## ⚠️ Importante
 1. Cambia las credenciales admin después del primer login
