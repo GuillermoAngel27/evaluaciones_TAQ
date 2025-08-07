@@ -13,6 +13,18 @@ const ProtectedRoute = ({ children, requireAuth = true }) => {
     hasRedirected.current = false;
   }, [location.pathname]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('ProtectedRoute Debug:', {
+      isAuthenticated,
+      loading,
+      initialized,
+      requireAuth,
+      currentPath: location.pathname,
+      hasRedirected: hasRedirected.current
+    });
+  }, [isAuthenticated, loading, initialized, requireAuth, location.pathname]);
+
   // Mostrar spinner solo si está cargando y no se ha inicializado
   if (loading || !initialized) {
     return <LoadingSpinner text="Verificando autenticación..." />;
@@ -20,12 +32,14 @@ const ProtectedRoute = ({ children, requireAuth = true }) => {
 
   // Si requiere autenticación y no está autenticado, redirigir al login
   if (requireAuth && !isAuthenticated && !hasRedirected.current) {
+    console.log('Redirigiendo a login - usuario no autenticado');
     hasRedirected.current = true;
     return <Navigate to="/l/login" replace state={{ from: location }} />;
   }
 
   // Si no requiere autenticación y está autenticado, redirigir al inicio
   if (!requireAuth && isAuthenticated && !hasRedirected.current) {
+    console.log('Redirigiendo a inicio - usuario ya autenticado');
     hasRedirected.current = true;
     return <Navigate to="/a/inicio" replace />;
   }

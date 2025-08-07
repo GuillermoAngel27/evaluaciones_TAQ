@@ -161,7 +161,18 @@ router.get('/test-cookies', (req, res) => {
     userAgent: headers['user-agent'],
     origin: headers.origin,
     referer: headers.referer,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+      JWT_SECRET: process.env.JWT_SECRET ? 'SET' : 'NOT_SET'
+    },
+    requestInfo: {
+      ip: req.ip,
+      protocol: req.protocol,
+      hostname: req.hostname,
+      url: req.url
+    }
   });
 });
 
@@ -173,7 +184,12 @@ router.get('/test-auth', (req, res) => {
     return res.json({
       authenticated: false,
       reason: 'no_token',
-      cookies: req.cookies
+      cookies: req.cookies,
+      headers: {
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        userAgent: req.headers['user-agent']
+      }
     });
   }
 
@@ -185,7 +201,12 @@ router.get('/test-auth', (req, res) => {
           authenticated: false,
           reason: 'invalid_token',
           error: err.message,
-          cookies: req.cookies
+          cookies: req.cookies,
+          headers: {
+            origin: req.headers.origin,
+            referer: req.headers.referer,
+            userAgent: req.headers['user-agent']
+          }
         });
       }
       
@@ -200,7 +221,12 @@ router.get('/test-auth', (req, res) => {
           has_token: !!token,
           token_length: token.length
         },
-        cookies: req.cookies
+        cookies: req.cookies,
+        headers: {
+          origin: req.headers.origin,
+          referer: req.headers.referer,
+          userAgent: req.headers['user-agent']
+        }
       });
     });
   } catch (error) {
@@ -208,7 +234,12 @@ router.get('/test-auth', (req, res) => {
       authenticated: false,
       reason: 'verification_error',
       error: error.message,
-      cookies: req.cookies
+      cookies: req.cookies,
+      headers: {
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        userAgent: req.headers['user-agent']
+      }
     });
   }
 });

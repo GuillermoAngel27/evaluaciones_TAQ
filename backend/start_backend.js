@@ -30,13 +30,55 @@ app.use(helmet.contentSecurityPolicy({
   },
 }));
 
+
+
 // Configuración de CORS
-app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['https://evaluaciones.taqro.com.mx'],
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como aplicaciones móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    // Usar CORS_ORIGIN del .env o fallback a dominios por defecto
+    const corsOrigin = process.env.CORS_ORIGIN;
+    let allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173'
+    ];
+    
+    if (corsOrigin) {
+      // Parsear la variable CORS_ORIGIN que puede contener múltiples dominios separados por coma
+      const envOrigins = corsOrigin.split(',').map(domain => domain.trim());
+      allowedOrigins = [...allowedOrigins, ...envOrigins];
+    } else {
+      // Fallback a dominios por defecto si no hay CORS_ORIGIN
+      allowedOrigins = [
+        'https://evaluaciones.taqro.com.mx', 
+        'https://admine.taqro.com.mx', 
+        'https://evaluacion.taqro.com.mx',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:5173'
+      ];
+    }
+    
+    console.log('CORS allowed origins:', allowedOrigins);
+    console.log('Request origin:', origin);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -175,12 +217,13 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   // Conexión del servidor establecida exitosamente
   console.log(`🚀 Servidor iniciado en el puerto ${PORT}`);
-  console.log(`📡 API disponible en: http://localhost:${PORT}`);
+  console.log(`📡 API disponible en: http://0.0.0.0:${PORT}`);
+  console.log(`🌐 Accesible desde: http://localhost:${PORT}`);
   
   // Configurar limpieza automática de tokens
   setupTokenCleanup();

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de Autenticación - TAQ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico de Autenticación - TAQ</h1>
+        
+        <div class="section info">
+            <h3>Información del Navegador</h3>
+            <div id="browser-info"></div>
+        </div>
+
+        <div class="section">
+            <h3>Pruebas de API</h3>
+            <button onclick="testCookies()">Probar Cookies</button>
+            <button onclick="testAuth()">Probar Autenticación</button>
+            <button onclick="testLogin()">Probar Login</button>
+            <button onclick="clearResults()">Limpiar Resultados</button>
+        </div>
+
+        <div class="section">
+            <h3>Resultados</h3>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = process.env.REACT_APP_API_URL || 'https://evaluaciones.taqro.com.mx/api';
+        
+        // Mostrar información del navegador
+        function showBrowserInfo() {
+            const info = {
+                userAgent: navigator.userAgent,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine,
+                language: navigator.language,
+                platform: navigator.platform,
+                url: window.location.href,
+                origin: window.location.origin,
+                protocol: window.location.protocol,
+                hostname: window.location.hostname,
+                cookies: document.cookie
+            };
+            
+            document.getElementById('browser-info').innerHTML = `
+                <pre>${JSON.stringify(info, null, 2)}</pre>
+            `;
+        }
+
+        // Función para hacer requests a la API
+        async function makeRequest(url, options = {}) {
+            const defaultOptions = {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            try {
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                const data = await response.json();
+                return { success: true, status: response.status, data };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Probar cookies
+        async function testCookies() {
+            addResult('Probar Cookies', 'loading', 'Verificando cookies...');
+            
+            const result = await makeRequest(`${API_BASE}/auth/test-cookies`);
+            
+            if (result.success) {
+                addResult('Probar Cookies', 'success', result.data);
+            } else {
+                addResult('Probar Cookies', 'error', result.error);
+            }
+        }
+
+        // Probar autenticación
+        async function testAuth() {
+            addResult('Probar Autenticación', 'loading', 'Verificando autenticación...');
+            
+            const result = await makeRequest(`${API_BASE}/auth/test-auth`);
+            
+            if (result.success) {
+                addResult('Probar Autenticación', 'success', result.data);
+            } else {
+                addResult('Probar Autenticación', 'error', result.error);
+            }
+        }
+
+        // Probar login
+        async function testLogin() {
+            addResult('Probar Login', 'loading', 'Probando login...');
+            
+            const result = await makeRequest(`${API_BASE}/auth/test-login`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: 'admin',
+                    password: 'admin2025'
+                })
+            });
+            
+            if (result.success) {
+                addResult('Probar Login', 'success', result.data);
+            } else {
+                addResult('Probar Login', 'error', result.error);
+            }
+        }
+
+        // Agregar resultado
+        function addResult(title, type, data) {
+            const resultsDiv = document.getElementById('results');
+            const section = document.createElement('div');
+            section.className = `section ${type}`;
+            
+            const content = typeof data === 'object' ? 
+                `<pre>${JSON.stringify(data, null, 2)}</pre>` : 
+                `<p>${data}</p>`;
+            
+            section.innerHTML = `
+                <h4>${title}</h4>
+                ${content}
+            `;
+            
+            resultsDiv.appendChild(section);
+        }
+
+        // Limpiar resultados
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Inicializar
+        showBrowserInfo();
+    </script>
+</body>
+</html>

@@ -27,6 +27,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    console.log('API Error:', error.response?.status, error.response?.data);
+    
     // Solo redirigir si no estamos en la página de login y es un error 401
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
@@ -34,6 +36,7 @@ api.interceptors.response.use(
       
       // No redirigir si ya estamos en la página de login
       if (!isLoginPage) {
+        console.log('Redirigiendo a login por error 401');
         // Usar setTimeout para evitar redirecciones múltiples
         setTimeout(() => {
           window.location.href = '/l/login';

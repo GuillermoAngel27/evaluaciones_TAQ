@@ -2,19 +2,19 @@
 const cookieConfig = {
   // Configuración para cookies de autenticación
   auth: {
-    httpOnly: true,        // No accesible desde JavaScript
-    secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-    sameSite: 'strict',    // Previene CSRF
-    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    httpOnly: process.env.COOKIE_HTTPONLY === 'true' || true,        // No accesible desde JavaScript
+    secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+    sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'strict' : 'lax'), // Usar variable de entorno
+    maxAge: parseInt(process.env.COOKIE_MAX_AGE) || 24 * 60 * 60 * 1000, // Usar variable de entorno
     domain: process.env.COOKIE_DOMAIN || undefined,
     path: '/'
   },
   
   // Configuración para limpiar cookies
   clear: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    httpOnly: process.env.COOKIE_HTTPONLY === 'true' || true,
+    secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+    sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'strict' : 'lax'),
     domain: process.env.COOKIE_DOMAIN || undefined,
     path: '/'
   },
@@ -30,10 +30,10 @@ const cookieConfig = {
   
   // Configuración para producción
   production: {
-    httpOnly: true,
-    secure: true,          // Solo HTTPS
-    sameSite: 'strict',    // Máxima seguridad
-    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: process.env.COOKIE_HTTPONLY === 'true' || true,
+    secure: process.env.COOKIE_SECURE === 'true' || true,          // Solo HTTPS
+    sameSite: process.env.COOKIE_SAMESITE || 'strict',    // Usar variable de entorno
+    maxAge: parseInt(process.env.COOKIE_MAX_AGE) || 24 * 60 * 60 * 1000,
     domain: process.env.COOKIE_DOMAIN,
     path: '/'
   }

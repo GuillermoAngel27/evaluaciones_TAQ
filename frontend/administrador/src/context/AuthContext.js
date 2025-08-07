@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
         const response = await authAPI.verify();
         setUser(response.data.user);
       } catch (error) {
+        console.log('Error verificando autenticación:', error.message);
         // Si hay error, el usuario no está autenticado
         setUser(null);
       } finally {
