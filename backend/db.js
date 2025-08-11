@@ -33,4 +33,4 @@ pool.on('error', (err) => {
   console.error('   Número de error:', err.errno);
 });
 
-module.exports = pool; 
+module.exports = pool;
