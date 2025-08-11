@@ -286,7 +286,7 @@ export default function EvaluacionPage({ token }) {
           boxShadow: '0 4px 24px 0 rgba(30, 42, 73, 0.08)' 
         }}>
           <img 
-            src={process.env.PUBLIC_URL + '/logoEmp.png'} 
+            src={process.env.PUBLIC_URL + '/logoemp.png'} 
             alt="Logo" 
             style={{ width: 200, marginBottom: 24 }} 
           />
@@ -381,7 +381,7 @@ export default function EvaluacionPage({ token }) {
           `}</style>
           <div className="error-card">
             <div className="error-header">
-              <img className="error-header-logo" src={process.env.PUBLIC_URL + '/logoEmp.png'} alt="Logo" />
+              <img className="error-header-logo" src={process.env.PUBLIC_URL + '/logoemp.png'} alt="Logo" />
               <h2 className="error-header-title">
                 Local Temporalmente No Disponible
               </h2>
@@ -473,7 +473,7 @@ export default function EvaluacionPage({ token }) {
           `}</style>
           <div className="error-card">
             <div className="error-header">
-              <img className="error-header-logo" src={process.env.PUBLIC_URL + '/logoEmp.png'} alt="Logo" />
+              <img className="error-header-logo" src={process.env.PUBLIC_URL + '/logoemp.png'} alt="Logo" />
               <h2 className="error-header-title">
               </h2>
             </div>
@@ -655,7 +655,7 @@ export default function EvaluacionPage({ token }) {
         `}</style>
         <div className="form-card">
           <div className="form-header">
-            <img className="form-header-logo" src={process.env.PUBLIC_URL + '/logoEmp.png'} alt="Logo" />
+            <img className="form-header-logo" src={process.env.PUBLIC_URL + '/logoemp.png'} alt="Logo" />
             <h2 className="form-header-title">
               Evaluar: {local.nombre}
             </h2>

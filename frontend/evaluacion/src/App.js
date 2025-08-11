@@ -69,7 +69,7 @@ function WelcomePage() {
         boxShadow: '0 4px 24px 0 rgba(30, 42, 73, 0.08)' 
       }}>
         <img 
-          src={process.env.PUBLIC_URL + '/logoEmp.png'} 
+          src={process.env.PUBLIC_URL + '/logoemp.png'} 
           alt="Logo" 
           style={{ width: 200, marginBottom: 24 }} 
         />
