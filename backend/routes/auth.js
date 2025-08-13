@@ -28,7 +28,7 @@ const { setAuthCookie, clearAuthCookie } = require('../config/cookies');
 // Configuración de rate limiting para endpoints de autenticación
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 6, // máximo 6 intentos
+  max: 20, // máximo 20 intentos
   message: { 
     error: 'Demasiados intentos de login. Intente nuevamente en 15 minutos.',
     retryAfter: '15 minutos'
@@ -47,11 +47,11 @@ const loginLimiter = rateLimit({
 // Configuración de rate limiting para cambio de contraseña
 const passwordChangeLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 3, // máximo 3 intentos
+  max: 20, // máximo 20 intentos
   message: { 
     error: 'Demasiados intentos de cambio de contraseña. Intente nuevamente en 1 hora.',
     retryAfter: '1 hora'
-  },
+    },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {

@@ -12,11 +12,12 @@
 - **Validación de tokens** - Prevención de evaluaciones duplicadas
 
 ### 📊 **Panel Administrativo Avanzado**
-- **Dashboard en tiempo real** - Actualización automática cada 30 segundos
-- **Gestión completa de locales** - CRUD con filtros y búsqueda
-- **Sistema de usuarios y roles** - Administrador, Supervisor, Evaluador, Viewer
-- **Estadísticas inteligentes** - Análisis por local, pregunta y tipo
-- **Insights automáticos** - Identificación de áreas de mejora
+- **Dashboard principal** - Vista general del sistema con header personalizado
+- **Gestión completa de locales** - CRUD con filtros, búsqueda y generación de códigos QR
+- **Sistema de usuarios y roles** - Administrador y Usuario Normal con permisos granulares
+- **Gestión de evaluaciones** - Navegación jerárquica desde locales hasta evaluaciones individuales
+- **Estadísticas organizadas** - 3 secciones: por local, por pregunta y comparación por tipo
+- **Sistema de filtros avanzados** - Búsqueda, tipo de local, fechas y turnos
 
 ### 🔐 **Sistema de Seguridad**
 - **Autenticación JWT** con tokens seguros
@@ -32,6 +33,10 @@
 - **MySQL 8.0+** - Base de datos relacional
 - **JWT** - Autenticación de tokens
 - **bcrypt** - Hashing seguro de contraseñas
+- **Helmet** - Headers de seguridad HTTP
+- **Express Rate Limit** - Prevención de ataques de fuerza bruta
+- **Cookie Parser** - Manejo seguro de cookies
+- **CORS** - Control de acceso entre dominios
 
 ### **Frontend Administrativo**
 - **React 18** - Biblioteca de interfaz de usuario
@@ -39,12 +44,61 @@
 - **Bootstrap 4.6** - Framework CSS
 - **Chart.js 4.5** - Gráficos interactivos
 - **Reactstrap 9.2** - Componentes Bootstrap para React
+- **FontAwesome 6.2** - Iconografía profesional
+- **Perfect Scrollbar** - Scrollbars personalizados
+- **SweetAlert2** - Alertas y confirmaciones elegantes
 
 ### **Frontend Evaluación**
-- **React 18** - Biblioteca de interfaz de usuario
+- **React 19** - Biblioteca de interfaz de usuario
 - **CSS personalizado** - Diseño mobile-first
 - **Fetch API** - Comunicación con backend
 - **LocalStorage** - Persistencia de estado
+- **SweetAlert2** - Notificaciones de usuario
+
+## 🛡️ **Características de Seguridad Avanzada**
+
+### **Rate Limiting y Protección**
+- **Login Rate Limiting**: Máximo 6 intentos en 15 minutos
+- **Password Change Rate Limiting**: Máximo 3 intentos por hora
+- **CORS Configurado**: Solo dominios autorizados permitidos
+- **Headers de Seguridad**: Helmet CSP con políticas estrictas
+
+### **Validación y Autenticación**
+- **Contraseñas Complejas**: Mínimo 8 caracteres, mayúsculas, minúsculas, números y símbolos
+- **JWT con Cookies Seguras**: httpOnly, secure, sameSite configurados
+- **Blacklist de Tokens**: Sistema completo de invalidación de sesiones
+- **Logging de Seguridad**: Registro detallado de eventos de seguridad
+
+### **Manejo de Sesiones**
+- **Tokens Invalidados**: Sistema de logout seguro
+- **Expiración Automática**: Tokens con tiempo de vida limitado
+- **Prevención de Replay**: Tokens únicos por sesión
+- **Auditoría Completa**: Logs de login, logout y cambios de contraseña
+
+
+## 📚 **Dependencias Específicas Implementadas**
+
+### **Backend - Utilidades Avanzadas**
+```json
+{
+  "html2canvas": "^1.4.1",        // Generación de códigos QR en PDF
+"jspdf": "^3.0.1",              // Creación de PDFs de códigos QR
+  "qrcode": "^1.5.4",             // Generación de códigos QR únicos
+  "node-cron": "^4.2.1",          // Tareas programadas automáticas
+  "node-fetch": "^2.7.0",         // Fetch API para Node.js
+  "joi-password-complexity": "^5.2.0" // Validación de contraseñas complejas
+}
+```
+
+### **Frontend - Componentes Profesionales**
+```json
+{
+  "@fortawesome/fontawesome-free": "^6.2.0", // Iconografía profesional
+  "perfect-scrollbar": "^1.5.5",            // Scrollbars personalizados
+  "react-copy-to-clipboard": "^5.1.0",      // Funcionalidad de copia
+  "sweetalert2": "^11.22.2"                 // Alertas elegantes
+}
+```
 
 ## 🚀 Instalación Rápida
 
@@ -89,7 +143,7 @@ npm run start:dev
 # O individualmente:
 npm run start:backend    # Puerto 4000
 npm run start:admin      # Puerto 3000
-npm run start:evaluacion # Puerto 5173
+npm run start:evaluacion # Puerto 3001
 ```
 
 ## 📁 Estructura del Proyecto
@@ -97,17 +151,18 @@ npm run start:evaluacion # Puerto 5173
 ```
 evaluacionesTAQ/
 ├── backend/                 # API REST (Node.js + Express + MySQL)
-│   ├── config/             # Configuración de preguntas
+│   ├── config/             # Configuración de preguntas y cookies
 │   ├── database/           # Scripts SQL y migraciones
 │   ├── routes/             # Endpoints de la API
-│   ├── utils/              # Utilidades (turnos, etc.)
-│   └── start_backend.js    # Servidor principal
+│   ├── utils/              # Utilidades (turnos, seguridad, limpieza)
+│   └── start_backend.js    # Servidor principal con configuración de seguridad
 ├── frontend/
 │   ├── administrador/      # Panel administrativo (React + Argon Dashboard)
 │   │   ├── src/
 │   │   │   ├── components/ # Componentes reutilizables
 │   │   │   ├── views/      # Páginas principales
 │   │   │   ├── context/    # Contexto de autenticación
+│   │   │   ├── hooks/      # Hooks personalizados
 │   │   │   └── utils/      # Utilidades (API, PDF, etc.)
 │   │   └── package.json
 │   └── evaluacion/         # Aplicación de evaluación (React)
@@ -148,61 +203,91 @@ evaluacionesTAQ/
 3. ¿El acceso a las instalaciones son adecuadas?
 4. ¿El proceso para pago fue optimo?
 
+### **Sistema de Normalización**
+El sistema incluye **normalización inteligente** de tipos de local:
+- **Misceláneas**: Acepta variantes como 'miscelanea', 'misceláneas'
+- **Alimentos**: Reconocimiento de 'alimento', 'alimentos'
+- **Taxis**: Identifica 'taxi', 'taxis'
+- **Estacionamiento**: Detecta 'parking', 'estacionamiento'
+
 ## 🌐 URLs de Acceso
 
 - **Backend API**: `http://localhost:4000`
 - **Panel Administrativo**: `http://localhost:3000`
-- **Aplicación de Evaluación**: `http://localhost:5173`
+- **Aplicación de Evaluación**: `http://localhost:3001`
 - **Health Check**: `http://localhost:4000/health`
 
-## 📊 Funcionalidades del Dashboard
+## 📊 Funcionalidades del Sistema
 
-### **Métricas en Tiempo Real**
-- **Total de Locales** - Activos e inactivos
-- **Total de Evaluaciones** - Número total de evaluaciones
-- **Promedio General** - Calificación promedio del sistema
-- **Evaluaciones Hoy** - Evaluaciones del día actual
-- **Satisfacción** - Porcentaje de calificaciones 4-5 estrellas
+### **Dashboard Principal**
+- **Header personalizado** con gradiente de colores corporativos
+- **Navegación lateral** con acceso a todas las funcionalidades del sistema
+- **Vista general** del estado del sistema y métricas básicas
 
-### **Análisis Avanzado**
-- **Por Local** - Estadísticas individuales de cada establecimiento
-- **Por Pregunta** - Análisis específico de cada pregunta
-- **Por Tipo** - Comparación entre tipos de local
-- **Insights Automáticos** - Identificación de áreas de mejora
+### **Gestión de Locales**
+- **CRUD completo** de establecimientos comerciales
+- **Filtros avanzados** por nombre, tipo y estado
+- **Generación de códigos QR** únicos para cada local
+- **Categorización automática** por tipo (Alimentos, Misceláneas, Taxis, Estacionamiento)
+- **Paginación inteligente** para listas extensas
 
-### **Gráficos Interactivos**
-- **Calificaciones por Tipo** - Comparación visual entre categorías
-- **Evaluaciones por Día** - Tendencia temporal
-- **Top Locales** - Ranking de establecimientos más evaluados
-- **Comentarios Recientes** - Feedback de clientes
+### **Gestión de Usuarios**
+- **Sistema de roles** con permisos granulares
+- **Creación y edición** de usuarios con validaciones de seguridad
+- **Gestión de contraseñas** con sistema de placeholder y cambio opcional
+- **Restricciones de seguridad** (no eliminar propio usuario, último administrador)
+- **Filtros por rol y estado** activo/inactivo
+
+### **Sistema de Evaluaciones**
+- **Navegación jerárquica**: Locales → Evaluaciones del Local → Evaluación Individual
+- **Filtros en cascada** que se mantienen entre vistas
+- **Filtros por turno** específicos para cada local
+- **Vista detallada** con comentarios y respuestas por pregunta
+- **Sistema de calificación** visual con estrellas y colores
+
+### **Sistema de Estadísticas**
+- **📋 Estadísticas por Local**: Tabla con métricas de rendimiento, filtros y paginación
+- **❓ Análisis por Pregunta**: Gráfica de barras por tipo de local con sistema de colores
+- **📈 Comparación por Tipo**: Tabla comparativa entre categorías de locales
+- **Sistema de colores**: Verde (5⭐), Amarillo (4⭐), Rojo (3-1⭐) para interpretación rápida
 
 ## 🔐 Autenticación y Roles
 
 ### **Usuarios por Defecto**
 - **Administrador**: `admin` / `admin1234`
-- **Supervisor**: `supervisor1` / `supervisor1234`
-- **Evaluador**: `evaluador1` / `evaluador1234`
-- **Viewer**: `viewer1` / `viewer1234`
 
-### **Niveles de Acceso**
-- **Administrador**: Acceso completo a todas las funcionalidades
-- **Supervisor**: Gestión de locales y visualización de estadísticas
-- **Evaluador**: Solo visualización de evaluaciones y estadísticas
-- **Viewer**: Acceso limitado a reportes básicos
+### **Niveles de Acceso Implementados**
+El sistema implementa **2 roles principales**:
+
+#### **🔐 Administrador**
+- ✅ **Gestión completa de usuarios** (crear, editar, eliminar, cambiar contraseñas)
+- ✅ **Gestión completa de locales** (crear, editar, eliminar, generar códigos QR)
+- ✅ **Acceso completo a evaluaciones** (ver, navegar, filtrar por turnos)
+- ✅ **Estadísticas completas** (3 secciones con análisis detallado)
+- ✅ **Configuración del sistema** (invalidar tokens, blacklist)
+
+#### **👤 Usuario Normal**
+- ✅ **Ver locales** y generar códigos QR
+- ✅ **Acceso completo a evaluaciones** (navegación jerárquica, filtros, detalles)
+- ✅ **Estadísticas completas** (mismo acceso que administradores)
+- ❌ **NO puede** crear/editar/eliminar usuarios
+- ❌ **NO puede** crear/editar/eliminar locales
+- ❌ **NO puede** eliminar evaluaciones
 
 ## 📝 API Endpoints Principales
 
 ### **Autenticación**
-- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/login` - Iniciar sesión (con rate limiting)
 - `POST /api/auth/register` - Registrar usuario
+- `POST /api/auth/logout` - Cerrar sesión (invalida token)
 - `GET /api/auth/verify` - Verificar token
 
 ### **Locales**
 - `GET /api/locales` - Listar locales
-- `POST /api/locales` - Crear local
+- `POST /api/locales` - Crear local (solo admin)
 - `GET /api/locales/:id` - Obtener local
-- `PUT /api/locales/:id` - Actualizar local
-- `DELETE /api/locales/:id` - Eliminar local
+- `PUT /api/locales/:id` - Actualizar local (solo admin)
+- `DELETE /api/locales/:id` - Eliminar local (solo admin)
 - `GET /api/locales/estadisticas` - Estadísticas de locales
 - `GET /api/locales/insights-evaluacion` - Insights de evaluación
 
@@ -210,6 +295,7 @@ evaluacionesTAQ/
 - `GET /api/evaluaciones` - Listar evaluaciones
 - `POST /api/evaluaciones` - Crear evaluación
 - `GET /api/evaluaciones/turno-actual` - Obtener turno actual
+- `GET /api/evaluaciones/turnos` - Listar todos los turnos disponibles
 - `GET /api/evaluaciones/preguntas/:tipo` - Obtener preguntas por tipo
 - `GET /api/evaluaciones/dashboard/stats` - Estadísticas del dashboard
 - `GET /api/evaluaciones/dashboard/top-locales` - Top locales evaluados
@@ -233,7 +319,7 @@ npm run install:evaluacion # Solo aplicación de evaluación
 npm run start:dev          # Iniciar todos los servicios
 npm run start:backend      # Solo backend (puerto 4000)
 npm run start:admin        # Solo panel administrativo (puerto 3000)
-npm run start:evaluacion   # Solo aplicación de evaluación (puerto 5173)
+npm run start:evaluacion   # Solo aplicación de evaluación (puerto 3001)
 ```
 
 ### **Producción**
@@ -254,11 +340,12 @@ npm run build:evaluacion   # Construir aplicación de evaluación
 6. **Token se marca como usado** → Previene evaluaciones duplicadas
 
 ### **Proceso Administrativo**
-1. **Administrador inicia sesión** → Autenticación JWT
-2. **Accede al dashboard** → Ve métricas en tiempo real
-3. **Gestiona locales** → CRUD de establecimientos
-4. **Analiza estadísticas** → Insights y tendencias
-5. **Toma decisiones** → Basado en datos reales
+1. **Usuario inicia sesión** → Autenticación JWT con cookies seguras
+2. **Accede al sistema** → Navega por las diferentes secciones
+3. **Gestiona locales** → CRUD de establecimientos y generación de códigos QR
+4. **Analiza evaluaciones** → Navegación jerárquica con filtros avanzados
+5. **Revisa estadísticas** → 3 secciones de análisis organizadas
+6. **Toma decisiones** → Basado en datos reales y métricas visuales
 
 ## 🛠️ Mantenimiento
 
@@ -269,8 +356,14 @@ npm run build:evaluacion   # Construir aplicación de evaluación
 
 ### **Monitoreo**
 - **Health Checks**: Endpoint `/health` para verificación
-- **Logs**: Registro detallado de operaciones
+- **Logs de Seguridad**: Registro detallado de eventos de seguridad
 - **Errores**: Captura y reporte de errores
+- **Rate Limiting**: Monitoreo de intentos fallidos
+
+### **Limpieza Automática**
+- **Tokens Expirados**: Limpieza automática de tokens vencidos
+- **Blacklist**: Mantenimiento de la lista de tokens invalidados
+- **Logs Antiguos**: Rotación automática de archivos de log
 
 ## 📱 Responsive Design
 
@@ -288,7 +381,7 @@ npm run build:evaluacion   # Construir aplicación de evaluación
 
 ### **Funcionalidades Planificadas**
 - **Notificaciones Push**: Alertas en tiempo real
-- **Reportes Automáticos**: Exportación programada
+- **Reportes Automáticos**: Generación programada
 - **API Pública**: Integración con sistemas externos
 - **Analytics Avanzados**: Machine Learning para insights
 - **Multiidioma**: Soporte para múltiples idiomas
@@ -299,18 +392,6 @@ npm run build:evaluacion   # Construir aplicación de evaluación
 - **CI/CD**: Pipeline de despliegue automático
 - **Testing**: Cobertura completa de pruebas
 
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
-
 ## 👨‍💻 Autor
 
 **Guillermo Angel** - [GitHub](https://github.com/GuillermoAngel27)
@@ -319,15 +400,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 - **Repositorio**: https://github.com/GuillermoAngel27/evaluaciones_TAQ
 - **Issues**: https://github.com/GuillermoAngel27/evaluaciones_TAQ/issues
-- **Documentación Completa**: Ver `DOCUMENTACION_COMPLETA_PROYECTO.md`
 
-## 🙏 Agradecimientos
 
-- [Argon Dashboard](https://www.creative-tim.com/product/argon-dashboard) por el diseño inspirador
-- [Chart.js](https://www.chartjs.org/) por las librerías de gráficos
-- [Reactstrap](https://reactstrap.github.io/) por los componentes Bootstrap
-
----
-
-**Última actualización:** Diciembre 2024  
-**Estado del proyecto:** ✅ **PRODUCCIÓN LISTA** 
+**Última actualización:** DICIEMBRE 2024  
+**Estado del proyecto:** ✅ **PRODUCCIÓN LISTA**  
+**Versión del README:** 4.0 - **ACTUALIZADO CON FUNCIONALIDAD REAL DEL SISTEMA** 
